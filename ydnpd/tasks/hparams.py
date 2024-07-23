@@ -1,5 +1,6 @@
 import itertools as it
 
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -60,14 +61,24 @@ class HyperParamSearchTask(DPTask):
             epsilon_dev_results = dev_results[str(epsilon)]
             epsilon_test_results = test_results[str(epsilon)]
 
-            sorted_dev_results = sorted(epsilon_dev_results, key=get_metric, reverse=True)
-            sorted_test_results = sorted(epsilon_test_results, key=get_metric, reverse=True)
+            dev_test_results = zip(epsilon_dev_results, epsilon_test_results)
+            dev_test_by_min_dev_result = min(dev_test_results, key=lambda x: get_metric(x[0]))
+            test_by_min_dev_metric_values = get_metric(dev_test_by_min_dev_result[1])
+            test_metric_values = np.array([get_metric(result) for result in epsilon_test_results])
 
-            top_k_dev_hparams = [result["hparams"] for result in sorted_dev_results][:top_k]
-            top_k_test_hparams = [result["hparams"] for result in sorted_test_results][:top_k]
+            # precentile
+            evaluation[str(epsilon)] = (sum(test_by_min_dev_metric_values >= test_metric_values)
+                                        / len(test_metric_values))
 
-            evaluation[str(epsilon)] = sum(hparams in top_k_test_hparams
-                                           for hparams in top_k_dev_hparams) / top_k
+            # prop in top-k
+            # sorted_dev_results = sorted(epsilon_dev_results, key=get_metric, reverse=True)
+            # sorted_test_results = sorted(epsilon_test_results, key=get_metric, reverse=True)
+
+            # top_k_dev_hparams = [result["hparams"] for result in sorted_dev_results][:top_k]
+            # top_k_test_hparams = [result["hparams"] for result in sorted_test_results][:top_k]
+
+            # evaluation[str(epsilon)] = sum(hparams in top_k_test_hparams
+            #                                for hparams in top_k_dev_hparams) / top_k
 
         return evaluation
 
@@ -101,7 +112,7 @@ class HyperParamSearchTask(DPTask):
         g.figure.suptitle(f"Dev vs Test {metric}")
         g.set_axis_labels(f"Dev ({dev_name})", f"Test ({test_name})")
 
-        g._legend.set_title(f"ε (top-{top_k} overlap)")
+        g._legend.set_title(f"ε (% test by min dev)")
 
         x_min, x_max = g.ax.get_xlim()
         y_min, y_max = g.ax.get_ylim()
