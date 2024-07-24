@@ -12,7 +12,6 @@ from ydnpd.utils import _freeze
 
 class HyperParamSearchTask(DPTask):
 
-    TOP_K_DEFAULT = 3
     METRIC_DEFAULT = "marginals_up_to_3_max_abs_diff_errors"
 
     def __init__(self, epsilons: list[float], synth_name: str, hparam_dims: dict[str, list]):
@@ -45,8 +44,6 @@ class HyperParamSearchTask(DPTask):
 
     def evaluate(self, results, *, dev_name, test_name,
                  **kwargs) -> dict[str, float]:
-
-        top_k = kwargs.get("top_k", HyperParamSearchTask.TOP_K_DEFAULT)
 
         dev_results = results[dev_name]
         test_results = results[test_name]
@@ -84,7 +81,6 @@ class HyperParamSearchTask(DPTask):
 
     def plot(self, results, *, dev_name, test_name, **kwargs):
 
-        top_k = kwargs.get("top_k", HyperParamSearchTask.TOP_K_DEFAULT)
         metric = kwargs.get("metric", HyperParamSearchTask.METRIC_DEFAULT)
 
         dev_results = results[dev_name]
@@ -93,13 +89,12 @@ class HyperParamSearchTask(DPTask):
         task_evaluation = self.evaluate(results,
                                         dev_name=dev_name,
                                         test_name=test_name,
-                                        top_k=top_k,
                                         metric=metric)
 
         results_df = HyperParamSearchTask.combine_results(dev_results=dev_results,
                                                           test_results=test_results,
                                                           metric=metric)
-
+        print(task_evaluation)
         results_df["epsilon"] = results_df["epsilon"].apply(
             lambda x: f"{x} ({100*task_evaluation[str(x)]:.1f}%)"
         )
@@ -132,10 +127,9 @@ class HyperParamSearchTask(DPTask):
         def to_df(results):
             df = pd.DataFrame(sum(results.values(), []))
             df["hparams_frozen"] = df["hparams"].apply(_freeze)
-            df["metric"] = 100 * df["evaluation"].apply(
-                lambda x: x[metric]
-                ) / len(df.loc[0, "synth_dataset"])
-
+            df["metric"] = df.apply(
+                lambda row: row["evaluation"][metric] / len(row["synth_dataset"]),
+                axis=1).multiply(100)
             return df
 
         dev_df = to_df(dev_results)
