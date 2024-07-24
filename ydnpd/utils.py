@@ -1,27 +1,22 @@
 import os
 import sys
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
 
 
 @contextmanager
 def suppress_output():
-    # Save the original stdout and stderr
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-
-    # Open /dev/null to discard output
-    devnull = open(os.devnull, 'w')
-
-    try:
-        # Redirect stdout and stderr to /dev/null
-        sys.stdout = devnull
-        sys.stderr = devnull
-        yield
-    finally:
-        # Restore the original stdout and stderr
-        sys.stdout = original_stdout
-        sys.stderr = original_stderr
-        devnull.close()
+    with open(os.devnull, 'w') as devnull:
+        old_stdout = os.dup(1)
+        old_stderr = os.dup(2)
+        os.dup2(devnull.fileno(), 1)
+        os.dup2(devnull.fileno(), 2)
+        try:
+            yield
+        finally:
+            os.dup2(old_stdout, 1)
+            os.dup2(old_stderr, 2)
+            os.close(old_stdout)
+            os.close(old_stderr)
 
 
 def _freeze(d):

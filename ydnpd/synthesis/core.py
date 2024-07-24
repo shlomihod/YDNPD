@@ -2,7 +2,6 @@ import warnings
 
 import pandas as pd
 
-
 try:
     from synthcity.plugins import Plugins
     from synthcity.plugins.core.dataloader import GenericDataLoader
@@ -20,10 +19,37 @@ try:
 except ImportError:
     warnings.warn("SmartNoise is not installed. Please install it to use SmartNoise synthesizers.")
 
+from ydnpd.synthesis.privbayes import PrivBayes
+
 
 SYNTHESIZERS = ["id", "CTGAN", "CopulaGAN", "GaussianCopula", "TVAE",
                 "aim", "mwem", "mst", "pacsynth", "dpctgan", "patectgan",
                 "dpgan", "privbayes", "adsgan", "decaf", "pategan", "AIM"]
+
+
+HPARAMS_BASE = {
+    "QUERY_BASED": {
+        "num_query": [128, 1024, 4096],  # 512,
+        "num_iterations": [100, 1000],  # 500,
+        "num_inner_updates": [25, 100],
+    },
+    "GAN": {
+        "epochs": [300],
+        "generator_lr": [2e-4, 2e-5],
+        "discriminator_lr": [2e-4, 2e-5],
+        "generator_decay": [1e-6],
+        "discriminator_decay": [1e-6],
+        # "discriminator_steps": [1, 5], # NOT IN USE IN smartnoise
+        "batch_size": [500],
+        "noise_multiplier": [1e-3, 0.1, 1, 5],
+        "max_per_sample_grad_norm": [0.1, 1, 5],
+        "loss": ["cross_entropy", "wasserstein"],
+    },
+    "PBN_BASED": {
+        "EPSILON_SPLIT": [0.1, 0.25, 0.5, 0.75],
+        "THETA": [2, 4, 8, 16, 20, 25, 30, 35, 40, 50, 60, 100],
+    },
+}
 
 
 def generate_synthetic_data(dataset: pd.DataFrame, schema: dict,
@@ -72,7 +98,7 @@ def generate_synthetic_data(dataset: pd.DataFrame, schema: dict,
         synth_df = synthesizer.sample(num_samples)
 
     # Synthcity
-    elif synth_name in ['dpgan', 'privbayes', 'adsgan', 'decaf', 'pategan', 'AIM']:
+    elif synth_name in ['dpgan', 'adsgan', 'decaf', 'pategan', 'AIM']:
         loader = GenericDataLoader(
             synth_name
         )
@@ -82,6 +108,10 @@ def generate_synthetic_data(dataset: pd.DataFrame, schema: dict,
         synthesizer.fit(loader)
 
         synth_df = synthesizer.generate(count=num_samples).dataframe()
+
+    elif synth_name == "privbayes":
+        synthesizer = PrivBayes(epsilon=epsilon, **hparams)
+        synth_df = synthesizer.fit_sample(dataset, schema)
 
     else:
         raise ValueError(f"Unknown synthesizer name: {synth_name}")
