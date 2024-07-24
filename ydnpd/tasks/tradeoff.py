@@ -68,4 +68,12 @@ class PrivacyUtilityTradeoffTask:
         g.set(xticks=melted_df["epsilon"].unique())
         g.set_axis_labels("ε", metric)
 
+        def format_tick(x):
+            return f'{x:.2f}' if not float(x).is_integer() else f'{int(x)}'
+
+        epsilons = list(evaluation_df.index)
+        g.ax.set_xscale('log')
+        g.ax.set_xticks(epsilons)
+        g.ax.set_xticklabels([format_tick(epsilon) for epsilon in epsilons])
+
         return g
