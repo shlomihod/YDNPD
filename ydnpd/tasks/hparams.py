@@ -14,10 +14,12 @@ class HyperParamSearchTask(DPTask):
 
     METRIC_DEFAULT = "marginals_up_to_3_max_abs_diff_errors"
 
-    def __init__(self, epsilons: list[float], synth_name: str, hparam_dims: dict[str, list]):
+    def __init__(self, epsilons: list[float], synth_name: str, hparam_dims: dict[str, list],
+                 num_runs: int = 10):
         self.epsilons = epsilons
         self.synth_name = synth_name
         self.hparam_dims = hparam_dims
+        self.num_runs = num_runs
 
         self.hparam_space = [dict(zip(hparam_dims, values)) for values in it.product(*hparam_dims.values())]
 
@@ -27,16 +29,22 @@ class HyperParamSearchTask(DPTask):
             epsilon_results = []
             for hparams in self.hparam_space:
 
-                if verbose:
-                    print(f"{self.__class__.__name__}: synth_name={self.synth_name}, epsilon={epsilon}, hparams={hparams}")
+                evaluations = []
+                for run_id in range(self.num_runs):
 
-                synth_dataset = generate_synthetic_data(dataset, schema,
-                                                        epsilon,
-                                                        self.synth_name, **hparams)
+                    if verbose:
+                        print(f"{self.__class__.__name__}: synth_name={self.synth_name}, epsilon={epsilon}, hparams={hparams} run={run_id}")
+
+                    synth_dataset = generate_synthetic_data(dataset, schema,
+                                                            epsilon,
+                                                            self.synth_name, **hparams)
+
+                    evaluations.append(evaluate(dataset, synth_dataset, schema))
+
                 epsilon_results.append({"epsilon": epsilon,
                                         "hparams": hparams,
                                         "synth_dataset": synth_dataset,
-                                        "evaluation": evaluate(dataset, synth_dataset)})
+                                        "evaluation": evaluations})
 
             results[str(epsilon)] = epsilon_results
 
@@ -48,8 +56,14 @@ class HyperParamSearchTask(DPTask):
         dev_results = results[dev_name]
         test_results = results[test_name]
 
+        metric = kwargs.get("metric", HyperParamSearchTask.METRIC_DEFAULT)
+
         def get_metric(result):
-            return result["evaluation"][kwargs.get("metric", HyperParamSearchTask.METRIC_DEFAULT)]
+            return [run[metric]
+                    for run in result["evaluation"]]
+
+        def get_metric_mean(result):
+            return np.mean(get_metric(result))
 
         evaluation = {}
 
@@ -59,9 +73,9 @@ class HyperParamSearchTask(DPTask):
             epsilon_test_results = test_results[str(epsilon)]
 
             dev_test_results = zip(epsilon_dev_results, epsilon_test_results)
-            dev_test_by_min_dev_result = min(dev_test_results, key=lambda x: get_metric(x[0]))
-            test_by_min_dev_metric_values = get_metric(dev_test_by_min_dev_result[1])
-            test_metric_values = np.array([get_metric(result) for result in epsilon_test_results])
+            dev_test_by_min_dev_result = min(dev_test_results, key=lambda x: np.mean(get_metric(x[0])))
+            test_by_min_dev_metric_values = get_metric_mean(dev_test_by_min_dev_result[1])
+            test_metric_values = np.array([get_metric_mean(result) for result in epsilon_test_results])
 
             # precentile
             evaluation[str(epsilon)] = (sum(test_by_min_dev_metric_values >= test_metric_values)
@@ -127,7 +141,7 @@ class HyperParamSearchTask(DPTask):
             df = pd.DataFrame(sum(results.values(), []))
             df["hparams_frozen"] = df["hparams"].apply(_freeze)
             df["metric"] = df.apply(
-                lambda row: row["evaluation"][metric] / len(row["synth_dataset"]),
+                lambda row: np.mean([run[metric] for run in row["evaluation"]]) / len(row["synth_dataset"]),
                 axis=1).multiply(100)
             return df
 

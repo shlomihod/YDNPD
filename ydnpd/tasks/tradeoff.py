@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -25,14 +26,26 @@ class PrivacyUtilityTradeoffTask:
 
         results_df = HyperParamSearchTask.combine_results(dev_results=dev_results,
                                                           test_results=test_results)
+
+        def get_metric_mean(runs):
+            return np.mean([run[metric] for run in runs])
+
+        def get_metric_mean_according(group, take, by):
+            metrics_by = group.apply(lambda row: get_metric_mean(row[f"evaluation_{by}"]), axis=1)
+            index_by = metrics_by.idxmin()
+            return get_metric_mean(group.at[index_by, f"evaluation_{take}"])
+
         evaluation_df = (results_df
                          .groupby("epsilon")
                          .apply(lambda g:
-                                pd.Series({f"{take}_{by}": g.at[g[f"evaluation_{by}"].str[metric].idxmin(),
-                                                                f"evaluation_{take}"][metric]
-                                                                for take, by in [("dev", "dev"),
-                                                                                 ("test", "dev"),
-                                                                                 ("test", "test")]}))
+                                pd.Series({
+                                    f"{take}_{by}":
+                                    get_metric_mean_according(g, take, by)
+                                    for take, by in [("dev", "dev"),
+                                                     ("test", "dev"),
+                                                     ("test", "test")]
+                                            })
+                                )
                          )
 
         return evaluation_df
