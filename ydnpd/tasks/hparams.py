@@ -94,7 +94,6 @@ class HyperParamSearchTask(DPTask):
         results_df = HyperParamSearchTask.combine_results(dev_results=dev_results,
                                                           test_results=test_results,
                                                           metric=metric)
-        print(task_evaluation)
         results_df["epsilon"] = results_df["epsilon"].apply(
             lambda x: f"{x} ({100*task_evaluation[str(x)]:.1f}%)"
         )
