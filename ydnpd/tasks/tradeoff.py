@@ -41,9 +41,17 @@ class PrivacyUtilityTradeoffTask:
         if metric is None:
             metric = self.hparams_task.METRIC_DEFAULT
 
+        # TODO: refactor
+        num_records = {}
+        for dataset_role in ["dev", "test"]:
+            dataset_name = {"dev": dev_name, "test": test_name}[dataset_role]
+            num_records[dataset_role] = len(list(hparams_results[dataset_name].values())[0][0]["synth_dataset"])
+
         evaluation_df = self.evaluate(hparams_results,
                                       dev_name=dev_name,
                                       test_name=test_name)
+
+        evaluation_df = evaluation_df.apply(lambda x: x / num_records[x.name.split("_")[0]]).multiply(100)
 
         melted_df = (evaluation_df
                      .reset_index()
@@ -56,7 +64,7 @@ class PrivacyUtilityTradeoffTask:
                         x="epsilon", y="value", hue="condition",
                         kind="line")
 
-        g.figure.suptitle(f"P-U Tradeoff of Dev {dev_name} and Test {test_name}")
+        g.figure.suptitle(f"P-U Tradeoff of Dev ({dev_name}) and Test ({test_name})")
         g.set(xticks=melted_df["epsilon"].unique())
         g.set_axis_labels("ε", metric)
 
