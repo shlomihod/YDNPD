@@ -27,31 +27,6 @@ SYNTHESIZERS = ["id", "CTGAN", "CopulaGAN", "GaussianCopula", "TVAE",
                 "dpgan", "privbayes", "adsgan", "decaf", "pategan", "AIM"]
 
 
-HPARAMS_BASE = {
-    "QUERY_BASED": {
-        "num_query": [128, 1024, 4096],  # 512,
-        "num_iterations": [100, 1000],  # 500,
-        "num_inner_updates": [25, 100],
-    },
-    "GAN": {
-        "epochs": [300],
-        "generator_lr": [2e-4, 2e-5],
-        "discriminator_lr": [2e-4, 2e-5],
-        "generator_decay": [1e-6],
-        "discriminator_decay": [1e-6],
-        # "discriminator_steps": [1, 5], # NOT IN USE IN smartnoise
-        "batch_size": [500],
-        "noise_multiplier": [1e-3, 0.1, 1, 5],
-        "max_per_sample_grad_norm": [0.1, 1, 5],
-        "loss": ["cross_entropy", "wasserstein"],
-    },
-    "PBN_BASED": {
-        "EPSILON_SPLIT": [0.1, 0.25, 0.5, 0.75],
-        "THETA": [2, 4, 8, 16, 20, 25, 30, 35, 40, 50, 60, 100],
-    },
-}
-
-
 def generate_synthetic_data(dataset: pd.DataFrame, schema: dict,
                             epsilon: float,
                             synth_name: str, **hparams):
