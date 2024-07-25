@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 
-DATASET_ROOT = Path("diverse_communities_data_excerpts")
+DATASET_ROOT = Path("data/diverse_communities_data_excerpts")
 
 DATASETS = {"national": "national/national2019",
             "massachusetts": "massachusetts/ma2019",
