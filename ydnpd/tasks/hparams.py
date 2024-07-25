@@ -1,11 +1,11 @@
 import itertools as it
+from typing import Callable
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
 from ydnpd.synthesis import generate_synthetic_data
-from ydnpd.evaluation import evaluate
 from ydnpd.tasks import DPTask
 from ydnpd.utils import _freeze
 
@@ -15,10 +15,11 @@ class HyperParamSearchTask(DPTask):
     METRIC_DEFAULT = "marginals_up_to_3_max_abs_diff_errors"
 
     def __init__(self, epsilons: list[float], synth_name: str, hparam_dims: dict[str, list],
-                 num_runs: int = 10):
+                 evaluation_fn: Callable, num_runs: int = 10):
         self.epsilons = epsilons
         self.synth_name = synth_name
         self.hparam_dims = hparam_dims
+        self.evaluation_fn = evaluation_fn
         self.num_runs = num_runs
 
         self.hparam_space = [dict(zip(hparam_dims, values)) for values in it.product(*hparam_dims.values())]
@@ -39,7 +40,7 @@ class HyperParamSearchTask(DPTask):
                                                             epsilon,
                                                             self.synth_name, **hparams)
 
-                    evaluations.append(evaluate(dataset, synth_dataset, schema))
+                    evaluations.append(self.evaluation_fn(dataset, synth_dataset, schema))
 
                 epsilon_results.append({"epsilon": epsilon,
                                         "hparams": hparams,
@@ -51,12 +52,13 @@ class HyperParamSearchTask(DPTask):
         return results
 
     def evaluate(self, results, *, dev_name, test_name,
-                 **kwargs) -> dict[str, float]:
+                 metric=None, **kwargs) -> dict[str, float]:
 
         dev_results = results[dev_name]
         test_results = results[test_name]
 
-        metric = kwargs.get("metric", HyperParamSearchTask.METRIC_DEFAULT)
+        if metric is None:
+            metric = self.METRIC_DEFAULT
 
         def get_metric(result):
             return [run[metric]
@@ -93,9 +95,11 @@ class HyperParamSearchTask(DPTask):
 
         return evaluation
 
-    def plot(self, results, *, dev_name, test_name, **kwargs):
+    def plot(self, results, *, dev_name, test_name,
+             metric=None, **kwargs):
 
-        metric = kwargs.get("metric", HyperParamSearchTask.METRIC_DEFAULT)
+        if metric is None:
+            metric = self.METRIC_DEFAULT
 
         dev_results = results[dev_name]
         test_results = results[test_name]
@@ -108,8 +112,12 @@ class HyperParamSearchTask(DPTask):
         results_df = HyperParamSearchTask.combine_results(dev_results=dev_results,
                                                           test_results=test_results,
                                                           metric=metric)
+
+        for role in ["dev", "test"]:
+            results_df[f"metric_{role}"] *= 100
+
         results_df["epsilon"] = results_df["epsilon"].apply(
-            lambda x: f"{x} ({100*task_evaluation[str(x)]:.1f}%)"
+            lambda x: f"{x} ({100 * task_evaluation[str(x)]:.1f}%)"
         )
 
         g = sns.lmplot(data=results_df, x="metric_dev", y="metric_test",
@@ -132,7 +140,8 @@ class HyperParamSearchTask(DPTask):
         return g
 
     @staticmethod
-    def combine_results(*, dev_results, test_results, metric=None):
+    def combine_results(*, dev_results, test_results,
+                        metric=None) -> pd.DataFrame:
 
         if metric is None:
             metric = HyperParamSearchTask.METRIC_DEFAULT
@@ -141,8 +150,8 @@ class HyperParamSearchTask(DPTask):
             df = pd.DataFrame(sum(results.values(), []))
             df["hparams_frozen"] = df["hparams"].apply(_freeze)
             df["metric"] = df.apply(
-                lambda row: np.mean([run[metric] for run in row["evaluation"]]) / len(row["synth_dataset"]),
-                axis=1).multiply(100)
+                    lambda row: np.mean([run[metric] for run in row["evaluation"]]),
+                    axis=1)
             return df
 
         dev_df = to_df(dev_results)
