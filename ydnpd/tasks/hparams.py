@@ -24,6 +24,9 @@ class HyperParamSearchTask(DPTask):
 
         self.hparam_space = [dict(zip(hparam_dims, values)) for values in it.product(*hparam_dims.values())]
 
+    def size(self) -> int:
+        return len(self.epsilons) * len(self.hparam_space) * self.num_runs
+
     def execute(self, dataset: pd.DataFrame, schema: dict, verbose: bool = False) -> dict[list[dict]]:
         results = {}
         for epsilon in self.epsilons:
