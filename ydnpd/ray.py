@@ -1,3 +1,4 @@
+import traceback
 from functools import partial
 from collections import defaultdict
 
@@ -22,7 +23,14 @@ def run_hparam_task(synth_name, dataset_name):
 
     dataset, schema = load_dataset(dataset_name)
 
-    return task, dataset_name, task.execute(dataset, schema)
+    try:
+        result = task.execute(dataset, schema)
+    except Exception as e:
+        print(f"Error in {synth_name} on {dataset_name}: {e}")
+        traceback.print_stack()
+        result = None
+
+    return task, dataset_name, result
 
 
 def span_hparam_ray_tasks():
@@ -39,7 +47,10 @@ def collect_hparam_runs(flatten_tasks_results):
 
     for task, dataset_name, results in flatten_tasks_results:
         for epsilon in map(str, task.epsilons):
-            synth_dataset_epsilon_results[dataset_name][epsilon].extend(results[epsilon])
+            if (result := results.get(epsilon)) is not None:
+                synth_dataset_epsilon_results[dataset_name][epsilon].extend(result)
+            else:
+                print(f"Error in {task.synth_name} on {dataset_name} at epsilon {epsilon}")
 
         task_results[task.synth_name] = (task, synth_dataset_epsilon_results)
 
