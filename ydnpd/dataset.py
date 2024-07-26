@@ -14,7 +14,7 @@ DATASETS = {"national": "national/national2019",
 
 # https://pages.nist.gov/privacy_collaborative_research_cycle/pages/participate.html
 COL_SUBSETS = {
-    "demographic": ["SEX", "MSP", "RAC1P", "OWN_RENT", "PINCP_DECILE", "EDU"]  #, "AGEP", "HOUSING_TYPE", "DVET", "DEYE"]
+    "demographic": ["SEX", "MSP", "RAC1P", "OWN_RENT", "PINCP_DECILE", "EDU", "HOUSING_TYPE", "DVET", "DEYE"]  # "AGEP"
 }
 
 

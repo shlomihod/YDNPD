@@ -4,33 +4,33 @@ DATASET_NAMES = ["national", "massachusetts", "baseline_domain", "baseline_univa
 
 EPSILONS = [1, 4, 10]
 
-NUM_RUNS = 10
+NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 10_000
 
-EXPERIMENT_SYNTHESIZERS  = ["privbayes"]#, "mwem"] #["aim"]  # ["mwem", , "aim"]  # "privbayes", 
+EXPERIMENT_SYNTHESIZERS  = ["privbayes", "mwem", "aim"]
 
 HPARAMS_DIMS = {
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "q_count": [128, 1024, 4096],
+        "q_count": [128, 512],
         "marginal_width": [2, 3],
-        "iterations": [10, 100, 1000],
-        "add_ranges": [False, True],
-        "split_factor": [1, 2, 3],
-        "mult_weights_iterations": [25, 100],
-        }, 
+        "iterations": [10, 50],
+        "add_ranges": [False], # True],
+        "split_factor": [None], #, 3],
+        "mult_weights_iterations": [20],
+    },
     "mst": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
     },
     "aim": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
         "degree": [2, 3],
-        "rounds": [10, 100, 1000],
+        "rounds": [10, 100],
     },
     "privbayes": {
-        "theta": [2, 4, 8, 16, 20, 25, 30, 35, 40, 50, 60, 100],
-        "epsilon_split": [0.1, 0.25, 0.5, 0.75],
+        "theta": [2, 4, 8, 16, 32, 64],
+        "epsilon_split": [0.1, 0.5, 0.75],
     },
     "patectgan": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
@@ -54,10 +54,10 @@ HPARAMS_DIMS = {
     },
 }
 
-                # dev                  # test
-EXPERIMENTS = [("massachusetts",       "national")]#,
-               # ("baseline_domain",     "national"),
-               # ("baseline_univariate", "national")]
+#                dev                    test
+EXPERIMENTS = [("massachusetts",       "national"),
+               ("baseline_domain",     "national"),
+               ("baseline_univariate", "national")]
 
 CLASSIFICATION_TARGET_COLUMN = "OWN_RENT"
 CLASSIFICATION_SPLIT_PROPORTION = 0.7
