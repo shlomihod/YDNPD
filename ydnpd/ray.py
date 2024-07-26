@@ -39,13 +39,14 @@ def span_hparam_tasks():
                             classification_split_proportion=ydnpd.config.CLASSIFICATION_SPLIT_PROPORTION,
                             marginals_up_to_k=ydnpd.config.MARGINALS_UP_TO_K)
 
-    return [HyperParamSearchTask(epsilons=ydnpd.config.EPSILONS,
+    return {(synth_name, dataset_name):
+            HyperParamSearchTask(epsilons=ydnpd.config.EPSILONS,
                                  synth_name=synth_name,
                                  hparam_dims=ydnpd.config.HPARAMS_DIMS[synth_name],
                                  evaluation_fn=evaluation_fn,
                                  num_runs=ydnpd.config.NUM_RUNS)
             for synth_name in ydnpd.config.EXPERIMENT_SYNTHESIZERS
-            for dataset_name in ydnpd.config.DATASET_NAMES]   
+            for dataset_name in ydnpd.config.DATASET_NAMES}
 
 
 def span_hparam_ray_tasks():

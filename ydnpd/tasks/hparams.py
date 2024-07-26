@@ -1,3 +1,4 @@
+import time
 import itertools as it
 from typing import Callable
 
@@ -27,7 +28,7 @@ class HyperParamSearchTask(DPTask):
     def size(self) -> int:
         return len(self.epsilons) * len(self.hparam_space) * self.num_runs
 
-    def execute(self, dataset: pd.DataFrame, schema: dict, verbose: bool = False) -> dict[list[dict]]:
+    def execute(self, dataset: pd.DataFrame, schema: dict, verbose: bool = True) -> dict[list[dict]]:
         results = {}
         for epsilon in self.epsilons:
             epsilon_results = []
@@ -56,6 +57,8 @@ class HyperParamSearchTask(DPTask):
 
     def evaluate(self, results, *, dev_name, test_name,
                  metric=None, **kwargs) -> dict[str, float]:
+
+        start_time = time.time()
 
         dev_results = results[dev_name]
         test_results = results[test_name]
@@ -95,6 +98,9 @@ class HyperParamSearchTask(DPTask):
 
             # evaluation[str(epsilon)] = sum(hparams in top_k_test_hparams
             #                                for hparams in top_k_dev_hparams) / top_k
+
+        end_time = time.time()
+        evaluation["duration"] = end_time - start_time
 
         return evaluation
 
