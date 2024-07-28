@@ -8,8 +8,8 @@ from sklearn.ensemble import RandomForestClassifier
 RANDOM_SEED = 42
 
 
-def calc_marginals_up_to_3_max_abs_diff_errors(
-    first_dataset: pd.DataFrame, second_dataset: pd.DataFrame, marginals_up_to_k: int
+def calc_k_marginals_abs_diff_errors(
+    first_dataset: pd.DataFrame, second_dataset: pd.DataFrame, marginals_k: int
 ) -> dict[str, int]:
 
     columns = list(first_dataset.columns)
@@ -19,7 +19,7 @@ def calc_marginals_up_to_3_max_abs_diff_errors(
     def count_fn(dataset: pd.DataFrame, keys: list[str]) -> pd.DataFrame:
         return dataset.groupby(keys).size().to_frame("count").reset_index()
 
-    for keys in it.combinations(columns, marginals_up_to_k):
+    for keys in it.combinations(columns, marginals_k):
         keys = list(keys)
         marginals_abs_diff_errors.extend(
             pd.merge(
@@ -34,18 +34,20 @@ def calc_marginals_up_to_3_max_abs_diff_errors(
         )
 
     return {
-        f"marginals_up_to_{marginals_up_to_k}_max_abs_diff_errors": np.max(
+        f"marginals_{marginals_k}_max_abs_diff_error": np.max(marginals_abs_diff_errors)
+        / len(first_dataset),
+        f"marginals_{marginals_k}_total_abs_diff_error": np.sum(
             marginals_abs_diff_errors
         )
-        / len(first_dataset)
+        / (len(first_dataset) * len(marginals_abs_diff_errors)),
     }
 
 
-def calc_thresholded_marginals_up_to_3_max_abs_diff_errors(
+def calc_thresholded_marginals_k_abs_diff_errors(
     first_dataset: pd.DataFrame,
     second_dataset: pd.DataFrame,
     schema: dict,
-    marginals_up_to_k: int,
+    marginals_k: int,
 ) -> dict[str, int]:
     datasets = [first_dataset.copy(), second_dataset.copy()]
 
@@ -69,11 +71,11 @@ def calc_thresholded_marginals_up_to_3_max_abs_diff_errors(
                 # if the value is less than the mid value, set it to 0, otherwise set it to 1
                 dataset[column] = (dataset[column] < mid_value).astype(int)
 
-        args = datasets + [marginals_up_to_k]
+        args = datasets + [marginals_k]
 
     return {
         f"thresholded_{k}": v
-        for k, v in calc_marginals_up_to_3_max_abs_diff_errors(*args).items()
+        for k, v in calc_k_marginals_abs_diff_errors(*args).items()
     }
 
 
@@ -126,18 +128,16 @@ def evaluate_two(
     schema: dict,
     classification_target_column: str,
     classification_split_proportion: float,
-    marginals_up_to_k: int,
+    marginals_k: int,
 ) -> dict:
 
     assert first_dataset.shape == second_dataset.shape
     assert list(first_dataset.columns) == list(second_dataset.columns)
 
     return (
-        calc_marginals_up_to_3_max_abs_diff_errors(
-            first_dataset, second_dataset, marginals_up_to_k
-        )
-        | calc_thresholded_marginals_up_to_3_max_abs_diff_errors(
-            first_dataset, second_dataset, schema, marginals_up_to_k
+        calc_k_marginals_abs_diff_errors(first_dataset, second_dataset, marginals_k)
+        | calc_thresholded_marginals_k_abs_diff_errors(
+            first_dataset, second_dataset, schema, marginals_k
         )
         | calc_classification_accuracy(
             first_dataset,

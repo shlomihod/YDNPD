@@ -1,10 +1,9 @@
 import traceback
 from functools import partial
-from collections import defaultdict
 
 import ray
 
-from ydnpd import load_dataset, evaluate_two, UtilityTask
+from ydnpd import evaluate_two, UtilityTask
 import ydnpd.config
 
 
@@ -17,7 +16,7 @@ def span_hparam_tasks(task_kwargs=None):
         evaluate_two,
         classification_target_column=ydnpd.config.CLASSIFICATION_TARGET_COLUMN,
         classification_split_proportion=ydnpd.config.CLASSIFICATION_SPLIT_PROPORTION,
-        marginals_up_to_k=ydnpd.config.MARGINALS_UP_TO_K,
+        marginals_k=ydnpd.config.MARGINALS_K,
     )
 
     return [
