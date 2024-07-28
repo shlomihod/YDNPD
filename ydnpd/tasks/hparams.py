@@ -1,4 +1,3 @@
-import time
 import itertools as it
 from typing import Callable
 
@@ -100,120 +99,157 @@ class HyperParamSearchTask(DPTask):
 
         return results
 
-    def evaluate(self, results, *, dev_name, test_name,
-                 metric=None, **kwargs) -> dict[str, float]:
-
-        start_time = time.time()
-
-        dev_results = results[dev_name]
-        test_results = results[test_name]
-
+    @staticmethod
+    def evaluate(hparam_results, experiemnts, metric=None):
         if metric is None:
-            metric = self.METRIC_DEFAULT
+            metric = HyperParamSearchTask.METRIC_DEFAULT
+        metric_column = f"evaluation_{metric}"
 
-        def get_metric(result):
-            return [run[metric]
-                    for run in result["evaluation"]]
+        results_df = HyperParamSearchTask.process(hparam_results)
 
-        def get_metric_mean(result):
-            return np.mean(get_metric(result))
+        best_hparams_df = results_df.groupby(["dataset_name", "synth_name", "epsilon"])[
+            metric_column
+        ].idxmin()
 
-        evaluation = {}
+        def extractor(test_name, dev_name):
 
-        for epsilon in self.epsilons:
+            def function(r):
+                metric_column = f"evaluation_{metric}"
+                synth_name, epsilon = r.name
+                hparams = results_df.iloc[r.item()]["hparams_frozen"]
+                base_mask = (results_df["synth_name"] == synth_name) & (
+                    results_df["epsilon"] == epsilon
+                )
+                best_dev_result = results_df.loc[
+                    (results_df["dataset_name"] == dev_name)
+                    & (results_df["hparams_frozen"] == hparams)
+                    & base_mask,
+                    metric_column,
+                ].item()
+                correspond_test_result = results_df.loc[
+                    (results_df["dataset_name"] == test_name)
+                    & (results_df["hparams_frozen"] == hparams)
+                    & base_mask,
+                    metric_column,
+                ].item()
+                test_results = results_df.loc[
+                    (results_df["dataset_name"] == test_name) & base_mask, metric_column
+                ]
+                return {
+                    "quantile": (correspond_test_result >= test_results).sum()
+                    / len(test_results),
+                    "best_dev": best_dev_result,
+                    "correspond_test": correspond_test_result,
+                    "best_test": test_results.min(),
+                    "median_test": test_results.median(),
+                    "worst_test": test_results.max(),
+                }
 
-            epsilon_dev_results = dev_results[str(epsilon)]
-            epsilon_test_results = test_results[str(epsilon)]
+            return function
 
-            dev_test_results = zip(epsilon_dev_results, epsilon_test_results)
-            dev_test_by_min_dev_result = min(dev_test_results, key=lambda x: np.mean(get_metric(x[0])))
-            test_by_min_dev_metric_values = get_metric_mean(dev_test_by_min_dev_result[1])
-            test_metric_values = np.array([get_metric_mean(result) for result in epsilon_test_results])
-
-            # precentile
-            evaluation[str(epsilon)] = (sum(test_by_min_dev_metric_values >= test_metric_values)
-                                        / len(test_metric_values))
-
-            # prop in top-k
-            # sorted_dev_results = sorted(epsilon_dev_results, key=get_metric, reverse=True)
-            # sorted_test_results = sorted(epsilon_test_results, key=get_metric, reverse=True)
-
-            # top_k_dev_hparams = [result["hparams"] for result in sorted_dev_results][:top_k]
-            # top_k_test_hparams = [result["hparams"] for result in sorted_test_results][:top_k]
-
-            # evaluation[str(epsilon)] = sum(hparams in top_k_test_hparams
-            #                                for hparams in top_k_dev_hparams) / top_k
-
-        end_time = time.time()
-        evaluation["duration"] = end_time - start_time
-
-        return evaluation
-
-    def plot(self, results, *, dev_name, test_name,
-             metric=None, **kwargs):
-
-        if metric is None:
-            metric = self.METRIC_DEFAULT
-
-        dev_results = results[dev_name]
-        test_results = results[test_name]
-
-        task_evaluation = self.evaluate(results,
-                                        dev_name=dev_name,
-                                        test_name=test_name,
-                                        metric=metric)
-
-        results_df = HyperParamSearchTask.combine_results(dev_results=dev_results,
-                                                          test_results=test_results,
-                                                          metric=metric)
-
-        for role in ["dev", "test"]:
-            results_df[f"metric_{role}"] *= 100
-
-        results_df["epsilon"] = results_df["epsilon"].apply(
-            lambda x: f"{x} ({100 * task_evaluation[str(x)]:.1f}%)"
+        hparams_evaluation_df = (
+            pd.concat(
+                [
+                    (
+                        pd.DataFrame(best_hparams_df[dev_name])
+                        .apply(
+                            extractor(test_name, dev_name), result_type="expand", axis=1
+                        )
+                        .reset_index()
+                        .assign(
+                            dev_name=dev_name,
+                            test_name=test_name,
+                            experiment=f"{test_name}/{dev_name}",
+                        )
+                    )
+                    for test_name, dev_name in experiemnts
+                ]
+            )
+            .set_index(["synth_name", "experiment", "epsilon"])
+            .sort_index()
+            .drop(columns=["test_name", "dev_name"])
         )
 
-        g = sns.lmplot(data=results_df, x="metric_dev", y="metric_test",
-                       hue="epsilon",
-                       ci=None,
-                       facet_kws={'legend_out': True})
+        return hparams_evaluation_df
 
-        g.figure.suptitle(f"Dev vs Test {metric}")
-        g.set_axis_labels(f"Dev ({dev_name})", f"Test ({test_name})")
+    @staticmethod
+    def plot(hparam_results, experiments, metric=None):
 
-        g._legend.set_title(f"ε (% test by min dev)")
+        if metric is None:
+            metric = HyperParamSearchTask.METRIC_DEFAULT
+        metric_column = f"evaluation_{metric}"
 
-        x_min, x_max = g.ax.get_xlim()
-        y_min, y_max = g.ax.get_ylim()
-        common_min = min(x_min, y_min)
-        common_max = max(x_max, y_max)
-        g.ax.set_xlim(common_min, common_max)
-        g.ax.set_ylim(common_min, common_max)
+        results_df = HyperParamSearchTask.process(hparam_results)
+
+        def expender(test_name, dev_name):
+            def function(g):
+                g = g[["dataset_name", "hparams_frozen", metric_column]].rename(
+                    columns={metric_column: "metric"}
+                )
+                df = (
+                    pd.merge(
+                        g.query("dataset_name == @test_name"),
+                        g.query("dataset_name == @dev_name"),
+                        on="hparams_frozen",
+                        suffixes=("_test", "_dev"),
+                    )
+                    .rename(
+                        columns={
+                            "dataset_name_test": "test_name",
+                            "dataset_name_dev": "dev_name",
+                        }
+                    )
+                    .assign(
+                        metric_test=lambda x: x["metric_test"] * 100,
+                        metric_dev=lambda x: x["metric_dev"] * 100,
+                        experiment=f"{test_name}/{dev_name}",
+                    )
+                )
+                return df
+
+            return function
+
+        experiment_df = pd.concat(
+            [
+                results_df.groupby(["synth_name", "epsilon"])
+                .apply(expender(test_name, dev_name), include_groups=False)
+                .reset_index()
+                for test_name, dev_name in experiments
+            ]
+        )
+
+        g = sns.lmplot(
+            data=experiment_df,
+            x="metric_dev",
+            y="metric_test",
+            hue="epsilon",
+            row="synth_name",
+            col="experiment",
+            ci=None,
+        )
+
+        g.set(xlim=(0, 100), ylim=(0, 100))
 
         return g
 
     @staticmethod
-    def combine_results(*, dev_results, test_results,
-                        metric=None) -> pd.DataFrame:
+    def process(hparam_results):
+        df = pd.DataFrame(hparam_results)
 
-        if metric is None:
-            metric = HyperParamSearchTask.METRIC_DEFAULT
+        df["hparams_frozen"] = df["hparams"].apply(_freeze)
 
-        def to_df(results):
-            df = pd.DataFrame(sum(results.values(), []))
-            df["hparams_frozen"] = df["hparams"].apply(_freeze)
-            df["metric"] = df.apply(
-                    lambda row: np.mean([run[metric] for run in row["evaluation"]]),
-                    axis=1)
-            return df
+        for metric in list(df.loc[0, "evaluation"].keys()):
+            metric_column = f"evaluation_{metric}"
+            df[metric_column] = df["evaluation"].apply(lambda x: x[metric])
 
-        dev_df = to_df(dev_results)
-        test_df = to_df(test_results)
+        metric_columns = [c for c in df.columns if c.startswith("evaluation_")]
 
-        results_df = pd.merge(dev_df, test_df,
-                              how="outer",
-                              on=("epsilon", "hparams_frozen"),
-                              suffixes=("_dev", "_test"))
+        df = (
+            df.groupby(["dataset_name", "synth_name", "epsilon", "hparams_frozen"])[
+                metric_columns
+            ]
+            .mean()
+            .reset_index()
+        )
 
-        return results_df
+        return df
