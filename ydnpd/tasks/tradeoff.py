@@ -4,11 +4,11 @@ import ydnpd
 
 
 class PrivacyUtilityTradeoffTask:
-    @staticmethod
     def execute(self):
         raise RuntimeError("Use HyperParamSearchTask to produce results")
-
-    def evaluate(self):
+    
+    @staticmethod
+    def evaluate():
         raise RuntimeError("Use HyperParamSearchTask to evaluate")
 
     @staticmethod
