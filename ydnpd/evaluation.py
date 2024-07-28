@@ -95,12 +95,12 @@ def calc_classification_accuracy(first_dataset: pd.DataFrame,
     model_second = (RandomForestClassifier()
                     .fit(X_train_second, y_train_second))
 
-    first_accuracy = model_first.score(X_test_first, y_test_first)
-    second_accuracy = model_second.score(X_test_first, y_test_first)
+    accuracy_train_dataset = model_first.score(X_test_first, y_test_first)
+    accuracy_other_dataset = model_second.score(X_test_first, y_test_first)
 
-    return {"first_accuracy": first_accuracy,
-            "second_accuracy": second_accuracy,
-            "accuracy_diff": first_accuracy - second_accuracy}
+    return {"accuracy_train_dataset": accuracy_train_dataset,
+            "accuracy_other_dataset": accuracy_other_dataset,
+            "accuracy_diff": accuracy_train_dataset - accuracy_other_dataset}
 
 
 def evaluate_two(first_dataset: pd.DataFrame,
