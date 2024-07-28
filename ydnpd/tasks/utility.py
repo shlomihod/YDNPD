@@ -12,7 +12,7 @@ from ydnpd.tasks import DPTask
 from ydnpd.utils import _freeze
 
 
-class HyperParamSearchTask(DPTask):
+class UtilityTask(DPTask):
 
     METRIC_DEFAULT = "marginals_up_to_3_max_abs_diff_errors"
 
@@ -49,7 +49,7 @@ class HyperParamSearchTask(DPTask):
         ]
 
     def __str__(self):
-        return f"<HyperParamSearchTask (#configs={self.size()}): {self.synth_name} & {self.dataset_name}>"
+        return f"<UtilityTask (#configs={self.size()}): {self.synth_name} & {self.dataset_name}>"
 
     def size(self) -> int:
         return len(self.epsilons) * len(self.hparam_space) * self.num_runs
@@ -102,10 +102,10 @@ class HyperParamSearchTask(DPTask):
     @staticmethod
     def evaluate(hparam_results, experiemnts, metric=None):
         if metric is None:
-            metric = HyperParamSearchTask.METRIC_DEFAULT
+            metric = UtilityTask.METRIC_DEFAULT
         metric_column = f"evaluation_{metric}"
 
-        results_df = HyperParamSearchTask.process(hparam_results)
+        results_df = UtilityTask.process(hparam_results)
 
         best_hparams_df = results_df.groupby(["dataset_name", "synth_name", "epsilon"])[
             metric_column
@@ -136,7 +136,7 @@ class HyperParamSearchTask(DPTask):
                     (results_df["dataset_name"] == test_name) & base_mask, metric_column
                 ]
                 return {
-                    "quantile": (correspond_test_result >= test_results).sum()
+                    "quantile": (correspond_test_result > test_results).sum()
                     / len(test_results),
                     "best_dev": best_dev_result,
                     "correspond_test": correspond_test_result,
@@ -153,16 +153,18 @@ class HyperParamSearchTask(DPTask):
                     (
                         pd.DataFrame(best_hparams_df[dev_name])
                         .apply(
-                            extractor(test_name, dev_name), result_type="expand", axis=1
+                            extractor(experiemnts.test_name, dev_name),
+                            result_type="expand",
+                            axis=1,
                         )
                         .reset_index()
                         .assign(
                             dev_name=dev_name,
-                            test_name=test_name,
-                            experiment=f"{test_name}/{dev_name}",
+                            test_name=experiemnts.test_name,
+                            experiment=f"{experiemnts.test_name}/{dev_name}",
                         )
                     )
-                    for test_name, dev_name in experiemnts
+                    for dev_name in experiemnts.dev_names
                 ]
             )
             .set_index(["synth_name", "experiment", "epsilon"])
@@ -176,61 +178,100 @@ class HyperParamSearchTask(DPTask):
     def plot(hparam_results, experiments, metric=None):
 
         if metric is None:
-            metric = HyperParamSearchTask.METRIC_DEFAULT
+            metric = UtilityTask.METRIC_DEFAULT
         metric_column = f"evaluation_{metric}"
 
-        results_df = HyperParamSearchTask.process(hparam_results)
+        results_df = UtilityTask.process(hparam_results)
 
-        def expender(test_name, dev_name):
-            def function(g):
-                g = g[["dataset_name", "hparams_frozen", metric_column]].rename(
-                    columns={metric_column: "metric"}
+        evaluation_df = UtilityTask.evaluate(
+            hparam_results, experiments, metric
+        ).reset_index()
+
+        results_df[metric_column] *= 100
+        evaluation_df["correspond_test"] *= 100
+
+        def plot_dev_vs_test():
+            def expender(test_name, dev_name):
+                def function(g):
+                    g = g[["dataset_name", "hparams_frozen", metric_column]].rename(
+                        columns={metric_column: "metric"}
+                    )
+                    df = (
+                        pd.merge(
+                            g.query("dataset_name == @test_name"),
+                            g.query("dataset_name == @dev_name"),
+                            on="hparams_frozen",
+                            suffixes=("_test", "_dev"),
+                        )
+                        .rename(
+                            columns={
+                                "dataset_name_test": "test_name",
+                                "dataset_name_dev": "dev_name",
+                            }
+                        )
+                        .assign(
+                            experiment=f"{test_name}/{dev_name}",
+                        )
+                    )
+                    return df
+
+                return function
+
+            experiment_df = pd.concat(
+                [
+                    results_df.groupby(["synth_name", "epsilon"])
+                    .apply(
+                        expender(experiments.test_name, dev_name), include_groups=False
+                    )
+                    .reset_index()
+                    for dev_name in experiments.dev_names
+                ]
+            )
+
+            g = sns.lmplot(
+                data=experiment_df,
+                x="metric_dev",
+                y="metric_test",
+                hue="epsilon",
+                row="synth_name",
+                col="experiment",
+                ci=None,
+            )
+
+            g.set(xlim=(0, 100), ylim=(0, 100))
+
+            return g
+
+        def plot_dev_within_test():
+            def plot_swarm_and_line(data, **kwargs):
+
+                synth_name = data["synth_name"].unique().item()
+
+                sns.swarmplot(
+                    data=data, x="epsilon", y=metric_column, color="black", alpha=0.6
                 )
-                df = (
-                    pd.merge(
-                        g.query("dataset_name == @test_name"),
-                        g.query("dataset_name == @dev_name"),
-                        on="hparams_frozen",
-                        suffixes=("_test", "_dev"),
-                    )
-                    .rename(
-                        columns={
-                            "dataset_name_test": "test_name",
-                            "dataset_name_dev": "dev_name",
-                        }
-                    )
-                    .assign(
-                        metric_test=lambda x: x["metric_test"] * 100,
-                        metric_dev=lambda x: x["metric_dev"] * 100,
-                        experiment=f"{test_name}/{dev_name}",
-                    )
+
+                sns.pointplot(
+                    data=evaluation_df.query(f"synth_name == '{synth_name}'"),
+                    x="epsilon",
+                    y="correspond_test",
+                    hue="experiment",
+                    marker="x",
                 )
-                return df
 
-            return function
+            g = sns.FacetGrid(
+                results_df[results_df["dataset_name"] == experiments.test_name],
+                col="synth_name",
+                height=6,
+                aspect=1.5,
+            )
+            g.map_dataframe(plot_swarm_and_line)
 
-        experiment_df = pd.concat(
-            [
-                results_df.groupby(["synth_name", "epsilon"])
-                .apply(expender(test_name, dev_name), include_groups=False)
-                .reset_index()
-                for test_name, dev_name in experiments
-            ]
-        )
+            g.add_legend()
 
-        g = sns.lmplot(
-            data=experiment_df,
-            x="metric_dev",
-            y="metric_test",
-            hue="epsilon",
-            row="synth_name",
-            col="experiment",
-            ci=None,
-        )
+            return g
 
-        g.set(xlim=(0, 100), ylim=(0, 100))
-
-        return g
+        return plot_dev_vs_test(), plot_dev_within_test()
 
     @staticmethod
     def process(hparam_results):
