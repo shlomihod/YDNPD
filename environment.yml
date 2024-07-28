@@ -11,6 +11,7 @@ dependencies:
   - seaborn
   - sdv
   - pip:
+    - wandb
     - ray[default]
     - smartnoise-synth
     - git+https://github.com/ryan112358/private-pgm.git
