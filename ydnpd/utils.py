@@ -5,7 +5,7 @@ from contextlib import contextmanager, redirect_stdout, redirect_stderr
 
 @contextmanager
 def suppress_output():
-    with open(os.devnull, 'w') as devnull:
+    with open(os.devnull, "w") as devnull:
         old_stdout = os.dup(1)
         old_stderr = os.dup(2)
         os.dup2(devnull.fileno(), 1)
