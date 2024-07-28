@@ -1,6 +1,5 @@
-
-
-DATASET_NAMES = ["national", "massachusetts", "baseline_domain", "baseline_univariate"]
+from collections import namedtuple
+import itertools as it
 
 EPSILONS = [1, 4, 10]
 
@@ -8,16 +7,16 @@ NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 10_000
 
-EXPERIMENT_SYNTHESIZERS  = ["privbayes", "mwem", "aim"]
+EXPERIMENT_SYNTHESIZERS = ["privbayes", "mwem"]  # , "aim"]
 
 HPARAMS_DIMS = {
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "q_count": [128, 512],
+        "q_count": [512],  # [128, 512],
         "marginal_width": [2, 3],
         "iterations": [10, 50],
-        "add_ranges": [False], # True],
-        "split_factor": [None], #, 3],
+        "add_ranges": [False, True],
+        "split_factor": [3],  # , None],
         "mult_weights_iterations": [20],
     },
     "mst": {
@@ -54,10 +53,12 @@ HPARAMS_DIMS = {
     },
 }
 
-#                dev                    test
-EXPERIMENTS = [("massachusetts",       "national"),
-               ("baseline_domain",     "national"),
-               ("baseline_univariate", "national")]
+# test, dev
+EXPERIMENTS = namedtuple("Experiments", ["test_name", "dev_names"])(
+    "national", ["national", "massachusetts", "baseline_univariate", "baseline_domain"]
+)
+
+DATASET_NAMES = set(it.chain([EXPERIMENTS.test_name] + EXPERIMENTS.dev_names))
 
 CLASSIFICATION_TARGET_COLUMN = "OWN_RENT"
 CLASSIFICATION_SPLIT_PROPORTION = 0.7
