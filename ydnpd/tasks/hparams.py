@@ -5,7 +5,9 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import wandb
 
+from ydnpd.dataset import load_dataset
 from ydnpd.synthesis import generate_synthetic_data
 from ydnpd.tasks import DPTask
 from ydnpd.utils import _freeze
@@ -15,43 +17,86 @@ class HyperParamSearchTask(DPTask):
 
     METRIC_DEFAULT = "marginals_up_to_3_max_abs_diff_errors"
 
-    def __init__(self, epsilons: list[float], synth_name: str, hparam_dims: dict[str, list],
-                 evaluation_fn: Callable, num_runs: int = 10):
+    def __init__(
+        self,
+        dataset_name: str,
+        epsilons: list[float],
+        synth_name: str,
+        hparam_dims: dict[str, list],
+        evaluation_fn: Callable,
+        num_runs: int,
+        verbose: bool = True,
+        with_wandb: bool = False,
+        wandb_kwargs: dict = None,
+    ):
+        self.dataset_name = dataset_name
         self.epsilons = epsilons
         self.synth_name = synth_name
         self.hparam_dims = hparam_dims
         self.evaluation_fn = evaluation_fn
         self.num_runs = num_runs
+        self.verbose = verbose
+        self.with_wandb = with_wandb
 
-        self.hparam_space = [dict(zip(hparam_dims, values)) for values in it.product(*hparam_dims.values())]
+        if not with_wandb:
+            if wandb_kwargs is not None:
+                raise ValueError("`wandb_kwargs` must be None if `with_wandb` is False")
+        else:
+            self.wandb_kwargs = wandb_kwargs if wandb_kwargs is not None else {}
+
+        self.hparam_space = [
+            dict(zip(hparam_dims, values))
+            for values in it.product(*hparam_dims.values())
+        ]
+
+    def __str__(self):
+        return f"<HyperParamSearchTask (#configs={self.size()}): {self.synth_name} & {self.dataset_name}>"
 
     def size(self) -> int:
         return len(self.epsilons) * len(self.hparam_space) * self.num_runs
 
-    def execute(self, dataset: pd.DataFrame, schema: dict, verbose: bool = True) -> dict[list[dict]]:
-        results = {}
+    def execute(self) -> list[dict]:
+
+        dataset, schema = load_dataset(self.dataset_name)
+
+        results = []
+
         for epsilon in self.epsilons:
-            epsilon_results = []
+
             for hparams in self.hparam_space:
+
+                config = {
+                    "dataset_name": self.dataset_name,
+                    "epsilon": epsilon,
+                    "synth_name": self.synth_name,
+                    "hparams": hparams,
+                } | {f"hparam_{k}": v for k, v in hparams.items()}
+
+                if self.with_wandb:
+                    wandb.init(project="ydnpd", config=config)
 
                 evaluations = []
                 for run_id in range(self.num_runs):
 
-                    if verbose:
-                        print(f"{self.__class__.__name__}: synth_name={self.synth_name}, epsilon={epsilon}, hparams={hparams} run={run_id}")
+                    if self.verbose:
+                        print(
+                            f"{self.__class__.__name__}: dataset = {self.dataset_name} synth_name={self.synth_name}, epsilon={epsilon}, hparams={hparams} run={run_id}"
+                        )
 
-                    synth_dataset = generate_synthetic_data(dataset, schema,
-                                                            epsilon,
-                                                            self.synth_name, **hparams)
+                    synth_dataset = generate_synthetic_data(
+                        dataset, schema, epsilon, self.synth_name, **hparams
+                    )
 
-                    evaluations.append(self.evaluation_fn(dataset, synth_dataset, schema))
+                    metric_results = self.evaluation_fn(dataset, synth_dataset, schema)
+                    evaluations.append(metric_results)
 
-                epsilon_results.append({"epsilon": epsilon,
-                                        "hparams": hparams,
-                                        "synth_dataset": synth_dataset,
-                                        "evaluation": evaluations})
+                    if self.with_wandb:
+                        wandb.log(metric_results)
 
-            results[str(epsilon)] = epsilon_results
+                    results.append(config | {"evaluation": metric_results})
+
+        if self.with_wandb:
+            wandb.finish()
 
         return results
 
