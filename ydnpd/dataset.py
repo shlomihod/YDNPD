@@ -26,7 +26,7 @@ COL_SUBSETS = {
         "PINCP_DECILE",
         "EDU",
         "HOUSING_TYPE",
-       # "DVET",  # Many missing values
+        # "DVET",  # Many missing values
         "DEYE",
     ]  # "AGEP"  # Continuous
 }
