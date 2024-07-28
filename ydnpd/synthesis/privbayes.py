@@ -14,6 +14,7 @@ import pandas as pd
 
 LOGGER = logging.getLogger(__name__)
 
+
 def safe_f2i(fnum):
     inum = int(fnum)
     return inum if inum == fnum else fnum
@@ -22,17 +23,13 @@ def safe_f2i(fnum):
 class PrivBayes:
     """docstring for PrivBN."""
 
-    def __init__(
-        self, epsilon, epsilon_split=None, theta=None, max_samples=None
-    ):
+    def __init__(self, epsilon, epsilon_split=None, theta=None, max_samples=None):
 
         self.theta = theta
 
         self.epsilon = safe_f2i(epsilon)
         self.epsilon_split = epsilon_split
-        privbayes_path_bin = os.getenv(
-            "PRIVBAYES_BIN", "privbayes"
-        )
+        privbayes_path_bin = os.getenv("PRIVBAYES_BIN", "privbayes")
         self.privbayes_bin = os.path.join(privbayes_path_bin, f"privBayes.bin")
         if not os.path.exists(self.privbayes_bin):
             raise RuntimeError("privbayes binary not found. Please set PRIVBAYES_BIN")
@@ -63,19 +60,19 @@ class PrivBayes:
                     LOGGER.info(f"Column schema: {column_schema}")
 
                     if (values := column_schema.get("values")) is not None:
-                        assert column_schema["dtype"].startswith("int"), (
-                            "Only integer columns can be categorical; you might have missing values"
-                        )
+                        assert column_schema["dtype"].startswith(
+                            "int"
+                        ), "Only integer columns can be categorical; you might have missing values"
 
-                        assert all(isinstance(v, int) for v in values), (
-                            "Categorical values must be integers"
-                        )
-                        assert len(values) == len(set(values)), (
-                            "Categorical values must be unique"
-                        )
-                        assert values == sorted(values), (
-                            "Categorical values must be sorted"
-                        )
+                        assert all(
+                            isinstance(v, int) for v in values
+                        ), "Categorical values must be integers"
+                        assert len(values) == len(
+                            set(values)
+                        ), "Categorical values must be unique"
+                        assert values == sorted(
+                            values
+                        ), "Categorical values must be sorted"
 
                         LOGGER.info(f"Column {column} is categorical")
                         print("D", end="", file=f)

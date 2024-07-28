@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 class DPTask:
 
     def __init__(self):
@@ -9,8 +6,10 @@ class DPTask:
     def execute(self):
         raise
 
-    def evaluate(self, results, *, dev_name, test_name, **kwargs):
+    @staticmethod
+    def evaluate(self, results, **kwargs):
         raise NotImplementedError
 
-    def plot(self, results, *, dev_name, test_name, **kwargs):
+    @staticmethod
+    def plot(self, results, **kwargs):
         raise NotImplementedError
