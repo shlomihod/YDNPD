@@ -72,14 +72,14 @@ class UtilityTask(DPTask):
                 } | {f"hparam_{k}": v for k, v in hparams.items()}
 
                 if self.with_wandb:
-                    wandb.init(project="ydnpd", config=config)
+                    wandb.init(project="ydnpd", config=config, **self.wandb_kwargs)
 
                 evaluations = []
                 for run_id in range(self.num_runs):
 
                     if self.verbose:
                         print(
-                            f"{self.__class__.__name__}: dataset = {self.dataset_name} synth_name={self.synth_name}, epsilon={epsilon}, hparams={hparams} run={run_id}"
+                            f"{self.__class__.__name__}: dataset = {self.dataset_name} synth_name={self.synth_name}, epsilon={epsilon}, hparams={hparams} run={run_id + 1}/{self.num_runs}"
                         )
 
                     synth_dataset = generate_synthetic_data(
@@ -92,10 +92,13 @@ class UtilityTask(DPTask):
                     if self.with_wandb:
                         wandb.log(metric_results)
 
-                    results.append(config | {"evaluation": metric_results})
+                    results.append(
+                        config
+                        | {"evaluation": metric_results, "synth_dataset": synth_dataset}
+                    )
 
-        if self.with_wandb:
-            wandb.finish()
+                if self.with_wandb:
+                    wandb.finish()
 
         return results
 

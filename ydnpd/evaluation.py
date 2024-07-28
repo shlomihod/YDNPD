@@ -1,4 +1,5 @@
 import itertools as it
+from math import comb
 
 import numpy as np
 import pandas as pd
@@ -21,6 +22,7 @@ def calc_k_marginals_abs_diff_errors(
 
     for keys in it.combinations(columns, marginals_k):
         keys = list(keys)
+
         marginals_abs_diff_errors.extend(
             pd.merge(
                 count_fn(first_dataset, keys),
@@ -33,13 +35,15 @@ def calc_k_marginals_abs_diff_errors(
             .to_list()
         )
 
+    query_count = comb(len(columns), marginals_k)
+
     return {
         f"marginals_{marginals_k}_max_abs_diff_error": np.max(marginals_abs_diff_errors)
         / len(first_dataset),
         f"marginals_{marginals_k}_total_abs_diff_error": np.sum(
             marginals_abs_diff_errors
         )
-        / (len(first_dataset) * len(marginals_abs_diff_errors)),
+        / (len(first_dataset) * query_count),
     }
 
 

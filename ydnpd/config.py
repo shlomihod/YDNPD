@@ -7,7 +7,7 @@ NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 10_000
 
-EXPERIMENT_SYNTHESIZERS = ["privbayes", "mwem"]  # , "aim"]
+EXPERIMENT_SYNTHESIZERS = ["privbayes", "mwem", "aim"]
 
 HPARAMS_DIMS = {
     "mwem": {
@@ -59,9 +59,9 @@ EXPERIMENTS = namedtuple("Experiments", ["test_name", "dev_names"])(
     [
         "national",
         "massachusetts",
-        "massachusetts_upsampeld",
+        "massachusetts_upsampled",
         "texas",
-        "texas_upsampeld",
+        "texas_upsampled",
         "baseline_univariate",
         "baseline_domain",
     ],
