@@ -14,7 +14,7 @@ from ydnpd.utils import _freeze
 
 class UtilityTask(DPTask):
 
-    METRIC_DEFAULT = "marginals_up_to_3_max_abs_diff_errors"
+    METRIC_DEFAULT = "marginals_3_max_abs_diff_error"
 
     def __init__(
         self,
@@ -238,7 +238,7 @@ class UtilityTask(DPTask):
                 ci=None,
             )
 
-            g.set(xlim=(0, 100), ylim=(0, 100))
+            # g.set(xlim=(0, 100), ylim=(0, 100))
 
             return g
 
