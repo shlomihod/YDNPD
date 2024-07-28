@@ -9,7 +9,9 @@ DATASET_ROOT = Path("data/diverse_communities_data_excerpts")
 DATASETS = {
     "national": "national/national2019",
     "massachusetts": "massachusetts/ma2019",
+    "massachusetts_upsampeld": "massachusetts_upsampeld/ma2019",
     "texas": "texas/tx2019",
+    "texas_upsampeld": "texas_upsampeld/tx2019",
     "baseline_domain": "baseline_domain/baseline_domain",
     "baseline_univariate": "baseline_univariate/baseline_univariate",
 }
@@ -24,9 +26,9 @@ COL_SUBSETS = {
         "PINCP_DECILE",
         "EDU",
         "HOUSING_TYPE",
-        "DVET",
+       # "DVET",  # Many missing values
         "DEYE",
-    ]  # "AGEP"
+    ]  # "AGEP"  # Continuous
 }
 
 

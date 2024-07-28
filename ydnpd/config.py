@@ -55,7 +55,8 @@ HPARAMS_DIMS = {
 
 # test, dev
 EXPERIMENTS = namedtuple("Experiments", ["test_name", "dev_names"])(
-    "national", ["national", "massachusetts", "baseline_univariate", "baseline_domain"]
+    "national", ["national", "massachusetts", "massachusetts_upsampeld", "texas", "texas_upsampeld",
+                 "baseline_univariate", "baseline_domain"]
 )
 
 DATASET_NAMES = set(it.chain([EXPERIMENTS.test_name] + EXPERIMENTS.dev_names))
