@@ -135,7 +135,7 @@ def calc_classification_accuracy(
         unique_classes = np.unique(y_pred)
         if len(unique_classes) > 2:
             # One-hot encode the predictions
-            encoder = OneHotEncoder(sparse=False)
+            encoder = OneHotEncoder(sparse_output=False)
             y_pred_one_hot = encoder.fit_transform(y_pred.reshape(-1, 1))
             return y_pred_one_hot
         else:
