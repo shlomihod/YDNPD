@@ -69,7 +69,7 @@ class UtilityTask(DPTask):
                     "epsilon": epsilon,
                     "synth_name": self.synth_name,
                     "hparams": hparams,
-                } | {f"hparam_{k}": v for k, v in hparams.items()}
+                }
 
                 if self.with_wandb:
                     wandb.init(project="ydnpd", config=config, **self.wandb_kwargs)
