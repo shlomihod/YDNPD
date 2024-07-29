@@ -124,43 +124,27 @@ def calc_classification_accuracy(
     )
 
     model_first = RandomForestClassifier().fit(X_train_first, y_train_first)
-
     model_second = RandomForestClassifier().fit(X_train_second, y_train_second)
 
     accuracy_train_dataset = model_first.score(X_test_first, y_test_first)
     accuracy_other_dataset = model_second.score(X_test_first, y_test_first)
 
-    # Function to prepare predictions for ROC AUC calculation
-    def prepare_predictions(y_pred):
-        unique_classes = np.unique(y_pred)
-        if len(unique_classes) > 2:
-            # One-hot encode the predictions
-            encoder = OneHotEncoder(sparse_output=False)
-            y_pred_one_hot = encoder.fit_transform(y_pred.reshape(-1, 1))
-            return y_pred_one_hot
-        else:
-            # For binary classification, ensure predictions are in the right shape
-            return y_pred.reshape(-1, 1) if y_pred.ndim == 1 else y_pred
-
-    y_pred_first = model_first.predict(X_test_first)
-    y_pred_second = model_second.predict(X_test_first)
-
-    # Prepare predictions
-    y_pred_first_prepared = prepare_predictions(y_pred_first)
-    y_pred_second_prepared = prepare_predictions(y_pred_second)
+    # Use predict_proba instead of predict to get probabilities
+    y_pred_proba_first = model_first.predict_proba(X_test_first)
+    y_pred_proba_second = model_second.predict_proba(X_test_first)
 
     # Calculate AUC scores
     y_test_first_np = y_test_first.to_numpy()
     if len(np.unique(y_test_first_np)) > 2:
         auc_train_dataset = roc_auc_score(
-            y_test_first_np, y_pred_first_prepared, multi_class="ovo"
+            y_test_first_np, y_pred_proba_first, multi_class="ovo"
         )
         auc_other_dataset = roc_auc_score(
-            y_test_first_np, y_pred_second_prepared, multi_class="ovo"
+            y_test_first_np, y_pred_proba_second, multi_class="ovo"
         )
     else:
-        auc_train_dataset = roc_auc_score(y_test_first_np, y_pred_first_prepared)
-        auc_other_dataset = roc_auc_score(y_test_first_np, y_pred_second_prepared)
+        auc_train_dataset = roc_auc_score(y_test_first_np, y_pred_proba_first[:, 1])
+        auc_other_dataset = roc_auc_score(y_test_first_np, y_pred_proba_second[:, 1])
 
     auc_diff = auc_train_dataset - auc_other_dataset
 
