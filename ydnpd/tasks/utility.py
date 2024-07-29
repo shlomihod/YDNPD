@@ -54,6 +54,17 @@ class UtilityTask(DPTask):
     def size(self) -> int:
         return len(self.epsilons) * len(self.hparam_space) * self.num_runs
 
+    def _execute_run(
+        self, dataset: pd.DataFrame, schema: dict, epsilon: float, hparams: dict
+    ) -> tuple[dict, pd.DataFrame]:
+        synth_dataset = generate_synthetic_data(
+            dataset, schema, epsilon, self.synth_name, **hparams
+        )
+
+        metric_results = self.evaluation_fn(dataset, synth_dataset, schema)
+
+        return metric_results, synth_dataset
+
     def execute(self) -> list[dict]:
 
         dataset, schema = load_dataset(self.dataset_name)
@@ -74,7 +85,6 @@ class UtilityTask(DPTask):
                 if self.with_wandb:
                     wandb.init(project="ydnpd", config=config, **self.wandb_kwargs)
 
-                evaluations = []
                 for run_id in range(self.num_runs):
 
                     if self.verbose:
@@ -82,12 +92,14 @@ class UtilityTask(DPTask):
                             f"{self.__class__.__name__}: dataset = {self.dataset_name} synth_name={self.synth_name}, epsilon={epsilon}, hparams={hparams} run={run_id + 1}/{self.num_runs}"
                         )
 
-                    synth_dataset = generate_synthetic_data(
-                        dataset, schema, epsilon, self.synth_name, **hparams
-                    )
-
-                    metric_results = self.evaluation_fn(dataset, synth_dataset, schema)
-                    evaluations.append(metric_results)
+                    try:
+                        (metric_results, synth_dataset) = self._execute_run(
+                            dataset, schema, epsilon, hparams
+                        )
+                    except Exception as e:
+                        print(f"Error: {e}")
+                        if self.with_wandb:
+                            wandb.log({"error": str(e)})
 
                     if self.with_wandb:
                         wandb.log(metric_results)
