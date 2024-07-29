@@ -25,7 +25,7 @@ HPARAMS_DIMS = {
     "aim": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
         "degree": [2, 3],
-        "rounds": [10, 100],
+        "rounds": [10, 20],
     },
     "privbayes": {
         "theta": [2, 4, 8, 16, 32, 64],
