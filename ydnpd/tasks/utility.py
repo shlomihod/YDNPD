@@ -99,7 +99,7 @@ class UtilityTask(DPTask):
                     except Exception as e:
                         print(f"Error: {e}")
                         if self.with_wandb:
-                            wandb.log({"error": str(e)})
+                            wandb.log({"_error": str(e)})
 
                     if self.with_wandb:
                         wandb.log(metric_results)
@@ -294,11 +294,12 @@ class UtilityTask(DPTask):
 
         df["hparams_frozen"] = df["hparams"].apply(_freeze)
 
+        metric_columns = []
         for metric in list(df.loc[0, "evaluation"].keys()):
-            metric_column = f"evaluation_{metric}"
-            df[metric_column] = df["evaluation"].apply(lambda x: x[metric])
-
-        metric_columns = [c for c in df.columns if c.startswith("evaluation_")]
+            if not metric.startswith("_"):
+                metric_column = f"evaluation_{metric}"
+                df[metric_column] = df["evaluation"].apply(lambda x: x[metric])
+                metric_columns.append(metric_column)
 
         df = (
             df.groupby(["dataset_name", "synth_name", "epsilon", "hparams_frozen"])[
