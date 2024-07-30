@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
-from sklearn.preprocessing import OneHotEncoder
+from scipy.stats.contingency import association
 
 
 EVALUATION_METRICS = [
@@ -13,13 +13,29 @@ EVALUATION_METRICS = [
     "marginals_3_avg_abs_diff_error",
     "thresholded_marginals_3_max_abs_diff_error",
     "thresholded_marginals_3_avg_abs_diff_error",
-    "corr_max_abs_diff",
-    "corr_avg_abs_diff",
+    "pearson_corr_max_abs_diff",
+    "pearson_corr_avg_abs_diff",
+    "cramer_v_corr_max_abs_diff",
+    "cramer_v_corr_avg_abs_diff",
     "accuracy_diff",
     "auc_diff",
 ]
 
 RANDOM_SEED = 42
+
+
+def _cramers_v_matrix(df):
+    cols = df.columns
+    n = len(cols)
+    cramers_v_mat = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                cramers_v_mat[i, j] = 1.0
+            else:
+                confusion_matrix = pd.crosstab(df[cols[i]], df[cols[j]])
+                cramers_v_mat[i, j] = association(confusion_matrix, method="cramer")
+    return pd.DataFrame(cramers_v_mat, index=cols, columns=cols)
 
 
 def calc_k_marginals_abs_diff_errors(
@@ -159,15 +175,25 @@ def calc_classification_accuracy(
 
 
 def calculate_corr(first_dataset: pd.DataFrame, second_dataset: pd.DataFrame) -> dict:
-    first_dataset_corr = np.tril(first_dataset.corr(), k=-1)
-    second_dataset_corr = np.tril(second_dataset.corr(), k=-1)
+    first_dataset_pearson_corr = np.tril(first_dataset.corr(), k=-1)
+    second_dataset_pearson_corr = np.tril(second_dataset.corr(), k=-1)
+    abs_diff_pearson_corr = np.abs(
+        first_dataset_pearson_corr - second_dataset_pearson_corr
+    )
 
-    abs_diff_corr = np.abs(first_dataset_corr - second_dataset_corr)
+    first_dataset_cramer_v_corr = np.tril(_cramers_v_matrix(first_dataset), k=-1)
+    second_dataset_cramer_v_corr = np.tril(_cramers_v_matrix(second_dataset), k=-1)
+    abs_diff_cramer_v_corr = np.abs(
+        first_dataset_cramer_v_corr - second_dataset_cramer_v_corr
+    )
+
     num_corrs = comb(len(first_dataset.columns), 2)
 
     return {
-        "corr_max_abs_diff": np.max(abs_diff_corr),
-        "corr_avg_abs_diff": np.sum(abs_diff_corr) / num_corrs,
+        "pearson_corr_max_abs_diff": np.max(abs_diff_pearson_corr),
+        "pearson_corr_avg_abs_diff": np.sum(abs_diff_pearson_corr) / num_corrs,
+        "cramer_v_corr_max_abs_diff": np.max(abs_diff_cramer_v_corr),
+        "cramer_v_corr_avg_abs_diff": np.sum(abs_diff_cramer_v_corr) / num_corrs,
     }
 
 
