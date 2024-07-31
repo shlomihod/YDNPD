@@ -44,7 +44,7 @@ def span_hparam_ray_tasks(**task_kwargs):
 
     return [
         ray.remote(task_execute_wrapper(task))
-        # .option(num_gpus=(1 if synth_name in ("patectgan") else 0))
+        .options(num_gpus=(1 if task.synth_name in ("patectgan") else 0))
         .remote()
         for task in span_hparam_tasks(task_kwargs)
     ]
