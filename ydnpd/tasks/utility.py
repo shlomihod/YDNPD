@@ -203,7 +203,10 @@ class UtilityTask(DPTask):
         ).reset_index()
 
         results_df[metric_column] *= 100
-        evaluation_df["correspond_test"] *= 100
+        value_columns = ["best_dev", "best_test", "correspond_test"]
+        evaluation_df[value_columns] *= 100
+
+        epsilons = results_df["epsilon"].unique()
 
         def plot_dev_vs_test():
             def expender(test_name, dev_name):
@@ -286,7 +289,60 @@ class UtilityTask(DPTask):
 
             return g
 
-        return plot_dev_vs_test(), plot_dev_within_test()
+        def plot_best_dev():
+
+            best_hparams_df = (
+                results_df.groupby(["dataset_name", "synth_name", "epsilon"])[
+                    metric_column
+                ]
+                .mean()
+                .reset_index()
+            )
+
+            g = sns.relplot(
+                data=best_hparams_df,
+                x="epsilon",
+                y=metric_column,
+                hue="dataset_name",
+                col="synth_name",
+                kind="line",
+                errorbar=None,
+            )
+
+            g.set(xticks=epsilons)
+
+            return g
+
+        def plot_best_dev_vs_test():
+
+            melted_df = evaluation_df.melt(
+                id_vars=["synth_name", "experiment", "epsilon"],
+                value_vars=["best_dev", "best_test", "correspond_test"],
+                var_name="metric",
+                value_name="value",
+            )
+
+            g = sns.relplot(
+                data=melted_df,
+                x="epsilon",
+                y="value",
+                hue="metric",
+                col="experiment",
+                row="synth_name",
+                kind="line",
+                errorbar=None,
+            )
+
+            g.set(xticks=epsilons)
+
+            return g
+
+        return (
+            plot_dev_vs_test(),
+            plot_dev_within_test(),
+            plot_best_dev(),
+            plot_best_dev_vs_test(),
+        )
 
     @staticmethod
     def process(hparam_results):
