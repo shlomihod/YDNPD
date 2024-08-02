@@ -101,8 +101,11 @@ class UtilityTask(DPTask):
                         if self.with_wandb:
                             wandb.log({"_error": str(e)})
 
-                    if self.with_wandb:
-                        wandb.log(metric_results)
+                        metric_results = {}
+                        synth_dataset = None
+                    else:
+                        if self.with_wandb:
+                            wandb.log(metric_results)
 
                     results.append(
                         config
