@@ -11,6 +11,7 @@ for col in df.select_dtypes(include=['category']).columns:
 
 columns_with_a_single_value = list(df.columns[df.nunique() == 1])
 df = df.drop(columns=["respondent_id"] + columns_with_a_single_value)
+df = df.fillna(-1).astype("int64")
 ```
 
 #### Citation
