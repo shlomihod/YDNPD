@@ -2,18 +2,14 @@ import itertools as it
 from typing import Callable
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import seaborn as sns
 import wandb
 
-from ydnpd.dataset import load_dataset
+from ydnpd.dataset import load_dataset, split_train_eval_datasets
 from ydnpd.synthesis import generate_synthetic_data
 from ydnpd.evaluation import evaluate_two
 from ydnpd.tasks import DPTask
 from ydnpd.utils import _freeze
-
-
-RANDOM_STATE_TRAIN_TEST_SPLIT = 42
 
 
 class UtilityTask(DPTask):
@@ -27,24 +23,17 @@ class UtilityTask(DPTask):
         synth_name: str,
         hparam_dims: dict[str, list],
         num_runs: int,
-        eval_split_proportion: float,
         verbose: bool = True,
         with_wandb: bool = False,
         wandb_kwargs: dict = None,
         evaluation_kwargs: dict = None,
     ):
 
-        if not 0 < eval_split_proportion < 1:
-            raise ValueError(
-                "`eval_split_proportion` must be float number in the range (0, 1)"
-            )
-
         self.dataset_name = dataset_name
         self.epsilons = epsilons
         self.synth_name = synth_name
         self.hparam_dims = hparam_dims
         self.num_runs = num_runs
-        self.eval_split_proportion = eval_split_proportion
         self.verbose = verbose
         self.with_wandb = with_wandb
         self.evaluation_kwargs = (
@@ -90,11 +79,7 @@ class UtilityTask(DPTask):
 
         dataset, schema = load_dataset(self.dataset_name)
 
-        train_dataset, eval_dataset = train_test_split(
-            dataset,
-            test_size=self.eval_split_proportion,
-            random_state=RANDOM_STATE_TRAIN_TEST_SPLIT,
-        )
+        train_dataset, eval_dataset = split_train_eval_datasets(dataset)
 
         results = []
 

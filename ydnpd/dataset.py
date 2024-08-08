@@ -2,7 +2,11 @@ import json
 from pathlib import Path
 
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
+
+RANDOM_STATE_TRAIN_TEST_SPLIT = 42
+EVAL_SPLIT_PROPORTION = 0.3
 
 DATASET_ROOT = Path("data")
 
@@ -61,3 +65,12 @@ def load_dataset(
         dataset[col] = dataset[col].astype(schema["schema"][col]["dtype"])
 
     return dataset, schema
+
+
+def split_train_eval_datasets(dataset):
+
+    return train_test_split(
+        dataset,
+        test_size=EVAL_SPLIT_PROPORTION,
+        random_state=RANDOM_STATE_TRAIN_TEST_SPLIT,
+    )

@@ -17,7 +17,6 @@ def span_utility_tasks(task_kwargs=None):
             synth_name=synth_name,
             hparam_dims=ydnpd.config.HPARAMS_DIMS[synth_name],
             num_runs=ydnpd.config.NUM_RUNS,
-            eval_split_proportion=ydnpd.config.EVAL_SPLIT_PROPORTION,
             evaluation_kwargs=ydnpd.config.EVALUATION_KWARGS,
             **task_kwargs
         )
