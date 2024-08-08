@@ -13,9 +13,9 @@ DATASET_ROOT = Path("data")
 DATASETS = {
     "acs/national": "acs-2019-nist/national/national2019",
     "acs/massachusetts": "acs-2019-nist/massachusetts/ma2019",
-    "acs/massachusetts_upsampled": "acs-2019-nist/massachusetts_upsampled/ma2019",
+    "acs/massachusetts_upsampled": "acs-2019-nist/massachusetts_upsampled/massachusetts_upsampled",
     "acs/texas": "acs-2019-nist/texas/tx2019",
-    "acs/texas_upsampled": "acs-2019-nist/texas_upsampled/tx2019",
+    "acs/texas_upsampled": "acs-2019-nist/texas_upsampled/texas_upsampled",
     "acs/baseline_domain": "acs-2019-nist/baseline_domain/baseline_domain",
     "acs/baseline_univariate": "acs-2019-nist/baseline_univariate/baseline_univariate",
 }

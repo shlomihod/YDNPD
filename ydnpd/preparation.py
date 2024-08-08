@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-import ydnpd
+from ydnpd.dataset import load_dataset, split_train_eval_datasets
 
 
 RADNOM_SEED_GENERATION = 42
@@ -55,20 +55,22 @@ def generate_baseline_domain(dataset, schema, null_prop=None):
 
 def generate_baseline_univariate(dataset, schema):
 
+    train_dataet, _ = split_train_eval_datasets(dataset)
+
     return pd.DataFrame(
         {
             column: (
                 values.sample(
-                    frac=1, replace=True, random_state=RADNOM_SEED_GENERATION
+                    n=len(dataset), replace=True, random_state=RADNOM_SEED_GENERATION
                 ).reset_index(drop=True)
             )
-            for column, values in dataset.items()
+            for column, values in train_dataet.items()
         }
     )
 
 
 def create_baselines(dataset_name, data_path, null_prop=None):
-    dataset, schema = ydnpd.load_dataset(dataset_name, drop_na=null_prop is None)
+    dataset, schema = load_dataset(dataset_name, drop_na=null_prop is None)
 
     baselines = {
         "baseline_domain": generate_baseline_domain(
@@ -82,10 +84,10 @@ def create_baselines(dataset_name, data_path, null_prop=None):
 
 
 def create_upsamped(dataset_name, other_dataset_name, data_path):
-    other_dataset, schema = ydnpd.load_dataset(other_dataset_name)
+    other_dataset, schema = load_dataset(other_dataset_name)
     num_records = len(other_dataset)
 
-    dataset, schema = ydnpd.load_dataset(dataset_name)
+    dataset, schema = load_dataset(dataset_name)
 
     upsampled_dataset = dataset.sample(
         num_records, replace=True, random_state=RADNOM_SEED_GENERATION
