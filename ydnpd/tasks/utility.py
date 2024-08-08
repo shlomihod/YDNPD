@@ -1,15 +1,19 @@
 import itertools as it
 from typing import Callable
 
-import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 import seaborn as sns
 import wandb
 
 from ydnpd.dataset import load_dataset
 from ydnpd.synthesis import generate_synthetic_data
+from ydnpd.evaluation import evaluate_two
 from ydnpd.tasks import DPTask
 from ydnpd.utils import _freeze
+
+
+RANDOM_STATE_TRAIN_TEST_SPLIT = 42
 
 
 class UtilityTask(DPTask):
@@ -22,20 +26,30 @@ class UtilityTask(DPTask):
         epsilons: list[float],
         synth_name: str,
         hparam_dims: dict[str, list],
-        evaluation_fn: Callable,
         num_runs: int,
+        eval_split_proportion: float,
         verbose: bool = True,
         with_wandb: bool = False,
         wandb_kwargs: dict = None,
+        evaluation_kwargs: dict = None,
     ):
+
+        if not 0 < eval_split_proportion < 1:
+            raise ValueError(
+                "`eval_split_proportion` must be float number in the range (0, 1)"
+            )
+
         self.dataset_name = dataset_name
         self.epsilons = epsilons
         self.synth_name = synth_name
         self.hparam_dims = hparam_dims
-        self.evaluation_fn = evaluation_fn
         self.num_runs = num_runs
+        self.eval_split_proportion = eval_split_proportion
         self.verbose = verbose
         self.with_wandb = with_wandb
+        self.evaluation_kwargs = (
+            evaluation_kwargs if evaluation_kwargs is not None else {}
+        )
 
         if not with_wandb:
             if wandb_kwargs is not None:
@@ -55,19 +69,32 @@ class UtilityTask(DPTask):
         return len(self.epsilons) * len(self.hparam_space) * self.num_runs
 
     def _execute_run(
-        self, dataset: pd.DataFrame, schema: dict, epsilon: float, hparams: dict
+        self,
+        train_dataset: pd.DataFrame,
+        eval_dataset: pd.DataFrame,
+        schema: dict,
+        epsilon: float,
+        hparams: dict,
     ) -> tuple[dict, pd.DataFrame]:
         synth_dataset = generate_synthetic_data(
-            dataset, schema, epsilon, self.synth_name, **hparams
+            train_dataset, schema, epsilon, self.synth_name, **hparams
         )
 
-        metric_results = self.evaluation_fn(dataset, synth_dataset, schema)
+        metric_results = evaluate_two(
+            train_dataset, eval_dataset, synth_dataset, schema, **self.evaluation_kwargs
+        )
 
         return metric_results, synth_dataset
 
     def execute(self) -> list[dict]:
 
         dataset, schema = load_dataset(self.dataset_name)
+
+        train_dataset, eval_dataset = train_test_split(
+            dataset,
+            test_size=self.eval_split_proportion,
+            random_state=RANDOM_STATE_TRAIN_TEST_SPLIT,
+        )
 
         results = []
 
@@ -94,7 +121,7 @@ class UtilityTask(DPTask):
 
                     try:
                         (metric_results, synth_dataset) = self._execute_run(
-                            dataset, schema, epsilon, hparams
+                            train_dataset, eval_dataset, schema, epsilon, hparams
                         )
                     except Exception as e:
                         print(f"Error: {e}")

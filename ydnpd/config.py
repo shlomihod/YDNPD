@@ -69,6 +69,11 @@ EXPERIMENTS = namedtuple("Experiments", ["test_name", "dev_names"])(
 
 DATASET_NAMES = set(it.chain([EXPERIMENTS.test_name] + EXPERIMENTS.dev_names))
 
+EVALUATION_KWARGS = {
+    "classification_target_column": "OWN_RENT",
+    "marginals_k": 3,
+}
+
 CLASSIFICATION_TARGET_COLUMN = "OWN_RENT"
-CLASSIFICATION_SPLIT_PROPORTION = 0.7
-MARGINALS_K = 3
+
+EVAL_SPLIT_PROPORTION = 0.7
