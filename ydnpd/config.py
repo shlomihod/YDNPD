@@ -1,5 +1,7 @@
-from collections import namedtuple
 import itertools as it
+
+from ydnpd.experiment import Experiments
+
 
 EPSILONS = [1, 4, 10]
 
@@ -7,7 +9,7 @@ NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 10_000
 
-EXPERIMENT_SYNTHESIZERS = ["privbayes", "mwem", "aim"]
+SYNTHESIZERS = ["privbayes", "mwem", "aim"]
 
 HPARAMS_DIMS = {
     "mwem": {
@@ -53,21 +55,29 @@ HPARAMS_DIMS = {
     },
 }
 
-# test, dev
-EXPERIMENTS = namedtuple("Experiments", ["test_name", "dev_names"])(
-    "national",
-    [
+ALL_EXPERIMENTS = {
+    "acs": Experiments(
         "national",
-        "massachusetts",
-        "massachusetts_upsampled",
-        "texas",
-        "texas_upsampled",
-        "baseline_univariate",
-        "baseline_domain",
-    ],
-)
+        [
+            "national",
+            "massachusetts",
+            "massachusetts_upsampled",
+            "texas",
+            "texas_upsampled",
+            "baseline_univariate",
+            "baseline_domain",
+        ],
+    )
+}
 
-DATASET_NAMES = set(it.chain([EXPERIMENTS.test_name] + EXPERIMENTS.dev_names))
+DATASET_NAMES = set(
+    it.chain(
+        *(
+            [experiments.test_name] + experiments.dev_names
+            for experiments in ALL_EXPERIMENTS.values()
+        )
+    )
+)
 
 EVALUATION_KWARGS = {
     "classification_target_column": "OWN_RENT",

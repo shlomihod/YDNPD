@@ -5,7 +5,7 @@ import ray
 import ydnpd
 
 
-def span_hparam_tasks(task_kwargs=None):
+def span_utility_tasks(task_kwargs=None):
 
     if task_kwargs is None:
         task_kwargs = {}
@@ -21,12 +21,12 @@ def span_hparam_tasks(task_kwargs=None):
             evaluation_kwargs=ydnpd.config.EVALUATION_KWARGS,
             **task_kwargs
         )
-        for synth_name in ydnpd.config.EXPERIMENT_SYNTHESIZERS
+        for synth_name in ydnpd.config.SYNTHESIZERS
         for dataset_name in ydnpd.config.DATASET_NAMES
     ]
 
 
-def span_hparam_ray_tasks(**task_kwargs):
+def span_utility_ray_tasks(**task_kwargs):
 
     def task_execute_wrapper(task):
         def function():
@@ -38,5 +38,5 @@ def span_hparam_ray_tasks(**task_kwargs):
         ray.remote(task_execute_wrapper(task))
         .options(num_gpus=(1 if task.synth_name in ("patectgan") else 0))
         .remote()
-        for task in span_hparam_tasks(task_kwargs)
+        for task in span_utility_tasks(task_kwargs)
     ]
