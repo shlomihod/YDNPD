@@ -57,15 +57,15 @@ HPARAMS_DIMS = {
 
 ALL_EXPERIMENTS = {
     "acs": Experiments(
-        "national",
+        "acs/national",
         [
-            "national",
-            "massachusetts",
-            "massachusetts_upsampled",
-            "texas",
-            "texas_upsampled",
-            "baseline_univariate",
-            "baseline_domain",
+            "acs/national",
+            "acs/massachusetts",
+            "acs/massachusetts_upsampled",
+            "acs/texas",
+            "acs/texas_upsampled",
+            "acs/baseline_univariate",
+            "acs/baseline_domain",
         ],
     )
 }

@@ -4,16 +4,16 @@ from pathlib import Path
 import pandas as pd
 
 
-DATASET_ROOT = Path("data/diverse_communities_data_excerpts")
+DATASET_ROOT = Path("data")
 
 DATASETS = {
-    "national": "national/national2019",
-    "massachusetts": "massachusetts/ma2019",
-    "massachusetts_upsampled": "massachusetts_upsampled/ma2019",
-    "texas": "texas/tx2019",
-    "texas_upsampled": "texas_upsampled/tx2019",
-    "baseline_domain": "baseline_domain/baseline_domain",
-    "baseline_univariate": "baseline_univariate/baseline_univariate",
+    "acs/national": "acs-2019-nist/national/national2019",
+    "acs/massachusetts": "acs-2019-nist/massachusetts/ma2019",
+    "acs/massachusetts_upsampled": "acs-2019-nist/massachusetts_upsampled/ma2019",
+    "acs/texas": "acs-2019-nist/texas/tx2019",
+    "acs/texas_upsampled": "acs-2019-nist/texas_upsampled/tx2019",
+    "acs/baseline_domain": "acs-2019-nist/baseline_domain/baseline_domain",
+    "acs/baseline_univariate": "acs-2019-nist/baseline_univariate/baseline_univariate",
 }
 
 # https://pages.nist.gov/privacy_collaborative_research_cycle/pages/participate.html

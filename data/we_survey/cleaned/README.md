@@ -8,6 +8,9 @@ Lightly cleaned, columns dropped with fewer than 3% of respondents answering. Ad
 column_mapping = {}
 for col in df.select_dtypes(include=['category']).columns:
     column_mapping[col] = dict(enumerate(df[col].cat.categories))
+
+columns_with_a_single_value = list(df.columns[df.nunique() == 1])
+df = df.drop(columns=["respondent_id"] + columns_with_a_single_value)
 ```
 
 #### Citation

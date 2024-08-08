@@ -1,0 +1,364 @@
+{
+    "schema": {
+      "how_easy_is_it_to_balance_your_work_life_and_personal_life_where_you_work?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "my_employer_states_its_values_about_diversity.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "my_employer_is_committed_to_creating_an_inclusive_and_equitable_workplace.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_feel_respected_and_valued_in_my_workplace.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_believe_the_culture_in_my_workplace_is_supportive.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "have_you_ever_taken_voluntary_or_involuntary_extended_leave_(more_than_regular_vacation_or_paid_time_off)_from_your_career?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "please_note_the_length_of_your_latest_or_most_significant_leave.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "please_indicate_the_reason(s)_for_your_leave.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      "how_would_you_characterize_the_impact_your_time_off_had_on_your_career_progression?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3]
+      },
+      "on_a_scale_of_1_to_10,_with_10_being_completely_satisfied,_how_satisfied_are_you_with_your_current_position?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      },
+      "recognition_from_colleagues/peers": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "recognition_from_leadership": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "leadership_opportunities": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "promotions": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "compensation": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "access_to_manager(s)": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "project,_committee,_or_team_assignments": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "do_you_currently_or_have_you_ever_had_a_mentor,_sponsor,_coach,_or_other_advisor_who_helped_you_navigate_your_career?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "was_the_relationship_part_of_a_formal_mentoring_program?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3]
+      },
+      "did_their_support_measurably_impact_your_professional_growth?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3]
+      },
+      "have_you_ever_served_in_the_workplace_as_a_mentor,_sponsor,_coach,_or_other_advisor?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3]
+      },
+      "was_the_relationship_part_of_a_formal_mentoring_program?.1": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3]
+      },
+      "networking_at_in-person_conferences.1": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "networking_at_virtual_conferences.1": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "participate_in_employee_resource_groups.1": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "socialize_with_peers_within_my_company.1": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "socialize_with_peers_outside_of_my_company.1": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "use_social_media_(e.g.,_linkedin).1": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2]
+      },
+      "have_you_advanced_your_career_or_experienced_other_benefits_as_a_result_of_networking?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3]
+      },
+      "i_take_initiative_to_identify_new_job_opportunities.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_am_likely_to_pursue_job_opportunities_that_are_presented_to_me.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_let_my_manager_know_what_i_want,_with_the_expectation_that_it_will_generate_growth_opportunities.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_pursue_job_opportunities_even_if_i_do_not_fulfill_all_of_the_requirements_on_a_job_description.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_find_that_job_opportunities_i_pursue_don’t_come_to_fruition.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_trust_that_i_am_compensated_appropriately_for_my_accomplishments.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_advocate_for_myself_when_appropriate_so_that_my_manager_knows_what_i_want_and_expect.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_believe_i_am_being_paid_fairly_for_the_work_that_i_do.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_avoid_discussions_about_salary_and_incentives.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_lead_the_discussion,_whether_or_not_i_am_facilitating_the_meeting.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_contribute_to_discussions_without_hesitation.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_keep_my_thoughts_to_myself_during_meetings.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_volunteer_to_take_meeting_notes/minutes.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_have_fair_opportunities_to_be_promoted.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_believe_people_of_all_genders_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_believe_people_of_all_ethnicities_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_believe_people_of_all_ages_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_believe_people_of_all_religious_beliefs_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "i_believe_people_of_all_sexual_orientations_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "which_of_the_following_best_describe_your_gender_identity?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "what_country_do_you_currently_live_in?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]
+      },
+      "what_country_were_you_born_in?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67]
+      },
+      "is_your_first_language_the_primary_language_of_your_workplace?_": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3]
+      },
+      "which_age_group_do_you_belong_to?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6]
+      },
+      "what_is_the_highest_degree_or_education_level_that_you_have_achieved?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6]
+      },
+      "which_of_the_following_groups_best_describes_your_employment_level?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "which_of_the_following_groups_best_describes_the_organization_that_you_work_for?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      "approximately_what_is_the_size_of_your_employer's_workforce?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6]
+      },
+      "in_which_of_the_following_areas_of_publishing_are_you_involved?_choose_the_function_that_most_closely_resembles_your_role,_or_self-describe_in_the_comment_box_if_your_area_is_not_listed.": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+      },
+      "how_long_have_you_worked_for_your_current_employer?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      },
+      "how_long_have_you_worked_in_publishing_and/or_related_industries?": {
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": [-1, 0, 1, 2, 3, 4]
+      }
+    }
+  }
