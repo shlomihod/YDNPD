@@ -15,4 +15,5 @@ dependencies:
     - ray[default]
     - smartnoise-synth
     - git+https://github.com/ryan112358/private-pgm.git
+    - SciencePlots
     # - synthcity

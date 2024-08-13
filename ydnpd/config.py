@@ -2,14 +2,15 @@ import itertools as it
 
 from ydnpd.experiment import Experiments
 
+import copy 
 
 EPSILONS = [1, 4, 10]
 
-NUM_RUNS = 10
+NUM_RUNS = 4
 
 FIXED_PREPROCESSOR_EPSILON = 10_000
 
-SYNTHESIZERS = ["privbayes", "mwem", "aim"]
+SYNTHESIZERS = ["privbayes"] #, "mwem", "aim"] # "aim_torch"
 
 HPARAMS_DIMS = {
     "mwem": {
@@ -30,7 +31,7 @@ HPARAMS_DIMS = {
         "rounds": [10, 20],
     },
     "privbayes": {
-        "theta": [2, 4, 8, 16, 32, 64],
+        "theta": [2, 8, 32, 64],
         "epsilon_split": [0.1, 0.5, 0.75],
     },
     "patectgan": {
@@ -55,17 +56,19 @@ HPARAMS_DIMS = {
     },
 }
 
+HPARAMS_DIMS['aim_torch'] = copy.copy(HPARAMS_DIMS['aim'])
+
 ALL_EXPERIMENTS = {
     "acs": Experiments(
         "acs/national",
         [
             "acs/national",
             "acs/massachusetts",
-            "acs/massachusetts_upsampled",
-            "acs/texas",
-            "acs/texas_upsampled",
-            "acs/baseline_univariate",
-            "acs/baseline_domain",
+            # "acs/massachusetts_upsampled",
+            # "acs/texas",
+            # "acs/texas_upsampled",
+            # "acs/baseline_univariate",
+            # "acs/baseline_domain",
         ],
     )
 }

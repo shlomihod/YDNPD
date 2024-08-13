@@ -35,7 +35,7 @@ def span_utility_ray_tasks(**task_kwargs):
 
     return [
         ray.remote(task_execute_wrapper(task))
-        .options(num_gpus=(1 if task.synth_name in ("patectgan") else 0))
+        .options(num_gpus=(1 if task.synth_name in ("patectgan", "aim_torch") else 0))
         .remote()
         for task in span_utility_tasks(task_kwargs)
     ]

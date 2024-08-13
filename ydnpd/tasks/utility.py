@@ -3,6 +3,8 @@ from typing import Callable
 
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
+import scienceplots
 import wandb
 
 from ydnpd.dataset import load_dataset, split_train_eval_datasets
@@ -206,6 +208,12 @@ class UtilityTask(DPTask):
 
     @staticmethod
     def plot(hparam_results, experiments, metric=None):
+        plt.style.use(['science', 'no-latex'])
+        
+        sns.set_context("paper", rc={"axes.titlesize":16, 
+                                     "axes.labelsize":14, 
+                                     "xtick.labelsize":12, 
+                                     "ytick.labelsize":12})
 
         if metric is None:
             metric = UtilityTask.METRIC_DEFAULT
@@ -269,9 +277,14 @@ class UtilityTask(DPTask):
                 row="synth_name",
                 col="experiment",
                 ci=None,
+                height=4,
+                aspect=1, 
             )
 
-            # g.set(xlim=(0, 100), ylim=(0, 100))
+            g.set(xlim=(0, 100), ylim=(0, 100))
+            g.set_titles("{row_name} | {col_name}")
+            g.set_axis_labels("Dev Metric (%)", "Test Metric (%)")
+            g.fig.suptitle("Dev vs Test Performance", y=1.02, fontsize=18) 
 
             return g
 
@@ -295,12 +308,14 @@ class UtilityTask(DPTask):
             g = sns.FacetGrid(
                 results_df[results_df["dataset_name"] == experiments.test_name],
                 col="synth_name",
-                height=6,
-                aspect=1.5,
+                height=4,
+                aspect=1, 
             )
             g.map_dataframe(plot_swarm_and_line)
 
             g.add_legend()
+            g.set_axis_labels(r"$\epsilon$", f"{metric} (%)")
+            g.set_titles("{col_name}")
 
             return g
 
@@ -322,9 +337,13 @@ class UtilityTask(DPTask):
                 col="synth_name",
                 kind="line",
                 errorbar=None,
+                height=4,  
+                aspect=1,
             )
 
             g.set(xticks=epsilons)
+            g.set_axis_labels(r"$\epsilon$", f"Mean {metric} (%)")
+            g.set_titles("{col_name}")
 
             return g
 
@@ -346,9 +365,14 @@ class UtilityTask(DPTask):
                 row="synth_name",
                 kind="line",
                 errorbar=None,
+                height=4, 
+                aspect=1, 
             )
 
             g.set(xticks=epsilons)
+            g.set_axis_labels(r"$\epsilon$", "Metric Value (%)")
+            g.set_titles("{row_name} | {col_name}")
+            g.fig.suptitle("Best Dev vs Test Metrics", y=1.02, fontsize=18) 
 
             return g
 
