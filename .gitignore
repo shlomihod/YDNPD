@@ -263,3 +263,9 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,macos,windows,linux
+
+llm_data_generation/__pycache__
+llm_data_generation/.ipynb_checkpoints
+llm_data_generation/generated_data
+llm_data_generation/run_statistics_*
+llm_data_generation/key*

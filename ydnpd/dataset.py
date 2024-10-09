@@ -22,6 +22,7 @@ DATASETS = {
 }
 
 # https://pages.nist.gov/privacy_collaborative_research_cycle/pages/participate.html
+# maybe only run on the categorical columns>?
 COL_SUBSETS = {
     "acs": {
         "demographic": [
