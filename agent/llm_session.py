@@ -5,6 +5,10 @@ from pprint import pprint
 
 from openai import OpenAI
 
+import wandb
+import time
+from datetime import datetime
+
 
 OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'
 CLIENT = OpenAI(api_key=OPENAI_KEY)
@@ -47,6 +51,13 @@ class LLMSession:
         self.attempts = Counter()
 
         self.verbose = verbose
+        self.last_transition_time = datetime.now()
+
+    def log_transition(self, state, result):
+        current_time = datetime.now()
+        duration = (current_time - self.last_transition_time).total_seconds()
+        self.last_transition_time = current_time
+        wandb.log({"state": state, "result": result, "duration_since_last_transition": duration})
 
     def chat_complete(self, user_message, with_answer=True):
 
@@ -116,6 +127,7 @@ class LLMSession:
         except ValueError:
             check_result = False
             check_info = traceback.format_exc()
+            wandb.log({"warning": f"Check failed for state with info: {check_info}"})
         else:
             (check_result,
              check_info) = check_fn(answer,
@@ -127,5 +139,6 @@ class LLMSession:
 
         finally:
             self.context["last_check_info"] = check_info
-
+        
+        self.log_transition(state=self.context.get('current_state', 'unknown'), result=check_result)
         return check_result
