@@ -146,10 +146,21 @@ SPECIFICATION_V0 = {
         },
         "check_fn": lambda answer, additional_context, context: (True, None),
     },
-    # "STRUCTURAL_EQUATIONS_failed": {
-    #     "instruction_fn": lambda context: f"Structural equation setup failed, please review and try again. {PROMPT_SUFFIX}",
-    # },
     "STRUCTURAL_EQUATIONS_success": {
+        "instruction_fn": lambda context: f"""In this step you will iterate on the model from the last step, and specificy it completely.
+        In other words, it will contains all information needed in order to perform sampling.
+        First, identify the free parameters needed to be set, and name them. Pay attention especially to conditional probabilites in categorical distributions, but not only.
+        Second, set the values of all these parameters based on your expertise in {context['domain']} (not just illustrative numbers) and ground them in the scientific knowledge that you possess. Provide it with reasoning.
+        Refiew your model and make sure that it matches the relationships (conditional dependeinces) you have identifed.
+        Think step by step. Then, provide your final answer as a set of Pyro-like formulas ('X ~ ...', where you insert the formula) within the tags <Answer>...</Answer>, separated by newlines."""
+    },
+    "PARAMETERS": {
+        "processing_fn": lambda answer, context: {
+            "pseudocode": answer
+        },
+        "check_fn": lambda answer, additional_context, context: (True, None),
+    },
+    "PARAMETERS_success": {
         "instruction_fn": lambda context: f'''
         Finally, you are going to convert the following Pyro-like formulas into executable Pyro code to create a structural causal model (SCM) that I can sample from.
         The formulas specify how each variable is generated based on its parents in a directed acyclic graph (DAG).

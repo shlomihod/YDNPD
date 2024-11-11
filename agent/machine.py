@@ -62,10 +62,11 @@ class CasualModelingAgentStage(Enum):
     NON_TO_NON_EDGES = 5
     DAG = 6
     STRUCTURAL_EQUATIONS = 7
-    PYRO_CODE = 8
-    ENFORCE_RANGE = 9
-    ENFORCE_CONTRAINTS = 10
-    FINITO = 11
+    PARAMETERS = 8
+    PYRO_CODE = 9
+    ENFORCE_RANGE = 10
+    ENFORCE_CONTRAINTS = 11
+    FINITO = 12
 
 
 class CasualModelingAgentMachine(StateMachine, StepMixIn):
@@ -97,7 +98,10 @@ class CasualModelingAgentMachine(StateMachine, StepMixIn):
     DAG_success = states.DAG.to(states.STRUCTURAL_EQUATIONS)
 
     STRUCTURAL_EQUATIONS_failed = states.STRUCTURAL_EQUATIONS.to.itself()
-    STRUCTURAL_EQUATIONS_success = states.STRUCTURAL_EQUATIONS.to(states.PYRO_CODE)
+    STRUCTURAL_EQUATIONS_success = states.STRUCTURAL_EQUATIONS.to(states.PARAMETERS)
+
+    PARAMETERS_failed = states.PARAMETERS.to.itself()
+    PARAMETERS_success = states.PARAMETERS.to(states.PYRO_CODE)
 
     PYRO_CODE_failed = states.PYRO_CODE.to.itself()
     PYRO_CODE_success = states.PYRO_CODE.to(states.ENFORCE_RANGE)
