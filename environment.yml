@@ -16,4 +16,7 @@ dependencies:
     - smartnoise-synth
     - git+https://github.com/ryan112358/private-pgm.git
     - SciencePlots
+    - pyro-ppl
+    - openai
+    - python-statemachine
     # - synthcity
