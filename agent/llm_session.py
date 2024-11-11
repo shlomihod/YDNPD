@@ -41,7 +41,7 @@ class LLMSession:
         self.message_history = [
             {
                 "role": "system",
-                "content": "You are an expert on demographic and census data."
+                "content": f"You are an expert on {metadata['domain']}."
             }
         ]
 
@@ -132,5 +132,4 @@ class LLMSession:
         finally:
             self.context["last_check_info"] = check_info
 
-        # self.log_transition(state=self.context.get('current_state', 'unknown'), result=check_result)
         return check_result
