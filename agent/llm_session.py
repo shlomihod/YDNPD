@@ -1,13 +1,11 @@
 import re
+import sys
 import traceback
-from collections import Counter, defaultdict
+from datetime import datetime
+from collections import Counter
 from pprint import pprint
 
 from openai import OpenAI
-
-import wandb
-import time
-from datetime import datetime
 
 
 OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'
@@ -52,11 +50,6 @@ class LLMSession:
         self.verbose = verbose
         self.last_transition_time = datetime.now()
 
-    def log_transition(self, state, result):
-        current_time = datetime.now()
-        duration = (current_time - self.last_transition_time).total_seconds()
-        self.last_transition_time = current_time
-        wandb.log({"state": state, "result": result, "duration_since_last_transition": duration})
 
     def chat_complete(self, user_message, with_answer=True):
 
@@ -125,8 +118,8 @@ class LLMSession:
 
         except ValueError:
             check_result = False
-            check_info = traceback.format_exc()
-            wandb.log({"warning": f"Check failed for state with info: {check_info}"})
+            check_info = traceback.format_exc(*sys.exc_info(), limit=1)
+
         else:
             (check_result,
              check_info) = check_fn(answer,

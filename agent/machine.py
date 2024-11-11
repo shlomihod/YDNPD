@@ -1,11 +1,11 @@
-import wandb
 import time
 from datetime import datetime
-
 from enum import Enum
 
 from statemachine import StateMachine
 from statemachine.states import States
+
+import weave
 
 
 MAX_ATTEMPTS = 8
@@ -21,14 +21,14 @@ PYRO_FAILED_CODE_TEMPLATE = """
             ALWAYS return Pyro code, ready to be execute without Markdown formattig, within the tags <Answer>...</Answer>.
             """
 
+
 class StepMixIn:
 
+    @weave.op
     def on_enter_state(self, event, state):
-        start_time = time.time()
-        wandb.log({"state": state.id, "event": event, "attempt": self.model.attempts[state.id] + 1})
 
         if self.model.attempts[state.id] > MAX_ATTEMPTS:
-            wandb.log({"error": f"Reached max attempts on state {state.id}"})
+            # wandb.log({"error": f"Reached max attempts on state {state.id}"})
             raise RuntimeError(f"Reached max attempts on state {state.id} ({self.model.attempts[state.id]} > {MAX_ATTEMPTS})")
 
         self.model.attempts[state.id] += 1
@@ -37,16 +37,8 @@ class StepMixIn:
                                                self.model.specification[state.id]["processing_fn"],
                                                self.model.specification[state.id]["check_fn"])
 
-        end_time = time.time()
-        duration = end_time - start_time
-        wandb.log({
-            "state": state.id,
-            "result": "success" if check_result else "failure",
-            "duration": duration
-        })
-
         if state.final:
-            wandb.log({"final_state": state.id})
+            weave.publish(self.model.context, "context")
             return
 
         follow_event_name = f"{state.id}_{'success' if check_result else 'failed'}"
