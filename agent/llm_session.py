@@ -15,7 +15,7 @@ CLIENT = OpenAI(api_key=OPENAI_KEY)
 
 
 class LLMSession:
-    def __init__(self, specification, domain, schema,
+    def __init__(self, specification, metadata,
                  llm_name="gpt-4o-mini",
                  llm_temperature=0.7,
                  llm_max_tokens=4095,
@@ -27,8 +27,7 @@ class LLMSession:
         self.specification = specification
 
         self.context = {
-            "domain": domain,
-            "schema": schema,
+            "metadata": metadata,
             "last_check_info": None
         }
 
@@ -109,7 +108,7 @@ class LLMSession:
 
         return assistant_message, answer
 
-    def call(self, instruction_fn, process_fn, check_fn):
+    def execute_step(self, instruction_fn, process_fn, check_fn):
 
         prompt = instruction_fn(self.context)
 
@@ -139,6 +138,6 @@ class LLMSession:
 
         finally:
             self.context["last_check_info"] = check_info
-        
-        self.log_transition(state=self.context.get('current_state', 'unknown'), result=check_result)
+
+        # self.log_transition(state=self.context.get('current_state', 'unknown'), result=check_result)
         return check_result

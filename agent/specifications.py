@@ -21,7 +21,7 @@ PYRO_FAILED_CODE_TEMPLATE = """
 SPECIFICATION_V0 = {
     "__initial__": {
         "instruction_fn": lambda context: (
-            f"Consider the following data schema: {context['schema']}.\n"
+            f"Consider the following data schema: {context['metadata']['schema']}.\n"
             " Review you and make sure you understand it. Reply with the full list of variables from the scheme."
             f" {PROMPT_SUFFIX}"
         )
@@ -29,7 +29,7 @@ SPECIFICATION_V0 = {
     "SCHEME": {
         "processing_fn": lambda answer, context: {"reported_variables": set(clean_split(answer))},
         "check_fn": lambda answer, additional_context, context: ((additional_context["reported_variables"]
-                                                                    == set(context["schema"])),
+                                                                    == set(context["metadata"]["schema"])),
                                                                     None),
     },
     "SCHEME_failed": {
@@ -69,7 +69,7 @@ SPECIFICATION_V0 = {
     "ROOT_NODES": {
         "processing_fn": lambda answer, context: {"root_nodes": clean_split(answer)},
         "check_fn": lambda answer, additional_context, context: (set(additional_context["root_nodes"])
-                                                                    <= set(context['schema'].keys()),
+                                                                    <= set(context["metadata"]["schema"].keys()),
                                                                     None),
     },
     "ROOT_NODES_failed": {
@@ -150,7 +150,7 @@ SPECIFICATION_V0 = {
         "instruction_fn": lambda context: f"""In this step you will iterate on the model from the last step, and specificy it completely.
         In other words, it will contains all information needed in order to perform sampling.
         First, identify the free parameters needed to be set, and name them. Pay attention especially to conditional probabilites in categorical distributions, but not only.
-        Second, set the values of all these parameters based on your expertise in {context['domain']} (not just illustrative numbers) and ground them in the scientific knowledge that you possess. Provide it with reasoning.
+        Second, set the values of all these parameters based on your expertise in {context['metadata']['domain']} (not just illustrative numbers) and ground them in the scientific knowledge that you possess. Provide it with reasoning.
         Refiew your model and make sure that it matches the relationships (conditional dependeinces) you have identifed.
         Think step by step. Then, provide your final answer as a set of Pyro-like formulas ('X ~ ...', where you insert the formula) within the tags <Answer>...</Answer>, separated by newlines."""
     },
@@ -206,7 +206,7 @@ SPECIFICATION_V0 = {
         However, the model probably produces samples that are outside of the ranges define by the domain.
         Include additional line of code to force the type and range of the samples by casting, rounding and clipping.
         For your reference, here is the scheme again:
-        {context['schema']}.
+        {context['metadata']['schema']}.
         ALWAYS return Pyro code, ready to be execute without Markdown formattig, within the tags <Answer>...</Answer>.
         ''',
     },

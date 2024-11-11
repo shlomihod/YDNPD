@@ -33,9 +33,9 @@ class StepMixIn:
 
         self.model.attempts[state.id] += 1
 
-        check_result = self.model.call(self.model.specification[event]["instruction_fn"],
-                                       self.model.specification[state.id]["processing_fn"],
-                                       self.model.specification[state.id]["check_fn"])
+        check_result = self.model.execute_step(self.model.specification[event]["instruction_fn"],
+                                               self.model.specification[state.id]["processing_fn"],
+                                               self.model.specification[state.id]["check_fn"])
 
         end_time = time.time()
         duration = end_time - start_time
