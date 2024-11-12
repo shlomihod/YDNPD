@@ -128,7 +128,7 @@ SPECIFICATION_V0 = {
         "instruction_fn": lambda context: (
             f"The list of relationships you defined for our causal graph introduces cycles, making it invalid as a DAG: {str(context['relationships'])} \n\n"
             "Please remove the minimum number of edges to eliminate the cycles, while keeping the most important relationships according to your domain expertise. Make sure, however, that EVERY variable is still included."
-            "Return the final list of relationships without any cycles. Provide your final answer (relationships only, with the '->' operator between each directed pair) within the tags <Answer>...</Answer>, separated by ', '."
+            "Think step by step. Then, return the final list of relationships without any cycles. Provide your final answer (relationships only, with the '->' operator between each directed pair) within the tags <Answer>...</Answer>, separated by ', '."
 )
     },
     "DAG_success": {
@@ -137,6 +137,7 @@ SPECIFICATION_V0 = {
             "For variables that are root nodes in the causal graph, parameterize a continuous or categorical distribution (depending on the variable type) using your domain expertise from which a random value can be drawn.\n"
             "For variables that have parent nodes, parameterize a conditional distribution, which is a function of the values of the parents of that variable, using your domain expertise, from which a random value can be drawn.\n"
             "Be careful to ensure that the values of the root variables and variables with parents stay within their schema-defined range (in the case of continuous variables), or are valid codes (in the case of categorical variables).\n"
+            f"Also, it is very important that your model is in full alignment in terms of variable relationships you found. There are given here for references: {context['relationships']}."
             "Think step by step. Then, provide your final answer as a set of Pyro-like formulas ('X ~ ...', where you insert the formula) within the tags <Answer>...</Answer>, separated by newlines."
             ),
     },
@@ -179,8 +180,10 @@ SPECIFICATION_V0 = {
             X = pyro.sample("X", dist.Normal(0, 1))
             Y = pyro.sample("Y", dist.Normal(2 * X, 1))
             return {{"X": X, "Y": Y}}
-
-        Remember: module 'pyro.distributions' has no attribute 'TruncatedNormal'.
+        </Example>
+        Notes:
+        1. The module 'pyro.distributions' has no attribute 'TruncatedNormal'.
+        2. Consider the use of if statements.
 
         Be careful to include all functionality INSIDE of the model() function - no helpers! Now, please convert the following Pyro-like formulas into executable Pyro code:\n
 
@@ -190,7 +193,6 @@ SPECIFICATION_V0 = {
         ALWAYS return Pyro code, ready to be execute without Markdown formattig, within the tags <Answer>...</Answer>.
         ''',
     },
-
     "PYRO_CODE": {
         "processing_fn": lambda answer, context: {
             "code": answer,
@@ -204,7 +206,7 @@ SPECIFICATION_V0 = {
         "instruction_fn": lambda context: f'''
         The model defined in your code can be compiled in Pyhton - Good job!
         However, the model probably produces samples that are outside of the ranges define by the domain.
-        Include additional line of code to force the type and range of the samples by casting, rounding and clipping.
+        Include additional line of code to force the type and range of the samples by casting, rounding, clipping and affine transformation.
         For your reference, here is the scheme again:
         {context['metadata']['schema']}.
         ALWAYS return Pyro code, ready to be execute without Markdown formattig, within the tags <Answer>...</Answer>.
