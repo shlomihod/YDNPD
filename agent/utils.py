@@ -91,6 +91,8 @@ def run_pyro_model_with_timeout(
             status, result = queue.get_nowait()
             if status == "error":
                 return False, result
+            elif result is None:
+                return False, "Model returned None instead of a sample"
             return True, result
 
         raise TimeoutError(f"Model execution timed out after {timeout} seconds")

@@ -2,7 +2,7 @@
 # https://github.com/usnistgov/SDNist/blob/main/nist%20diverse%20communities%20data%20excerpts/data_dictionary.json
 
 CENSUS_DATASET_METADATA = {
-  "domain": "demographic and census data",
+  "domain": "US demographic and census data",
   "schema": {
     "SEX": {
       "dtype": "int64",

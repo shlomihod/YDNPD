@@ -230,6 +230,7 @@ SPECIFICATION_V0 = {
         The function should return `None` if the sample does not satisfy all of the constraints.
         For your reference, here is the constraints again:
         {context['constraints']}.
+        The function should always return a sample, and try again if it fails due to the constraints. Consider using `while True` with `continue` for achieving that.
         ALWAYS return Pyro code, ready to be execute without Markdown formattig, within the tags <Answer>...</Answer>.
         ''',
     },
