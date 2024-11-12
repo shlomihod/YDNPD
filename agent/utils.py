@@ -10,6 +10,7 @@ import networkx as nx
 
 
 MAX_TIMEOUT_SAMPLING = 5
+MAX_SAMPLING_CHECKS = 10
 
 
 def extract_single(answer):
@@ -52,7 +53,10 @@ def _run_pyro_model_worker(queue: Queue, pyro_code: str) -> None:
     """Worker function that creates and runs Pyro model in the subprocess."""
     try:
         model = retrieve_pyro_model(pyro_code)
-        result = model()
+        for _ in range(MAX_SAMPLING_CHECKS):
+            result = model()
+            if result is None:
+                raise ValueError("The model returns None")
         queue.put(("success", result))
     except Exception:
         queue.put(("error", traceback.format_exc()))
@@ -119,7 +123,7 @@ def is_valid_pyro_code(
         # Verify model can be created before attempting runs
         retrieve_pyro_model(pyro_code)
 
-        for attempt in range(max_attempts):
+        for _ in range(max_attempts):
             success, result = run_pyro_model_with_timeout(pyro_code, sample_timeout)
             if not success:
                 return False, f"ERROR: {result}"
