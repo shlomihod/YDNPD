@@ -16,7 +16,7 @@ class LLMSession:
     def __init__(self, specification, metadata,
                  llm_name="gpt-4o-mini",
                  llm_temperature=0.7,
-                 llm_max_tokens=4095,
+                 llm_max_tokens=10000,
                  llm_top_p=1,
                  llm_frequency_penalty=0,
                  llm_presence_penalty=0,

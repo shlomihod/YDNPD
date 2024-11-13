@@ -59,13 +59,14 @@ def _run_pyro_model_worker(queue: Queue, pyro_code: str) -> None:
                 raise ValueError("The model returns None")
         queue.put(("success", result))
     except Exception:
-        queue.put(("error", traceback.format_exc()))
+        queue.put(("error", traceback.format_exc(limit=1)))
 
 
 def run_pyro_model_with_timeout(
     pyro_code: str,
     timeout: float,
-) -> Tuple[bool, Any]:
+    pandera_schema,
+) -> tuple[bool, Any]:
     """
     Run Pyro model in a separate process with timeout.
 
@@ -113,9 +114,9 @@ def run_pyro_model_with_timeout(
 def is_valid_pyro_code(
     pyro_code: str, 
     *, 
-    max_attempts: int = 10,
-    sample_timeout: float = 5.0,
-) -> Tuple[bool, Optional[str]]:
+    max_attempts: int = MAX_SAMPLING_CHECKS,
+    sampling_timeout: int = MAX_TIMEOUT_SAMPLING,
+) -> tuple[bool, Optional[str]]:
     """
     Validate Pyro code with process-based timeout handling.
     """
@@ -131,6 +132,6 @@ def is_valid_pyro_code(
     except KeyboardInterrupt:
         raise
     except Exception:
-        return False, traceback.format_exc()
-
-    return True, None
+        return False, traceback.format_exc(limit=1)
+    else:
+        return True, None

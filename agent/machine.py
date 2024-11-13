@@ -1,5 +1,3 @@
-import time
-from datetime import datetime
 from enum import Enum
 
 from statemachine import StateMachine
@@ -10,17 +8,6 @@ import weave
 
 MAX_ATTEMPTS = 8
 
-PROMPT_SUFFIX = "Think step by step. Then, provide your final answer (variable names only, EXACTLY as they appear in the schema) within the tags <Answer>...</Answer>, separated by \", \". "
-
-PYRO_FAILED_CODE_TEMPLATE = """
-            Pyro code validation failed, please review and try again.
-            Here is the Traceback:
-            ```
-            {context['last_check_info']}
-            ```
-            ALWAYS return Pyro code, ready to be execute without Markdown formattig, within the tags <Answer>...</Answer>.
-            """
-
 
 class StepMixIn:
 
@@ -28,7 +15,6 @@ class StepMixIn:
     def on_enter_state(self, event, state):
 
         if self.model.attempts[state.id] > MAX_ATTEMPTS:
-            # wandb.log({"error": f"Reached max attempts on state {state.id}"})
             raise RuntimeError(f"Reached max attempts on state {state.id} ({self.model.attempts[state.id]} > {MAX_ATTEMPTS})")
 
         self.model.attempts[state.id] += 1
