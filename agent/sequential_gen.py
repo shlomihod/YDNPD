@@ -1,5 +1,4 @@
-from machine import CasualModelingAgentMachine
-from llm_session import LLMSession
+from core import CasualModelingAgentMachine, LLMSession
 from specifications import SPECIFICATION_V0
 from data_config import SCHEMA
 import wandb
