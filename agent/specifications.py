@@ -217,7 +217,7 @@ SPECIFICATION_V0 = {
         "processing_fn": lambda answer, context: {
             "code": answer,
         },
-        "check_fn": lambda answer, additional_context, context: is_valid_pyro_code(additional_context["code"])
+        "check_fn": lambda answer, additional_context, context: is_valid_pyro_code(additional_context["code"], context["pandera_schema"])
     },
     "ENFORCE_RANGE_failed": {
         "instruction_fn": lambda context: PYRO_FAILED_CODE_TEMPLATE.format(**context),
@@ -237,7 +237,7 @@ SPECIFICATION_V0 = {
         "processing_fn": lambda answer, context: {
             "code": answer,
         },
-        "check_fn": lambda answer, additional_context, context: is_valid_pyro_code(additional_context["code"])
+        "check_fn": lambda answer, additional_context, context: is_valid_pyro_code(additional_context["code"], context["pandera_schema"])
     },
     "ENFORCE_CONTRAINTS_failed": {
         "instruction_fn": lambda context: PYRO_FAILED_CODE_TEMPLATE.format(**context),

@@ -7,6 +7,7 @@ from pprint import pprint
 
 from openai import OpenAI
 
+from utils import metadata_to_pandera_schema
 
 OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'
 CLIENT = OpenAI(api_key=OPENAI_KEY)
@@ -26,7 +27,8 @@ class LLMSession:
 
         self.context = {
             "metadata": metadata,
-            "last_check_info": None
+            "last_check_info": None,
+            "pandera_schema": metadata_to_pandera_schema(metadata["schema"]),
         }
 
         self.llm_params = {
