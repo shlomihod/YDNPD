@@ -226,7 +226,7 @@ SPECIFICATION_V0 = {
         "instruction_fn": lambda context: f'''
         The model defined in your code can be compiled in Pyhton - Good job!
         Recall that you produced a list constraints, now it is the time to enforce them in your code.
-        Include additional line of code to force the constraints with reject sampling.
+        Include additional lines of code at the end of your function (but before the return statement) to force the constraints with reject sampling.
         The function should always return a sample, and try again if it fails due to the constraints. Consider using `while True` with `continue` for achieving that.
         For your reference, here is the constraints again:
         {context['constraints']}.
