@@ -15,20 +15,20 @@ SYNTHESIZERS = ["privbayes"] #, "mwem", "aim"] # "aim_torch"
 HPARAMS_DIMS = {
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "q_count": [512],  # [128, 512],
+        "q_count": [512, 1024],  # [128, 512],
         "marginal_width": [2, 3],
-        "iterations": [10, 50],
+        "iterations": [5, 10, 50],
         "add_ranges": [False, True],
-        "split_factor": [3],  # , None],
-        "mult_weights_iterations": [20],
+        "split_factor": [1, 2, 3, 4],  # , None],
+        "mult_weights_iterations": [5, 10, 20],
     },
     "mst": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
     },
     "aim": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "degree": [2, 3],
-        "rounds": [10, 20],
+        "degree": [1, 2, 3],
+        "rounds": [5, 10, 20, None],
     },
     "privbayes": {
         "theta": [2, 8, 32, 64],
