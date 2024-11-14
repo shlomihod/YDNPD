@@ -53,30 +53,55 @@ def generate_baseline_domain(dataset, schema, null_prop=None):
     return pd.DataFrame(generated_dataset)
 
 
-def generate_baseline_univariate(dataset, schema):
+def generate_baseline_univariate(dataset, schema, rounding):
 
     train_dataet, _ = split_train_eval_datasets(dataset)
 
-    return pd.DataFrame(
-        {
-            column: (
-                values.sample(
-                    n=len(dataset), replace=True, random_state=RADNOM_SEED_GENERATION
-                ).reset_index(drop=True)
-            )
-            for column, values in train_dataet.items()
-        }
-    )
+    if rounding is None:
+        df = pd.DataFrame(
+            {
+                column: (
+                    values.sample(
+                        n=len(dataset), replace=True, random_state=RADNOM_SEED_GENERATION
+                    ).reset_index(drop=True)
+                )
+                for column, values in train_dataet.items()
+            }
+        )
+
+    else:
+
+        rng = np.random.default_rng(RADNOM_SEED_GENERATION)
+
+        pseudo_probs = {column:
+                        dataset[column]
+                        .value_counts(normalize=True)
+                        .round(rounding)
+                        for column in dataset.columns}
+        probs = {column: (pp / pp.sum()).to_dict() for column, pp in pseudo_probs.items()}
+        df = pd.DataFrame(
+            {
+                column: (
+                    rng.choice(
+                        list(ps.keys()),
+                        size=len(dataset),
+                        p=list(ps.values()))
+                )
+                for column, ps in probs.items()
+            }
+        )
+
+    return df
 
 
-def create_baselines(dataset_name, data_path, null_prop=None):
+def create_baselines(dataset_name, data_path, null_prop=None, rounding=2):
     dataset, schema = load_dataset(dataset_name, drop_na=null_prop is None)
 
     baselines = {
         "baseline_domain": generate_baseline_domain(
             dataset, schema, null_prop=null_prop
         ),
-        "baseline_univariate": generate_baseline_univariate(dataset, schema),
+        "baseline_univariate": generate_baseline_univariate(dataset, schema, rounding),
     }
 
     for name, dataset in baselines.items():
