@@ -18,6 +18,7 @@ DATASETS = {
     "acs/texas_upsampled": "acs-2019-nist/texas_upsampled/texas_upsampled",
     "acs/baseline_domain": "acs-2019-nist/baseline_domain/baseline_domain",
     "acs/baseline_univariate": "acs-2019-nist/baseline_univariate/baseline_univariate",
+    "acs/llm": "acs-2019-nist/llm/llm",
     "we/original": "we_survey/cleaned/cleaned",
 }
 

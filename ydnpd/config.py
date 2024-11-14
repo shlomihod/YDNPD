@@ -63,12 +63,13 @@ ALL_EXPERIMENTS = {
         "acs/national",
         [
             "acs/national",
-            "acs/massachusetts",
-            # "acs/massachusetts_upsampled",
+            # "acs/massachusetts",
+            "acs/massachusetts_upsampled",
             # "acs/texas",
             # "acs/texas_upsampled",
-            # "acs/baseline_univariate",
-            # "acs/baseline_domain",
+            "acs/baseline_univariate",
+            "acs/baseline_domain",
+            "acs/llm",
         ],
     )
 }
