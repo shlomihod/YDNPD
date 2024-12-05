@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 RANDOM_STATE_TRAIN_TEST_SPLIT = 42
 EVAL_SPLIT_PROPORTION = 0.3
 
-DATASET_ROOT = Path("data")
+DATASET_ROOT = Path(__file__).parent / "data"
 
 DATASETS = {
     "acs/national": "acs-2019-nist/national/national2019",

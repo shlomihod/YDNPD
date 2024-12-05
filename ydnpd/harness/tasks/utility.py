@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import scienceplots
 import wandb
 
-from ydnpd.dataset import load_dataset, split_train_eval_datasets
-from ydnpd.synthesis import generate_synthetic_data
-from ydnpd.evaluation import evaluate_two
-from ydnpd.tasks import DPTask
 from ydnpd.utils import _freeze
+from ydnpd.datasets.loader import load_dataset, split_train_eval_datasets
+from ydnpd.harness.synthesis import generate_synthetic_data
+from ydnpd.harness.evaluation import evaluate_two
+from ydnpd.harness.tasks import DPTask
 
 
 class UtilityTask(DPTask):

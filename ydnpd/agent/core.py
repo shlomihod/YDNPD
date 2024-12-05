@@ -4,13 +4,20 @@ import traceback
 from datetime import datetime
 from collections import Counter
 from pprint import pprint
+from enum import Enum
 
+from statemachine import StateMachine
+from statemachine.states import States
 from openai import OpenAI
+import weave
 
-from utils import metadata_to_pandera_schema
+from ydnpd.agent.utils import metadata_to_pandera_schema
+
 
 OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'
 CLIENT = OpenAI(api_key=OPENAI_KEY)
+
+MAX_ATTEMPTS = 8
 
 
 class LLMSession:
@@ -51,7 +58,6 @@ class LLMSession:
 
         self.verbose = verbose
         self.last_transition_time = datetime.now()
-
 
     def chat_complete(self, user_message, with_answer=True):
 
@@ -135,3 +141,85 @@ class LLMSession:
             self.context["last_check_info"] = check_info
 
         return check_result
+
+
+class StepMixIn:
+
+    @weave.op
+    def on_enter_state(self, event, state):
+
+        if self.model.attempts[state.id] > MAX_ATTEMPTS:
+            raise RuntimeError(f"Reached max attempts on state {state.id} ({self.model.attempts[state.id]} > {MAX_ATTEMPTS})")
+
+        self.model.attempts[state.id] += 1
+
+        check_result = self.model.execute_step(self.model.specification[event]["instruction_fn"],
+                                               self.model.specification[state.id]["processing_fn"],
+                                               self.model.specification[state.id]["check_fn"])
+
+        if state.final:
+            weave.publish(self.model.context, "context")
+            return
+
+        follow_event_name = f"{state.id}_{'success' if check_result else 'failed'}"
+        follow_event = getattr(self, follow_event_name)
+        follow_event()
+
+
+class CasualModelingAgentStage(Enum):
+    SCHEME = 1
+    ELICIT_CONSTRAINTS = 2
+    ROOT_NODES = 3
+    ROOT_TO_NON_EDGES = 4
+    NON_TO_NON_EDGES = 5
+    DAG = 6
+    STRUCTURAL_EQUATIONS = 7
+    PARAMETERS = 8
+    PYRO_CODE = 9
+    ENFORCE_RANGE = 10
+    ENFORCE_CONTRAINTS = 11
+    FINITO = 12
+
+
+class CasualModelingAgentMachine(StateMachine, StepMixIn):
+
+    states = States.from_enum(
+        CasualModelingAgentStage,
+        initial=CasualModelingAgentStage.SCHEME,
+        final=CasualModelingAgentStage.FINITO,
+        use_enum_instance=True,
+    )
+
+    # TODO: Refactor with dynamic generation
+    SCHEME_failed = states.SCHEME.to.itself()
+    SCHEME_success = states.SCHEME.to(states.ELICIT_CONSTRAINTS)
+
+    ELICIT_CONSTRAINTS_failed = states.ELICIT_CONSTRAINTS.to.itself()
+    ELICIT_CONSTRAINTS_success = states.ELICIT_CONSTRAINTS.to(states.ROOT_NODES)
+
+    ROOT_NODES_failed = states.ROOT_NODES.to.itself()
+    ROOT_NODES_success = states.ROOT_NODES.to(states.ROOT_TO_NON_EDGES)
+
+    ROOT_TO_NON_EDGES_failed = states.ROOT_TO_NON_EDGES.to.itself()
+    ROOT_TO_NON_EDGES_success = states.ROOT_TO_NON_EDGES.to(states.NON_TO_NON_EDGES)
+
+    NON_TO_NON_EDGES_failed = states.NON_TO_NON_EDGES.to.itself()
+    NON_TO_NON_EDGES_success = states.NON_TO_NON_EDGES.to(states.DAG)
+
+    DAG_failed = states.DAG.to.itself()
+    DAG_success = states.DAG.to(states.STRUCTURAL_EQUATIONS)
+
+    STRUCTURAL_EQUATIONS_failed = states.STRUCTURAL_EQUATIONS.to.itself()
+    STRUCTURAL_EQUATIONS_success = states.STRUCTURAL_EQUATIONS.to(states.PARAMETERS)
+
+    PARAMETERS_failed = states.PARAMETERS.to.itself()
+    PARAMETERS_success = states.PARAMETERS.to(states.PYRO_CODE)
+
+    PYRO_CODE_failed = states.PYRO_CODE.to.itself()
+    PYRO_CODE_success = states.PYRO_CODE.to(states.ENFORCE_RANGE)
+
+    ENFORCE_RANGE_failed = states.ENFORCE_RANGE.to.itself()
+    ENFORCE_RANGE_success = states.ENFORCE_RANGE.to(states.ENFORCE_CONTRAINTS)
+
+    ENFORCE_CONTRAINTS_failed = states.ENFORCE_CONTRAINTS.to.itself()
+    ENFORCE_CONTRAINTS_success = states.ENFORCE_CONTRAINTS.to(states.FINITO)

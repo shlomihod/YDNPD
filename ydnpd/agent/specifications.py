@@ -1,9 +1,9 @@
 import networkx as nx
 
-from utils import (clean_split,
-                   build_graph,
-                   is_valid_pyro_code,
-                   retrieve_pyro_model)
+from ydnpd.agent.utils import (clean_split,
+                               build_graph,
+                               is_valid_pyro_code,
+                               retrieve_pyro_model)
 
 
 PROMPT_SUFFIX = "Think step by step. Then, provide your final answer (variable names only, EXACTLY as they appear in the schema) within the tags <Answer>...</Answer>, separated by \", \". "

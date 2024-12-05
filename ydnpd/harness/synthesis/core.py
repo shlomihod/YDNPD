@@ -23,8 +23,8 @@ except ImportError:
         "SmartNoise is not installed. Please install it to use SmartNoise synthesizers."
     )
 
-from ydnpd.synthesis.privbayes import PrivBayes
-from ydnpd.synthesis.aim_torch import AIMSynthesizerTorch
+from ydnpd.harness.synthesis.privbayes import PrivBayes
+from ydnpd.harness.synthesis.aim_torch import AIMSynthesizerTorch
 
 SYNTHESIZERS = [
     "id",

@@ -1,6 +1,6 @@
 import itertools as it
 
-from ydnpd.experiment import Experiments
+from ydnpd.harness.experiment import Experiments
 
 import copy
 
@@ -10,7 +10,7 @@ NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 10_000
 
-SYNTHESIZERS = ["privbayes", "mwem", "aim_torch", "patectgan"]
+SYNTHESIZERS = ["privbayes"]#, "mwem", "aim_torch", "patectgan"]
 
 HPARAMS_DIMS = {
     "mwem": {

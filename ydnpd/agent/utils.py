@@ -1,4 +1,3 @@
-import sys
 import traceback
 from multiprocessing import Process, Queue
 from typing import Any, Optional
@@ -10,7 +9,6 @@ import pyro.distributions as dist
 import networkx as nx
 import pandas as pd
 import pandera as pa
-
 
 MAX_TIMEOUT_SAMPLING = 10
 MAX_SAMPLING_CHECKS = 10
