@@ -4,7 +4,7 @@ from ydnpd.experiment import Experiments
 
 import copy
 
-EPSILONS = [1, 4, 10]
+EPSILONS = [1, 2, 5, 7, 10, 20]
 
 NUM_RUNS = 5
 
