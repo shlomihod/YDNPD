@@ -1,12 +1,13 @@
-from core import CasualModelingAgentMachine, LLMSession
-from specifications import SPECIFICATION_V0
-from data_config import SCHEMA
-import wandb
-
 import pandas as pd
 import time
 from datetime import datetime
 from pathlib import Path
+
+from ydnpd.agent.core import CasualModelingAgentMachine, LLMSession
+from ydnpd.agent.specifications import SPECIFICATION_V0
+from ydnpd.agent.data_config import SCHEMA
+
+import wandb
 
 wandb.init(project="llm_state_machine", name="LLM_Causal_Model_Agent")
 
