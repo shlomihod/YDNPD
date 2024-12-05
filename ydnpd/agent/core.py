@@ -167,7 +167,7 @@ class StepMixIn:
 
 
 class CasualModelingAgentStage(Enum):
-    SCHEME = 1
+    SCHEMA = 1
     ELICIT_CONSTRAINTS = 2
     ROOT_NODES = 3
     ROOT_TO_NON_EDGES = 4
@@ -185,14 +185,14 @@ class CasualModelingAgentMachine(StateMachine, StepMixIn):
 
     states = States.from_enum(
         CasualModelingAgentStage,
-        initial=CasualModelingAgentStage.SCHEME,
+        initial=CasualModelingAgentStage.SCHEMA,
         final=CasualModelingAgentStage.FINITO,
         use_enum_instance=True,
     )
 
     # TODO: Refactor with dynamic generation
-    SCHEME_failed = states.SCHEME.to.itself()
-    SCHEME_success = states.SCHEME.to(states.ELICIT_CONSTRAINTS)
+    SCHEMA_failed = states.SCHEMA.to.itself()
+    SCHEMA_success = states.SCHEMA.to(states.ELICIT_CONSTRAINTS)
 
     ELICIT_CONSTRAINTS_failed = states.ELICIT_CONSTRAINTS.to.itself()
     ELICIT_CONSTRAINTS_success = states.ELICIT_CONSTRAINTS.to(states.ROOT_NODES)
