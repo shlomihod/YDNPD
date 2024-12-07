@@ -83,8 +83,8 @@ def calc_thresholded_marginals_k_abs_diff_errors(
     datasets = [train_dataset.copy(), synth_dataset.copy()]
 
     for column in train_dataset.columns:
-        column_schema = schema["schema"][column]
-        if (values := column_schema.get("values")) is not None:
+        column_schema = schema[column]
+        if (values := list(column_schema.get("values"))) is not None:
             assert column_schema["dtype"].startswith(
                 "int"
             ), "Only integer columns can be categorical; you might have missing values"

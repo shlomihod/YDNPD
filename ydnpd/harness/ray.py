@@ -1,18 +1,23 @@
-from functools import partial
+from typing import Optional
 
 import ray
 
 import ydnpd
 
 
-def span_utility_tasks(task_kwargs=None):
+def span_utility_tasks(additional_datasets: Optional[list[tuple[str, str]]] = None,
+                       task_kwargs: Optional[dict] = None):
 
     if task_kwargs is None:
         task_kwargs = {}
 
+    dataset_pointers = list(ydnpd.harness.config.DATASET_NAMES)
+    if additional_datasets:
+        dataset_pointers.extend(additional_datasets)
+
     return [
         ydnpd.harness.UtilityTask(
-            dataset_name=dataset_name,
+            dataset_pointer=dataset_pointer,
             epsilons=ydnpd.harness.config.EPSILONS,
             synth_name=synth_name,
             hparam_dims=ydnpd.harness.config.HPARAMS_DIMS[synth_name],
@@ -21,11 +26,12 @@ def span_utility_tasks(task_kwargs=None):
             **task_kwargs
         )
         for synth_name in ydnpd.harness.config.SYNTHESIZERS
-        for dataset_name in ydnpd.harness.config.DATASET_NAMES
+        for dataset_pointer in dataset_pointers
     ]
 
 
-def span_utility_ray_tasks(**task_kwargs):
+def span_utility_ray_tasks(additional_datasets: Optional[list[tuple[str, str]]] = None,
+                           **task_kwargs):
 
     def task_execute_wrapper(task):
         def function():
@@ -37,5 +43,5 @@ def span_utility_ray_tasks(**task_kwargs):
         ray.remote(task_execute_wrapper(task))
         .options(num_gpus=(1 if task.synth_name in ("patectgan", "aim_torch") else 0))
         .remote()
-        for task in span_utility_tasks(task_kwargs)
+        for task in span_utility_tasks(additional_datasets, task_kwargs)
     ]

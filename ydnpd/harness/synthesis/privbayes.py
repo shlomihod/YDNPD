@@ -56,10 +56,11 @@ class PrivBayes:
             with open(tmpdir / "data/real.domain", "w") as f:
                 for id_, column in enumerate(data.columns):
 
-                    column_schema = schema["schema"][column]
+                    column_schema = schema[column]
                     LOGGER.info(f"Column schema: {column_schema}")
 
-                    if (values := column_schema.get("values")) is not None:
+                    if (values := list(column_schema.get("values"))) is not None:
+
                         assert column_schema["dtype"].startswith(
                             "int"
                         ), "Only integer columns can be categorical; you might have missing values"
@@ -67,19 +68,21 @@ class PrivBayes:
                         assert all(
                             isinstance(v, int) for v in values
                         ), "Categorical values must be integers"
+
                         assert len(values) == len(
                             set(values)
                         ), "Categorical values must be unique"
+
                         assert values == sorted(
                             values
-                        ), "Categorical values must be sorted"
+                        ), f"Categorical values must be sorted"
 
                         LOGGER.info(f"Column {column} is categorical")
                         print("D", end="", file=f)
                         counter = 0
 
                         # encode indices, the C code expects 0...k-1
-                        values2indices = {v: i for i, v in enumerate(values)}
+                        values2indices = {v: i for i, v in enumerate(list(values))}
                         data[column] = data[column].apply(lambda x: values2indices[x])
                         size = len(values)
 
@@ -94,7 +97,7 @@ class PrivBayes:
                     elif (max_ := column_schema.get("max")) is not None:
                         raise RuntimeError("Non categorical value are not supported")
                         LOGGER.info(f"Column {column} is not categorical")
-                        min_ = schema["schema"][column].get("min")
+                        min_ = schema[column].get("min")
                         d = (max_ - min_) * 0.03
                         min_ = min_ - d
                         max_ = max_ + d
@@ -155,10 +158,10 @@ class PrivBayes:
             synth_df = pd.DataFrame(samples, columns=data.columns)
 
             for column in synth_df.columns:
-                column_schema = schema["schema"][column]
+                column_schema = schema[column]
                 LOGGER.info(f"Column schema: {column_schema}")
 
-                if (values := column_schema.get("values")) is not None:
+                if (values := list(column_schema.get("values"))) is not None:
                     synth_df[column] = synth_df[column].astype(int)
                     synth_df[column] = synth_df[column].apply(lambda x: values[x])
 

@@ -4,7 +4,7 @@ from ydnpd.harness.experiment import Experiments
 
 import copy
 
-EPSILONS = [1, 2, 5, 7, 10, 20]
+EPSILONS = [1., 2., 5., 7., 10., 20.]
 
 NUM_RUNS = 5
 
@@ -69,7 +69,6 @@ ALL_EXPERIMENTS = {
             # "acs/texas_upsampled",
             "acs/baseline_univariate",
             "acs/baseline_domain",
-            "acs/llm",
         ],
     )
 }
@@ -87,5 +86,3 @@ EVALUATION_KWARGS = {
     "classification_target_column": "OWN_RENT",
     "marginals_k": 3,
 }
-
-CLASSIFICATION_TARGET_COLUMN = "OWN_RENT"
