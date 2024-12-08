@@ -23,7 +23,6 @@ def generate_baseline_domain(dataset, schema, null_prop=None):
 
     rng = np.random.default_rng(RADNOM_SEED_GENERATION)
 
-    schema = schema["schema"]
     num_records = len(dataset)
 
     generated_dataset = {}
@@ -95,7 +94,7 @@ def generate_baseline_univariate(dataset, schema, rounding):
 
 
 def create_baselines(dataset_name, data_path, null_prop=None, rounding=2):
-    dataset, schema = load_dataset(dataset_name, drop_na=null_prop is None)
+    dataset, schema, _ = load_dataset(dataset_name, drop_na=null_prop is None)
 
     baselines = {
         "baseline_domain": generate_baseline_domain(
@@ -108,11 +107,11 @@ def create_baselines(dataset_name, data_path, null_prop=None, rounding=2):
         save_dataset(dataset, schema, data_path, name)
 
 
-def create_upsamped(dataset_name, other_dataset_name, data_path):
-    other_dataset, schema = load_dataset(other_dataset_name)
+def create_upsampled(dataset_name, other_dataset_name, data_path):
+    other_dataset, schema, _ = load_dataset(other_dataset_name)
     num_records = len(other_dataset)
 
-    dataset, schema = load_dataset(dataset_name)
+    dataset, schema, _ = load_dataset(dataset_name)
 
     upsampled_dataset = dataset.sample(
         num_records, replace=True, random_state=RADNOM_SEED_GENERATION
@@ -126,5 +125,5 @@ def create_upsamped(dataset_name, other_dataset_name, data_path):
 
 if __name__ == "__main__":
     create_baselines("acs/national", "data/acs-2019-nist")
-    create_upsamped("acs/massachusetts", "acs/national", "data/acs-2019-nist")
-    create_upsamped("acs/texas", "acs/national", "data/acs-2019-nist")
+    create_upsampled("acs/massachusetts", "acs/national", "data/acs-2019-nist")
+    create_upsampled("acs/texas", "acs/national", "data/acs-2019-nist")

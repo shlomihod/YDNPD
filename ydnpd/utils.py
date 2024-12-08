@@ -1,6 +1,8 @@
 import os
-import sys
+from typing import Any
 from contextlib import contextmanager, redirect_stdout, redirect_stderr
+
+import pandera as pa
 
 
 @contextmanager
@@ -29,3 +31,32 @@ def _freeze(d):
         return frozenset(_freeze(v) for v in d)
     else:
         return d
+
+
+def metadata_to_pandera_schema(metadata_schema: dict[str, Any]) -> pa.DataFrameSchema:
+    schema_dict = {}
+
+    for column_name, column_info in metadata_schema.items():
+        dtype = column_info["dtype"]
+        values = column_info.get("values")
+        checks = []
+
+        if isinstance(values, list):
+            checks.append(pa.Check.isin(values))
+        elif isinstance(values, dict):
+            allowed_values = list(values.keys())
+            checks.append(pa.Check.isin(allowed_values))
+
+        schema_dict[column_name] = pa.Column(
+            dtype=dtype,
+            checks=checks,
+            title=column_info.get("description", column_name),
+            nullable=False
+        )
+
+    schema = pa.DataFrameSchema(
+        schema_dict,
+        strict=True
+    )
+
+    return schema

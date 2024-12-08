@@ -8,7 +8,6 @@ import pyro
 import pyro.distributions as dist
 import networkx as nx
 import pandas as pd
-import pandera as pa
 
 MAX_TIMEOUT_SAMPLING = 10
 MAX_SAMPLING_CHECKS = 10
@@ -31,35 +30,6 @@ def build_graph(relationships):
         G.add_edge(source, target)
 
     return G
-
-
-def metadata_to_pandera_schema(metadata_schema: dict[str, Any]) -> pa.DataFrameSchema:
-    schema_dict = {}
-
-    for column_name, column_info in metadata_schema.items():
-        dtype = column_info["dtype"]
-        values = column_info.get("values")
-        checks = []
-
-        if isinstance(values, list):
-            checks.append(pa.Check.isin(values))
-        elif isinstance(values, dict):
-            allowed_values = list(values.keys())
-            checks.append(pa.Check.isin(allowed_values))
-
-        schema_dict[column_name] = pa.Column(
-            dtype=dtype,
-            checks=checks,
-            title=column_info.get("description", column_name),
-            nullable=False
-        )
-
-    schema = pa.DataFrameSchema(
-        schema_dict,
-        strict=True
-    )
-
-    return schema
 
 
 def sample_dataset(model, num_samples, pandera_schema):

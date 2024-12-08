@@ -22,27 +22,27 @@ SPECIFICATION_V0 = {
     "__initial__": {
         "instruction_fn": lambda context: (
             f"Consider the following data schema: {context['metadata']['schema']}.\n"
-            " Review you and make sure you understand it. Reply with the full list of variables from the scheme."
+            " Review you and make sure you understand it. Reply with the full list of variables from the schema."
             f" {PROMPT_SUFFIX}"
         )
     },
-    "SCHEME": {
+    "SCHEMA": {
         "processing_fn": lambda answer, context: {"reported_variables": set(clean_split(answer))},
         "check_fn": lambda answer, additional_context, context: ((additional_context["reported_variables"]
                                                                     == set(context["metadata"]["schema"])),
                                                                     None),
     },
-    "SCHEME_failed": {
+    "SCHEMA_failed": {
             "instruction_fn": lambda context: (
-                f"Take anoter attempt to review the scheme provided before until you understand. Reply with the full list of variables from the scheme.\n"
+                f"Take anoter attempt to review the schema provided before until you understand. Reply with the full list of variables from the schema.\n"
                 f" {PROMPT_SUFFIX}"
             )
     },
-    "SCHEME_success": {
+    "SCHEMA_success": {
         "instruction_fn": lambda context: (
-            f"Consider the scheme provided before.\n"
+            f"Consider the schema provided before.\n"
             " You are going to create an exhausting list of constraints that this variables must satisfy using your knowledge."
-            " The constraints do not refer to the range of each variable seperatly, as defined by the scheme."
+            " The constraints do not refer to the range of each variable seperatly, as defined by the schema."
             " We care only about contraints involving two or more variables."
             " For example, a perosn 14 years old cannot have have 12 years of education."
             " You will provide your constraints as a list of equalites and inequalites that a record must sastisfy formatted as Python boolean expression. "
@@ -60,7 +60,7 @@ SPECIFICATION_V0 = {
     },
     "ELICIT_CONSTRAINTS_success": {
         "instruction_fn": lambda context: (
-            f"Consider the scheme provided before.\n"
+            f"Consider the schema provided before.\n"
             " You are going to construct a causal graph, relying on your expertise, given only the above schema dictionary defining each variable name and domain/range/categories. When you are unfamiliar with a variable name, infer its identity from the context.\n"
             " You will start by identifying which variable(s) should serve as the root nodes in a directed acyclic graph (DAG), which will represent a structural causal model between all variables (the best root variables are unaffected by any other variables)."
             f" {PROMPT_SUFFIX}"
@@ -207,7 +207,7 @@ SPECIFICATION_V0 = {
         The model defined in your code can be compiled in Pyhton - Good job!
         However, the model probably produces samples that are outside of the ranges define by the domain.
         Include additional line of code to force the type and range of the samples by casting, rounding, clipping and affine transformation.
-        For your reference, here is the scheme again:
+        For your reference, here is the schema again:
         {context['metadata']['schema']}.
         ALWAYS return Pyro code, ready to be execute without Markdown formattig, within the tags <Answer>...</Answer>.
         ''',

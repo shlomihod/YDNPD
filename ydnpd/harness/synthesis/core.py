@@ -73,7 +73,7 @@ def generate_synthetic_data(
         continuous_columns = []
         categorical_columns = []
 
-        for col, info in schema["schema"].items():
+        for col, info in schema.items():
             match info["dtype"]:
                 case "object":
                     categorical_columns.append(col)
@@ -118,7 +118,7 @@ def generate_synthetic_data(
         continuous_columns = []
         categorical_columns = []
 
-        for col, info in schema["schema"].items():
+        for col, info in schema.items():
             match info["dtype"]:
                 case "object":
                     categorical_columns.append(col)

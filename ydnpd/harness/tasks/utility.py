@@ -1,5 +1,6 @@
 import itertools as it
-from typing import Callable
+
+import traceback
 
 import pandas as pd
 import seaborn as sns
@@ -20,7 +21,7 @@ class UtilityTask(DPTask):
 
     def __init__(
         self,
-        dataset_name: str,
+        dataset_pointer: str | tuple[str, str],
         epsilons: list[float],
         synth_name: str,
         hparam_dims: dict[str, list],
@@ -31,7 +32,14 @@ class UtilityTask(DPTask):
         evaluation_kwargs: dict = None,
     ):
 
-        self.dataset_name = dataset_name
+        self.dataset_pointer = dataset_pointer
+        if isinstance(dataset_pointer, str):
+            self.dataset_name, self.dataset_path = dataset_pointer, None
+        elif isinstance(dataset_pointer, tuple):
+            self.dataset_name, self.dataset_path = dataset_pointer
+        else:
+            raise TypeError(f"`dataset_pointer` should be either string or 2-tuple of strings")
+
         self.epsilons = epsilons
         self.synth_name = synth_name
         self.hparam_dims = hparam_dims
@@ -79,7 +87,7 @@ class UtilityTask(DPTask):
 
     def execute(self) -> list[dict]:
 
-        dataset, schema = load_dataset(self.dataset_name)
+        dataset, schema, _ = load_dataset(self.dataset_name, self.dataset_path)
 
         train_dataset, eval_dataset = split_train_eval_datasets(dataset)
 
@@ -111,7 +119,11 @@ class UtilityTask(DPTask):
                             train_dataset, eval_dataset, schema, epsilon, hparams
                         )
                     except Exception as e:
-                        print(f"Error: {e}")
+                        # print(f"Error: {e}")
+                        print(traceback.format_exc())
+
+
+
                         if self.with_wandb:
                             wandb.log({"_error": str(e)})
 
