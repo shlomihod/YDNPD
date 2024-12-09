@@ -40,6 +40,8 @@ class UtilityTask(DPTask):
         else:
             raise TypeError(f"`dataset_pointer` should be either string or 2-tuple of strings")
 
+        self.dataset_family, _ = self.dataset_name.split("/")
+
         self.epsilons = epsilons
         self.synth_name = synth_name
         self.hparam_dims = hparam_dims
@@ -47,7 +49,8 @@ class UtilityTask(DPTask):
         self.verbose = verbose
         self.with_wandb = with_wandb
         self.evaluation_kwargs = (
-            evaluation_kwargs if evaluation_kwargs is not None else {}
+            evaluation_kwargs["_"] | evaluation_kwargs[self.dataset_family]
+            if evaluation_kwargs is not None else {}
         )
 
         if not with_wandb:

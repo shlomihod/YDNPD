@@ -16,10 +16,15 @@ DATA_ROOT = Path(__file__).parent / "data"
 DATASETS = {
     "acs": {
         "national",
-        "massachusetts", "massachusetts_upsampled"
-        "texas", "massachusetts_upsampled",
-        "baseline_domain", "baseline_univariate"
-    }
+        "massachusetts", "massachusetts_upsampled",
+        "texas", "texas_upsampled",
+        "baseline_domain", "baseline_univariate",
+    },
+    "edad": {
+        "2023",
+        "2020",
+        "baseline_domain", "baseline_univariate",
+    },
 }
 
 # https://pages.nist.gov/privacy_collaborative_research_cycle/pages/participate.html
@@ -70,12 +75,13 @@ def load_dataset(
     domain = metadata["domain"]
 
     if cols_subset_name:
-        if family == "acs":
-            cols_subset_name = "demographic"
+        if family in COL_SUBSETS:
+            if family == "acs":
+                cols_subset_name = "demographic"
 
-        col_subset = COL_SUBSETS[family][cols_subset_name]
-        dataset = dataset[col_subset]
-        schema = {k: v for k, v in schema.items() if k in col_subset}
+            col_subset = COL_SUBSETS[family][cols_subset_name]
+            dataset = dataset[col_subset]
+            schema = {k: v for k, v in schema.items() if k in col_subset}
 
     processed_schema = {}
 

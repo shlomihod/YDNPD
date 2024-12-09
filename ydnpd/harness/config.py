@@ -59,16 +59,22 @@ HPARAMS_DIMS = {
 HPARAMS_DIMS['aim_torch'] = copy.copy(HPARAMS_DIMS['aim'])
 
 ALL_EXPERIMENTS = {
-    "acs": Experiments(
-        "acs/national",
+    # "acs": Experiments(
+    #     "acs/national",
+    #     [
+    #         "acs/national",
+    #         "acs/massachusetts_upsampled",
+    #         "acs/baseline_univariate",
+    #         "acs/baseline_domain",
+    #     ],
+    # ),
+    "edad": Experiments(
+        "edad/2023",
         [
-            "acs/national",
-            # "acs/massachusetts",
-            "acs/massachusetts_upsampled",
-            # "acs/texas",
-            # "acs/texas_upsampled",
-            "acs/baseline_univariate",
-            "acs/baseline_domain",
+            "edad/2023",
+            "edad/2020",
+            "edad/baseline_univariate",
+            "edad/baseline_domain",
         ],
     )
 }
@@ -83,6 +89,13 @@ DATASET_NAMES = set(
 )
 
 EVALUATION_KWARGS = {
-    "classification_target_column": "OWN_RENT",
-    "marginals_k": 3,
+    "_": {
+        "marginals_k": 3,
+    },
+    "acs": {
+        "classification_target_column": "OWN_RENT",
+    },
+    "edad": {
+        "classification_target_column": "VISI_2_1",
+    },
 }

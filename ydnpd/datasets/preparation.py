@@ -4,19 +4,17 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from ydnpd.dataset import load_dataset, split_train_eval_datasets
+from ydnpd.datasets.loader import load_dataset, split_train_eval_datasets, DATA_ROOT
 
 
 RADNOM_SEED_GENERATION = 42
 
 
-def save_dataset(dataset, schema, data_path, name):
+def save_dataset(dataset, data_path, name):
     data_path = Path(data_path)
-    dataset_path = data_path / name
+    dataset_path = data_path / f"{name}.csv"
     print(dataset_path)
-    dataset_path.mkdir(parents=True, exist_ok=True)
-    dataset.to_csv(dataset_path / f"{name}.csv", index=False)
-    json.dump(schema, open(dataset_path / f"{name}.json", "w"), indent=2)
+    dataset.to_csv(dataset_path, index=False)
 
 
 def generate_baseline_domain(dataset, schema, null_prop=None):
@@ -104,26 +102,32 @@ def create_baselines(dataset_name, data_path, null_prop=None, rounding=2):
     }
 
     for name, dataset in baselines.items():
-        save_dataset(dataset, schema, data_path, name)
+        save_dataset(dataset, data_path, name)
 
 
 def create_upsampled(dataset_name, other_dataset_name, data_path):
-    other_dataset, schema, _ = load_dataset(other_dataset_name)
+    other_dataset, _, _ = load_dataset(other_dataset_name)
     num_records = len(other_dataset)
 
-    dataset, schema, _ = load_dataset(dataset_name)
+    dataset, _, _ = load_dataset(dataset_name)
 
     upsampled_dataset = dataset.sample(
         num_records, replace=True, random_state=RADNOM_SEED_GENERATION
     )
 
-    family, dataset_core_name = dataset_name.split("/")
+    _, dataset_core_name = dataset_name.split("/")
     name = f"{dataset_core_name}_upsampled"
 
-    save_dataset(upsampled_dataset, schema, data_path, name)
+    save_dataset(upsampled_dataset, data_path, name)
 
 
 if __name__ == "__main__":
-    create_baselines("acs/national", "data/acs-2019-nist")
-    create_upsampled("acs/massachusetts", "acs/national", "data/acs-2019-nist")
-    create_upsampled("acs/texas", "acs/national", "data/acs-2019-nist")
+
+    acs_path = DATA_ROOT / "acs"
+    edad_path = DATA_ROOT / "edad"
+
+    create_baselines("acs/national", acs_path)
+    create_upsampled("acs/massachusetts", "acs/national", acs_path)
+    create_upsampled("acs/texas", "acs/national", acs_path)
+
+    create_baselines("edad/2023", edad_path)
