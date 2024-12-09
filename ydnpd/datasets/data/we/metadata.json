@@ -1,0 +1,847 @@
+{
+    "references": [
+      "https://www.openicpsr.org/openicpsr/project/202701/version/V1/view"
+    ],
+    "citation": "Lemieux, Camille, Taylor, Simone, Stone, Anne, Wooden, Paige, and Chauhan, Chhavi. Workplace Equity Survey 2023. Ann Arbor, MI: Inter-university Consortium for Political and Social Research, 2024-05-30. https://doi.org/10.3886/E202701V1",
+    "domain": "Workplace Equity Survey 2023",
+    "schema": {
+      "how_easy_is_it_to_balance_your_work_life_and_personal_life_where_you_work?": {
+        "description": "How easy is it to balance your work life and personal life where you work?",
+        "dtype": "int64", 
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Extremely easy",
+          "1": "Very easy",
+          "2": "Somewhat easy",
+          "3": "Not so easy",
+          "4": "Not at all easy"
+        }
+      },
+      "my_employer_states_its_values_about_diversity.": {
+        "description": "To what extent do you agree or disagree: My employer states its values about diversity",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "my_employer_is_committed_to_creating_an_inclusive_and_equitable_workplace.": {
+        "description": "To what extent do you agree or disagree: My employer is committed to creating an inclusive and equitable workplace",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_feel_respected_and_valued_in_my_workplace.": {
+        "description": "To what extent do you agree or disagree: I feel respected and valued in my workplace",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_believe_the_culture_in_my_workplace_is_supportive.": {
+        "description": "To what extent do you agree or disagree: I believe the culture in my workplace is supportive",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "have_you_ever_taken_voluntary_or_involuntary_extended_leave_(more_than_regular_vacation_or_paid_time_off)_from_your_career?": {
+        "description": "Have you ever taken voluntary or involuntary extended leave (more than regular vacation or paid time off) from your career?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "Not applicable"
+        }
+      },
+      "please_note_the_length_of_your_latest_or_most_significant_leave.": {
+        "description": "Please note the length of your latest or most significant leave",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less than 1 month",
+          "1": "1 to 3 months",
+          "2": "3 to 6 months",
+          "3": "6 to 12 months",
+          "4": "More than 1 year"
+        }
+      },
+      "please_indicate_the_reason(s)_for_your_leave.": {
+        "description": "Please indicate the reason(s) for your leave",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Parental",
+          "1": "Education",
+          "2": "Sabbatical",
+          "3": "Illness (Self)",
+          "4": "Illness (Family Member)",
+          "5": "Involuntary (i.e. Unemployment)",
+          "6": "Resigned",
+          "7": "Prefer Not to Say",
+          "8": "Not listed"
+        }
+      },
+      "how_would_you_characterize_the_impact_your_time_off_had_on_your_career_progression?": {
+        "description": "How would you characterize the impact your time off had on your career progression?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Mostly positive",
+          "1": "Neutral",
+          "2": "Mostly negative",
+          "3": "I do not know"
+        }
+      },
+      "on_a_scale_of_1_to_10,_with_10_being_completely_satisfied,_how_satisfied_are_you_with_your_current_position?": {
+        "description": "On a scale of 1 to 10, with 10 being completely satisfied, how satisfied are you with your current position?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5",
+          "5": "6",
+          "6": "7",
+          "7": "8",
+          "8": "9",
+          "9": "10 (Most satisfied)"
+        }
+      },
+      "recognition_from_colleagues/peers": {
+        "description": "How satisfied are you with recognition from colleagues/peers?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5"
+        }
+      },
+      "recognition_from_leadership": {
+        "description": "How satisfied are you with recognition from leadership?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5"
+        }
+      },
+      "leadership_opportunities": {
+        "description": "How satisfied are you with leadership opportunities?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5"
+        }
+      },
+      "promotions": {
+        "description": "How satisfied are you with promotions?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5"
+        }
+      },
+      "compensation": {
+        "description": "How satisfied are you with compensation?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5"
+        }
+      },
+      "access_to_manager(s)": {
+        "description": "How satisfied are you with access to manager(s)?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5"
+        }
+      },
+      "project,_committee,_or_team_assignments": {
+        "description": "How satisfied are you with project, committee, or team assignments?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "1 (Least satisfied)",
+          "1": "2",
+          "2": "3",
+          "3": "4",
+          "4": "5"
+        }
+      },
+      "do_you_currently_or_have_you_ever_had_a_mentor,_sponsor,_coach,_or_other_advisor_who_helped_you_navigate_your_career?": {
+        "description": "Do you currently or have you ever had a mentor, sponsor, coach, or other advisor who helped you navigate your career?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "I do not know"
+        }
+      },
+      "was_the_relationship_part_of_a_formal_mentoring_program?": {
+        "description": "Was the relationship part of a formal mentoring program?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "I do not know",
+          "3": "Not applicable"
+        }
+      },
+      "did_their_support_measurably_impact_your_professional_growth?": {
+        "description": "Did their support measurably impact your professional growth?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "Somewhat",
+          "3": "I do not know"
+        }
+      },
+      "have_you_ever_served_in_the_workplace_as_a_mentor,_sponsor,_coach,_or_other_advisor?": {
+        "description": "Have you ever served in the workplace as a mentor, sponsor, coach, or other advisor?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "I do not know",
+          "3": "Not applicable"
+        }
+      },
+      "was_the_relationship_part_of_a_formal_mentoring_program?.1": {
+        "description": "Was the relationship part of a formal mentoring program? (as mentor)",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "I do not know",
+          "3": "Not applicable"
+        }
+      },
+      "networking_at_in-person_conferences.1": {
+        "description": "How has your networking at in-person conferences changed since the pandemic?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less often than before",
+          "1": "No change",
+          "2": "More often than before"
+        }
+      },
+      "networking_at_virtual_conferences.1": {
+        "description": "How has your networking at virtual conferences changed since the pandemic?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less often than before",
+          "1": "No change",
+          "2": "More often than before"
+        }
+      },
+      "participate_in_employee_resource_groups.1": {
+        "description": "How has your participation in employee resource groups changed since the pandemic?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less often than before",
+          "1": "No change",
+          "2": "More often than before"
+        }
+      },
+      "socialize_with_peers_within_my_company.1": {
+        "description": "How has your socialization with peers within your company changed since the pandemic?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less often than before",
+          "1": "No change",
+          "2": "More often than before"
+        }
+      },
+      "socialize_with_peers_outside_of_my_company.1": {
+        "description": "How has your socialization with peers outside your company changed since the pandemic?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less often than before",
+          "1": "No change",
+          "2": "More often than before"
+        }
+      },
+      "use_social_media_(e.g.,_linkedin).1": {
+        "description": "How has your use of social media changed since the pandemic?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less often than before",
+          "1": "No change",
+          "2": "More often than before"
+        }
+      },
+      "have_you_advanced_your_career_or_experienced_other_benefits_as_a_result_of_networking?": {
+        "description": "Have you advanced your career or experienced other benefits as a result of networking?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "I do not know",
+          "3": "Not applicable"
+        }
+      },
+      "i_take_initiative_to_identify_new_job_opportunities.": {
+        "description": "I take initiative to identify new job opportunities",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_am_likely_to_pursue_job_opportunities_that_are_presented_to_me.": {
+        "description": "I am likely to pursue job opportunities that are presented to me",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_let_my_manager_know_what_i_want,_with_the_expectation_that_it_will_generate_growth_opportunities.": {
+        "description": "I let my manager know what I want, with the expectation that it will generate growth opportunities",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_pursue_job_opportunities_even_if_i_do_not_fulfill_all_of_the_requirements_on_a_job_description.": {
+        "description": "I pursue job opportunities even if I do not fulfill all of the requirements on a job description",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_find_that_job_opportunities_i_pursue_don’t_come_to_fruition.": {
+        "description": "I find that job opportunities I pursue don't come to fruition",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_trust_that_i_am_compensated_appropriately_for_my_accomplishments.": {
+        "description": "I trust that I am compensated appropriately for my accomplishments",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_advocate_for_myself_when_appropriate_so_that_my_manager_knows_what_i_want_and_expect.": {
+        "description": "I advocate for myself when appropriate so that my manager knows what I want and expect",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_believe_i_am_being_paid_fairly_for_the_work_that_i_do.": {
+        "description": "I believe I am being paid fairly for the work that I do",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_avoid_discussions_about_salary_and_incentives.": {
+        "description": "I avoid discussions about salary and incentives",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "Not applicable"
+        }
+      },
+      "i_lead_the_discussion,_whether_or_not_i_am_facilitating_the_meeting.": {
+        "description": "I lead the discussion, whether or not I am facilitating the meeting",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Always",
+          "1": "Often",
+          "2": "Sometimes",
+          "3": "Rarely",
+          "4": "Never"
+        }
+      },
+      "i_contribute_to_discussions_without_hesitation.": {
+        "description": "I contribute to discussions without hesitation",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Always",
+          "1": "Often",
+          "2": "Sometimes",
+          "3": "Rarely",
+          "4": "Never"
+        }
+      },
+      "i_keep_my_thoughts_to_myself_during_meetings.": {
+        "description": "I keep my thoughts to myself during meetings",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Always",
+          "1": "Often",
+          "2": "Sometimes",
+          "3": "Rarely",
+          "4": "Never"
+        }
+      },
+      "i_volunteer_to_take_meeting_notes/minutes.": {
+        "description": "I volunteer to take meeting notes/minutes",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Always",
+          "1": "Often",
+          "2": "Sometimes",
+          "3": "Rarely",
+          "4": "Never"
+        }
+      },
+      "i_have_fair_opportunities_to_be_promoted.": {
+        "description": "I have fair opportunities to be promoted",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "I do not know"
+        }
+      },
+      "i_believe_people_of_all_genders_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "description": "I believe people of all genders have the same opportunities to be promoted in the industry",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "I do not know"
+        }
+      },
+      "i_believe_people_of_all_ethnicities_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "description": "I believe people of all ethnicities have the same opportunities to be promoted in the industry",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "I do not know"
+        }
+      },
+      "i_believe_people_of_all_ages_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "description": "I believe people of all ages have the same opportunities to be promoted in the industry",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "I do not know"
+        }
+      },
+      "i_believe_people_of_all_religious_beliefs_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "description": "I believe people of all religious beliefs have the same opportunities to be promoted in the industry",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "I do not know"
+        }
+      },
+      "i_believe_people_of_all_sexual_orientations_have_the_same_opportunities_to_be_promoted_in_the_industry.": {
+        "description": "I believe people of all sexual orientations have the same opportunities to be promoted in the industry",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Strongly agree",
+          "1": "Agree",
+          "2": "Disagree",
+          "3": "Strongly disagree",
+          "4": "I do not know"
+        }
+      },
+      "which_of_the_following_best_describe_your_gender_identity?": {
+        "description": "Which of the following best describe your gender identity?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Woman",
+          "1": "Man",
+          "2": "Non-binary or gender diverse",
+          "3": "Prefer not to answer",
+          "4": "Not listed"
+        }
+      },
+      "what_country_do_you_currently_live_in?": {
+        "description": "What country do you currently live in?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response"
+        }
+      },
+      "what_country_were_you_born_in?": {
+        "description": "What country were you born in?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response"
+        }
+      },
+      "is_your_first_language_the_primary_language_of_your_workplace?_": {
+        "description": "Is your first language the primary language of your workplace?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Yes",
+          "1": "No",
+          "2": "Prefer not to answer",
+          "3": "Not applicable"
+        }
+      },
+      "which_age_group_do_you_belong_to?": {
+        "description": "Which age group do you belong to?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "16-24 years old",
+          "1": "25-34 years old",
+          "2": "35-44 years old",
+          "3": "45-54 years old",
+          "4": "55-64 years old",
+          "5": "65 years and older",
+          "6": "Prefer not to answer"
+        }
+      },
+      "what_is_the_highest_degree_or_education_level_that_you_have_achieved?": {
+        "description": "What is the highest degree or education level that you have achieved?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+          "-1": "No response",
+          "0": "Less than high school, secondary school or equivalent",
+          "1": "Upper secondary, high school or equivalent",
+          "2": "Apprenticeship, Vocational Qualification or Associate's Degree",
+          "3": "Bachelor's Degree or equivalent",
+          "4": "Masters or equivalent",
+          "5": "Doctorate or Advanced Degree",
+          "6": "Prefer not to answer"
+        }
+      },
+    "which_of_the_following_groups_best_describes_your_employment_level?": {
+        "description": "Which of the following groups best describes your employment level?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+            "-1": "No response",
+            "0": "Senior or executive-level",
+            "1": "Mid-level",
+            "2": "Intermediate",
+            "3": "Entry-level",
+            "4": "Not listed"
+        }
+    },
+    "which_of_the_following_groups_best_describes_the_organization_that_you_work_for?": {
+        "description": "Which of the following groups best describes the organization that you work for?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+            "-1": "No response",
+            "0": "Publisher (Commercial, Society, and University)",
+            "1": "Non-profit organization or association",
+            "2": "Academic Institution or Library",
+            "3": "Publishing Services Provider",
+            "4": "Not listed",
+            "5": "Consulting (serving publishing)",
+            "6": "Technology/analytics",
+            "7": "Industry organization/trade association",
+            "8": "Foundation"
+        }
+    },
+    "approximately_what_is_the_size_of_your_employer's_workforce?": {
+        "description": "Approximately what is the size of your employer's workforce?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+            "-1": "No response",
+            "0": "1",
+            "1": "2 to 10",
+            "2": "11 to 100",
+            "3": "101 to 500",
+            "4": "501 to 2,000",
+            "5": "2,001 to 10,000",
+            "6": "10,001 to 20,001+"
+        }
+    },
+    "in_which_of_the_following_areas_of_publishing_are_you_involved?_choose_the_function_that_most_closely_resembles_your_role,_or_self-describe_in_the_comment_box_if_your_area_is_not_listed.": {
+        "description": "In which of the following areas of publishing are you involved?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+            "-1": "No response",
+            "0": "Acquisitions",
+            "1": "Administration (e.g., Finance, HR, Legal, Operations)",
+            "2": "Business development or strategy",
+            "3": "Communications",
+            "4": "Copyright/Permissions",
+            "5": "Customer Service",
+            "6": "Editorial or peer review",
+            "7": "Executive Management",
+            "8": "Legal",
+            "9": "Marketing",
+            "10": "Product Development",
+            "11": "Production",
+            "12": "Research or data analytics",
+            "13": "Sales",
+            "14": "Senior Management",
+            "15": "Technology",
+            "16": "Not listed"
+        }
+    },
+    "how_long_have_you_worked_for_your_current_employer?": {
+        "description": "How long have you worked for your current employer?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+            "-1": "No response",
+            "0": "Less than 1 year",
+            "1": "1 to 5 years",
+            "2": "6 to 10 years",
+            "3": "11 to 20 years",
+            "4": "21 years or more"
+        }
+    },
+    "how_long_have_you_worked_in_publishing_and/or_related_industries?": {
+        "description": "How long have you worked in publishing and/or related industries?",
+        "dtype": "int64",
+        "has_null": true,
+        "null_value": -1,
+        "values": {
+            "-1": "No response",
+            "0": "Less than 1 year",
+            "1": "1 to 5 years",
+            "2": "6 to 10 years",
+            "3": "11 to 20 years",
+            "4": "21 years or more"
+        }
+      }
+    }
+  }

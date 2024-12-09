@@ -25,6 +25,9 @@ DATASETS = {
         "2020",
         "baseline_domain", "baseline_univariate",
     },
+    "we": {
+        "survey",
+    }
 }
 
 # https://pages.nist.gov/privacy_collaborative_research_cycle/pages/participate.html
