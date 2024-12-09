@@ -24,7 +24,17 @@ EVALUATION_METRICS = [
 RANDOM_SEED = 42
 
 
-def _cramers_v_matrix(df):
+def _safe_association(observed, method):
+
+    # Check if either variable has only one value
+    if observed.shape[0] == 1 or observed.shape[1] == 1:
+        return 0.0
+
+    # If we have multiple values, calculate association
+    return association(observed, method=method)
+
+
+def _asocciation_matrix(df, method):
     cols = df.columns
     n = len(cols)
     cramers_v_mat = np.zeros((n, n))
@@ -34,7 +44,7 @@ def _cramers_v_matrix(df):
                 cramers_v_mat[i, j] = 1.0
             else:
                 confusion_matrix = pd.crosstab(df[cols[i]], df[cols[j]])
-                cramers_v_mat[i, j] = association(confusion_matrix, method="cramer")
+                cramers_v_mat[i, j] = _safe_association(confusion_matrix, method)
     return pd.DataFrame(cramers_v_mat, index=cols, columns=cols)
 
 
@@ -134,31 +144,37 @@ def calc_classification_accuracy(
     model_synth = RandomForestClassifier().fit(X_synth, y_synth)
 
     accuracy_train_dataset = model_train.score(X_eval, y_eval)
-    accuracy_other_dataset = model_synth.score(X_eval, y_eval)
+    accuracy_synth_dataset = model_synth.score(X_eval, y_eval)
 
     # Use predict_proba instead of predict to get probabilities
     y_pred_proba_train = model_train.predict_proba(X_eval)
     y_pred_proba_synth = model_synth.predict_proba(X_eval)
 
-    # Calculate AUC scores
-    y_eval_np = y_eval.to_numpy()
-    if len(np.unique(y_eval_np)) > 2:
-        auc_train_dataset = roc_auc_score(
-            y_eval_np, y_pred_proba_train, multi_class="ovo"
-        )
-        auc_synth_dataset = roc_auc_score(
-            y_eval_np, y_pred_proba_synth, multi_class="ovo"
-        )
-    else:
-        auc_train_dataset = roc_auc_score(y_eval_np, y_pred_proba_train[:, 1])
-        auc_synth_dataset = roc_auc_score(y_eval_np, y_pred_proba_synth[:, 1])
+    try:
+        # Calculate AUC scores
+        y_eval_np = y_eval.to_numpy()
+        if len(np.unique(y_eval_np)) > 2:
+            auc_train_dataset = roc_auc_score(
+                y_eval_np, y_pred_proba_train, multi_class="ovo"
+            )
+            auc_synth_dataset = roc_auc_score(
+                y_eval_np, y_pred_proba_synth, multi_class="ovo"
+            )
+        else:
+            auc_train_dataset = roc_auc_score(y_eval_np, y_pred_proba_train[:, 1])
+            auc_synth_dataset = roc_auc_score(y_eval_np, y_pred_proba_synth[:, 1])
 
-    auc_diff = auc_train_dataset - auc_synth_dataset
+        auc_diff = auc_train_dataset - auc_synth_dataset
+
+    except IndexError:
+        auc_train_dataset = np.nan
+        auc_synth_dataset = np.nan
+        auc_diff = np.nan
 
     return {
         "accuracy_train_dataset": accuracy_train_dataset,
-        "accuracy_other_dataset": accuracy_other_dataset,
-        "accuracy_diff": accuracy_train_dataset - auc_synth_dataset,
+        "accuracy_synth_dataset": accuracy_synth_dataset,
+        "accuracy_diff": accuracy_train_dataset - accuracy_synth_dataset,
         "auc_train_dataset": auc_train_dataset,
         "auc_synth_dataset": auc_synth_dataset,
         "auc_diff": auc_diff,
@@ -166,14 +182,14 @@ def calc_classification_accuracy(
 
 
 def calculate_corr(train_dataset: pd.DataFrame, synth_dataset: pd.DataFrame) -> dict:
-    train_dataset_pearson_corr = np.tril(train_dataset.corr(), k=-1)
-    synth_dataset_pearson_corr = np.tril(synth_dataset.corr(), k=-1)
+    train_dataset_pearson_corr = np.tril(_asocciation_matrix(train_dataset, method="pearson"), k=-1)
+    synth_dataset_pearson_corr = np.tril(_asocciation_matrix(synth_dataset, method="pearson"), k=-1)
     abs_diff_pearson_corr = np.abs(
         train_dataset_pearson_corr - synth_dataset_pearson_corr
     )
 
-    train_dataset_cramer_v_corr = np.tril(_cramers_v_matrix(train_dataset), k=-1)
-    synth_dataset_cramer_v_corr = np.tril(_cramers_v_matrix(synth_dataset), k=-1)
+    train_dataset_cramer_v_corr = np.tril(_asocciation_matrix(train_dataset, method="cramer"), k=-1)
+    synth_dataset_cramer_v_corr = np.tril(_asocciation_matrix(synth_dataset, method="cramer"), k=-1)
     abs_diff_cramer_v_corr = np.abs(
         train_dataset_cramer_v_corr - synth_dataset_cramer_v_corr
     )
