@@ -152,7 +152,7 @@ class UtilityTask(DPTask):
             metric = UtilityTask.METRIC_DEFAULT
         metric_column = f"evaluation_{metric}"
 
-        results_df = UtilityTask.process(hparam_results)
+        results_df = UtilityTask.process(hparam_results, experiemnts)
 
         best_hparams_df = results_df.groupby(["dataset_name", "synth_name", "epsilon"])[
             metric_column
@@ -224,7 +224,7 @@ class UtilityTask(DPTask):
     @staticmethod
     def plot(hparam_results, experiments, metric=None):
         plt.style.use(['science', 'no-latex'])
-        
+
         sns.set_context("paper", rc={"axes.titlesize":16, 
                                      "axes.labelsize":14, 
                                      "xtick.labelsize":12, 
@@ -234,7 +234,7 @@ class UtilityTask(DPTask):
             metric = UtilityTask.METRIC_DEFAULT
         metric_column = f"evaluation_{metric}"
 
-        results_df = UtilityTask.process(hparam_results)
+        results_df = UtilityTask.process(hparam_results, experiments)
 
         evaluation_df = UtilityTask.evaluate(
             hparam_results, experiments, metric
@@ -299,7 +299,7 @@ class UtilityTask(DPTask):
             g.set(xlim=(0, 100), ylim=(0, 100))
             g.set_titles("{row_name} | {col_name}")
             g.set_axis_labels("Dev Metric (%)", "Test Metric (%)")
-            g.fig.suptitle("Dev vs Test Performance", y=1.02, fontsize=18) 
+            g.fig.suptitle(f"Dev (per panel) vs Test ({experiments.test_name}) Performance for Each HParam Configuration", y=1.02, fontsize=18) 
 
             return g
 
@@ -331,6 +331,8 @@ class UtilityTask(DPTask):
             g.add_legend()
             g.set_axis_labels(r"$\epsilon$", f"{metric} (%)")
             g.set_titles("{col_name}")
+            g.fig.suptitle(f"Test ({experiments.test_name}) Performance If Best HParams Choosen According to Dev (per line)", y=1.02, fontsize=18) 
+
 
             return g
 
@@ -359,6 +361,8 @@ class UtilityTask(DPTask):
             g.set(xticks=epsilons)
             g.set_axis_labels(r"$\epsilon$", f"Mean {metric} (%)")
             g.set_titles("{col_name}")
+            g.fig.suptitle(f"Privacy-Utility Tradeoff: Dev Performance If Best HParams Choosen According to Dev (per line)", y=1.02, fontsize=18)
+
 
             return g
 
@@ -387,7 +391,7 @@ class UtilityTask(DPTask):
             g.set(xticks=epsilons)
             g.set_axis_labels(r"$\epsilon$", "Metric Value (%)")
             g.set_titles("{row_name} | {col_name}")
-            g.fig.suptitle("Best Dev vs Test Metrics", y=1.02, fontsize=18) 
+            g.fig.suptitle(f"Comparing Performacece of (1) Best Dev by Dev; (2) Best Test by Test; (3) Best Test by Dev", y=1.02, fontsize=18)
 
             return g
 
@@ -399,8 +403,12 @@ class UtilityTask(DPTask):
         )
 
     @staticmethod
-    def process(hparam_results):
+    def process(hparam_results, experiemnts):
+
         df = pd.DataFrame(hparam_results)
+
+        dataset_names = list(set([experiemnts.test_name] + experiemnts.dev_names))
+        df = df[df["dataset_name"].isin(dataset_names)].reset_index(drop=True)
 
         df["hparams_frozen"] = df["hparams"].apply(_freeze)
 

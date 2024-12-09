@@ -59,15 +59,15 @@ HPARAMS_DIMS = {
 HPARAMS_DIMS['aim_torch'] = copy.copy(HPARAMS_DIMS['aim'])
 
 ALL_EXPERIMENTS = {
-    # "acs": Experiments(
-    #     "acs/national",
-    #     [
-    #         "acs/national",
-    #         "acs/massachusetts_upsampled",
-    #         "acs/baseline_univariate",
-    #         "acs/baseline_domain",
-    #     ],
-    # ),
+    "acs": Experiments(
+        "acs/national",
+        [
+            "acs/national",
+            "acs/massachusetts_upsampled",
+            "acs/baseline_univariate",
+            "acs/baseline_domain",
+        ],
+    ),
     "edad": Experiments(
         "edad/2023",
         [
