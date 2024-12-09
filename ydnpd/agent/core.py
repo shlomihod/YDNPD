@@ -11,7 +11,7 @@ from statemachine.states import States
 from openai import OpenAI
 import weave
 
-from ydnpd.agent.utils import metadata_to_pandera_schema
+from ydnpd.utils import metadata_to_pandera_schema
 
 
 OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'
@@ -32,6 +32,15 @@ class LLMSession:
 
         self.specification = specification
 
+        if "o1" in llm_name:
+            initial_role = "user"
+            max_token_param_name = "max_completion_tokens"
+            if llm_temperature != 1:
+                raise ValueError("temperature must be 1 for this model")
+        else:
+            initial_role = "system"
+            max_token_param_name = "max_tokens"
+
         self.context = {
             "metadata": metadata,
             "last_check_info": None,
@@ -41,7 +50,7 @@ class LLMSession:
         self.llm_params = {
             "model": llm_name,
             "temperature": llm_temperature,
-            "max_tokens": llm_max_tokens,
+            max_token_param_name: llm_max_tokens,
             "top_p": llm_top_p,
             "frequency_penalty": llm_frequency_penalty,
             "presence_penalty": llm_presence_penalty,
@@ -49,7 +58,7 @@ class LLMSession:
 
         self.message_history = [
             {
-                "role": "system",
+                "role": initial_role,
                 "content": f"You are an expert on {metadata['domain']}."
             }
         ]

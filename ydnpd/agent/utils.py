@@ -9,8 +9,13 @@ import pyro.distributions as dist
 import networkx as nx
 import pandas as pd
 
+from ydnpd.datasets import load_dataset
+from ydnpd.utils import metadata_to_pandera_schema
+
+
 MAX_TIMEOUT_SAMPLING = 10
 MAX_SAMPLING_CHECKS = 10
+PRODUCTION_RANDOM_STATE = 42
 
 
 def extract_single(answer):
@@ -152,3 +157,58 @@ def is_valid_pyro_code(
         return False, traceback.format_exc(limit=1)
     else:
         return True, None
+
+
+def produce_dataset(metadata, specification, num_samples, **llm_kwargs):
+
+    from ydnpd.agent.core import CasualModelingAgentMachine, LLMSession
+
+    try:
+
+        llm_sess = LLMSession(
+            specification=specification,
+            metadata=metadata,
+            **llm_kwargs)
+
+        _ = CasualModelingAgentMachine(llm_sess)
+
+        pandera_schema = metadata_to_pandera_schema(metadata["schema"])
+
+        df = sample_dataset(llm_sess.context["model"], num_samples, pandera_schema)
+
+        code = llm_sess.context["code"]
+
+        error = None
+
+    except Exception as e:
+        df, code, error = None, None, e
+
+    return df, code, error
+
+
+def produce_mixture_dataset(dataset_name, specification,
+                            num_samples, num_datasets, random_state=PRODUCTION_RANDOM_STATE,
+                            **llm_kwargs):
+    dfs = []
+    codes = []
+    errors = []
+
+    _, schema, domain = load_dataset(dataset_name)
+    medatadata = {"schema": schema, "domain": domain}
+
+    while len(dfs) < num_datasets:
+        print(len(dfs))
+
+        df, code, error = produce_dataset(medatadata, specification, num_samples, **llm_kwargs)
+        if error is None:
+            dfs.append(df)
+            codes.append(code)
+        else:
+            errors.append(error)    
+            print(error)
+
+    mixture_df = (pd.concat(dfs)
+                  .sample(num_samples, replace=False, random_state=random_state)
+                  .reset_index(drop=True))
+
+    return mixture_df, (dfs, codes, errors)

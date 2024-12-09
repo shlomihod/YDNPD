@@ -2,27 +2,6 @@ import warnings
 
 import pandas as pd
 
-try:
-    from synthcity.plugins import Plugins
-    from synthcity.plugins.core.dataloader import GenericDataLoader
-except ImportError:
-    warnings.warn(
-        "SynthCity is not installed. Please install it to use SynthCity synthesizers."
-    )
-
-try:
-    from sdv import single_table as sdv_single_table
-    from sdv.metadata import SingleTableMetadata
-except ImportError:
-    warnings.warn("SDV is not installed. Please install it to use SDV synthesizers.")
-
-try:
-    from snsynth import Synthesizer as snsynth_Synthesizer
-except ImportError:
-    warnings.warn(
-        "SmartNoise is not installed. Please install it to use SmartNoise synthesizers."
-    )
-
 from ydnpd.harness.synthesis.privbayes import PrivBayes
 from ydnpd.harness.synthesis.aim_torch import AIMSynthesizerTorch
 
@@ -59,6 +38,13 @@ def generate_synthetic_data(
 
     # SDV
     elif synth_name in ["CTGAN", "CopulaGAN", "GaussianCopula", "TVAE"]:
+
+        try:
+            from sdv import single_table as sdv_single_table
+            from sdv.metadata import SingleTableMetadata
+        except ImportError:
+            warnings.warn("SDV is not installed. Please install it to use SDV synthesizers.")
+
         metadata = SingleTableMetadata()
         metadata.detect_from_dataframe(dataset)
 
@@ -70,6 +56,14 @@ def generate_synthetic_data(
 
     # SmartNoise
     elif synth_name in ["aim", "mwem", "mst", "pacsynth", "dpctgan", "patectgan"]:
+
+        try:
+            from snsynth import Synthesizer as snsynth_Synthesizer
+        except ImportError:
+            warnings.warn(
+                "SmartNoise is not installed. Please install it to use SmartNoise synthesizers."
+            )
+
         continuous_columns = []
         categorical_columns = []
 
@@ -102,6 +96,15 @@ def generate_synthetic_data(
 
     # Synthcity
     elif synth_name in ["dpgan", "adsgan", "decaf", "pategan", "AIM"]:
+
+        try:
+            from synthcity.plugins import Plugins
+            from synthcity.plugins.core.dataloader import GenericDataLoader
+        except ImportError:
+            warnings.warn(
+                "SynthCity is not installed. Please install it to use SynthCity synthesizers."
+            )
+
         loader = GenericDataLoader(synth_name)
 
         synthesizer = Plugins().get(synth_name.lower(), epsilon=epsilon, **hparams)

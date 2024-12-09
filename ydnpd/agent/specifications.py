@@ -152,6 +152,7 @@ SPECIFICATION_V0 = {
         In other words, it will contains all information needed in order to perform sampling.
         First, identify the free parameters needed to be set, and name them. Pay attention especially to conditional probabilites in categorical distributions, but not only.
         Second, set the values of all these parameters based on your expertise in {context['metadata']['domain']} (not just illustrative numbers) and ground them in the scientific knowledge that you possess. Provide it with reasoning.
+        DO NOT USE PLACEHOLDERS. Set appropriate vales for all parameters as elaborative as needed.
         Refiew your model and make sure that it matches the relationships (conditional dependeinces) you have identifed.
         Think step by step. Then, provide your final answer as a set of Pyro-like formulas ('X ~ ...', where you insert the formula) within the tags <Answer>...</Answer>, separated by newlines."""
     },
