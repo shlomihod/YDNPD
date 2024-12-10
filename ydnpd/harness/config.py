@@ -8,7 +8,7 @@ EPSILONS = [1., 2., 5., 7., 10., 20.]
 
 NUM_RUNS = 5
 
-FIXED_PREPROCESSOR_EPSILON = 10_000
+FIXED_PREPROCESSOR_EPSILON = 0.0
 
 SYNTHESIZERS = ["privbayes"]#, "mwem", "aim_torch", "patectgan"]
 

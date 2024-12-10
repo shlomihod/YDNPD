@@ -2,8 +2,6 @@ import warnings
 
 import pandas as pd
 
-from ydnpd.harness.synthesis.privbayes import PrivBayes
-from ydnpd.harness.synthesis.aim_torch import AIMSynthesizerTorch
 
 SYNTHESIZERS = [
     "id",
@@ -114,10 +112,14 @@ def generate_synthetic_data(
         synth_df = synthesizer.generate(count=num_samples).dataframe()
 
     elif synth_name == "privbayes":
+        from ydnpd.harness.synthesis.privbayes import PrivBayes
+
         synthesizer = PrivBayes(epsilon=epsilon, **hparams)
         synth_df = synthesizer.fit_sample(dataset, schema)
 
     elif synth_name == "aim_torch":
+        from ydnpd.harness.synthesis.aim_torch import AIMSynthesizerTorch
+
         continuous_columns = []
         categorical_columns = []
 
