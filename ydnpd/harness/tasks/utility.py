@@ -2,17 +2,23 @@ import itertools as it
 
 import traceback
 
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scienceplots
+import plotly.graph_objects as go
+import plotly.subplots as sp
 import wandb
 
 from ydnpd.utils import _freeze
 from ydnpd.datasets.loader import load_dataset, split_train_eval_datasets
 from ydnpd.harness.synthesis import generate_synthetic_data
-from ydnpd.harness.evaluation import evaluate_two
+from ydnpd.harness.evaluation import evaluate_two, EVALUATION_METRICS
 from ydnpd.harness.tasks import DPTask
+
+
+PLOT_RADAR_JITTER = 0.005
 
 
 class UtilityTask(DPTask):
@@ -401,6 +407,107 @@ class UtilityTask(DPTask):
             plot_best_dev(),
             plot_best_dev_vs_test(),
         )
+
+    @staticmethod
+    def plot_radar_dev_within_test(hparam_results, experiments, epsilon_reference):
+        core_evaluation_metrics = [metric
+                           for metric in EVALUATION_METRICS
+                           if "dataset" not in metric]
+
+        all_evaluation_df = pd.concat(
+            [
+                UtilityTask.evaluate(
+                    hparam_results,
+                    experiments,
+                    metric).assign(metric=metric)
+            for metric in core_evaluation_metrics
+            ]).reset_index()
+
+        ref_eps_all_evaluation_df = all_evaluation_df[all_evaluation_df["epsilon"] == epsilon_reference]
+
+        result_traces = (ref_eps_all_evaluation_df
+                         .groupby("synth_name")
+                         .apply(
+                            lambda group: (
+                                group
+                                .groupby("experiment")
+                                ["correspond_test"]
+                                .apply(lambda g: g.to_numpy())
+                            ),
+                            include_groups=False
+                        )
+        )
+
+        # Create a figure with subplots
+        fig = sp.make_subplots(
+            rows=len(result_traces), 
+            cols=1,
+            specs=[[{'type': 'polar'}] for _ in range(len(result_traces))],
+            subplot_titles=[synth_name for synth_name in result_traces.index]
+        )
+
+        # Keep track of added legend entries
+        legend_entries = set()
+
+        # Create separate plots for each synth_name
+        for idx, (synth_name, synth_results) in enumerate(result_traces.iterrows(), 1):
+            for experiment_name, trace in synth_results.items():
+                *_, dataset_member = experiment_name.split("/")
+
+                jitter = np.random.normal(0, PLOT_RADAR_JITTER, size=len(trace))  # Adjust the 0.001 to control jitter amount
+                jittered_trace = trace + jitter
+
+                 # Close the polygon by repeating first value
+                r_values = np.append(jittered_trace, jittered_trace[0])
+                theta_values = np.append(core_evaluation_metrics, core_evaluation_metrics[0])
+
+                # Only show legend for first subplot, but maintain consistency in names
+                showlegend = dataset_member not in legend_entries
+                if showlegend:
+                    legend_entries.add(dataset_member)
+
+                fig.add_trace(
+                    go.Scatterpolar(
+                        r=r_values,
+                        theta=theta_values,
+                        opacity=1,
+                        name=dataset_member,
+                        showlegend=showlegend  # Control legend visibility here
+                    ),
+                    row=idx, 
+                    col=1
+                )
+
+            max_value = np.ceil(ref_eps_all_evaluation_df["correspond_test"] * 20) / 20
+            # Update layout for each subplot
+            fig.update_layout({
+                f'polar{idx}': dict(
+                    radialaxis=dict(
+                        visible=True,
+                        range=[0, max_value]
+                    ),
+                    angularaxis=dict(
+                        tickfont=dict(size=8)  # Smaller font for metric labels
+                    )
+                )
+            })
+
+        # Update overall layout
+        fig.update_layout(
+            height=500 * len(result_traces),  # Height of 500 per subplot
+            showlegend=True,
+            legend=dict(
+                orientation="h",  # Make legend horizontal
+                yanchor="bottom",
+                y=1.1,         # Position above the plots
+                xanchor="center",
+                x=0.5,          # Center horizontally
+                font=dict(size=10),  # Legend font size
+                itemwidth=40    # Space between legend items
+            )
+        )
+
+        return fig
 
     @staticmethod
     def process(hparam_results, experiemnts):

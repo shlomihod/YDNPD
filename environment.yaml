@@ -9,7 +9,11 @@ dependencies:
   - scikit-learn
   - matplotlib
   - seaborn
+  - plotly
   - sdv
+  - nbformat
+  - pandera
+  - ipywidgets
   - pip:
     - wandb
     - ray[default]

@@ -18,8 +18,13 @@ EVALUATION_METRICS = [
     "cramer_v_corr_max_abs_diff",
     "cramer_v_corr_avg_abs_diff",
     "accuracy_diff",
+    "accuracy_train_dataset",
+    "accuracy_synth_dataset",
     "auc_diff",
+    "auc_train_dataset",
+    "auc_synth_dataset",
 ]
+
 
 RANDOM_SEED = 42
 
@@ -197,6 +202,10 @@ def calculate_corr(train_dataset: pd.DataFrame, synth_dataset: pd.DataFrame) -> 
     num_corrs = comb(len(train_dataset.columns), 2)
 
     return {
+        "pearson_corr_train_dataset": train_dataset_pearson_corr,
+        "pearson_corr_synth_dataset": synth_dataset_pearson_corr,
+        "cramer_v_corr_train_dataset": train_dataset_cramer_v_corr,
+        "cramer_v_corr_synth_dataset": synth_dataset_cramer_v_corr,
         "pearson_corr_max_abs_diff": np.max(abs_diff_pearson_corr),
         "pearson_corr_avg_abs_diff": np.sum(abs_diff_pearson_corr) / num_corrs,
         "cramer_v_corr_max_abs_diff": np.max(abs_diff_cramer_v_corr),
