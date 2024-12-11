@@ -16,6 +16,7 @@ dependencies:
   - ipywidgets
   - pip:
     - wandb
+    - weave
     - ray[default]
     - smartnoise-synth
     - git+https://github.com/ryan112358/private-pgm.git
@@ -23,4 +24,5 @@ dependencies:
     - pyro-ppl
     - openai
     - python-statemachine
+    - ydata_profiling
     # - synthcity

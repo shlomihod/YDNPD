@@ -114,7 +114,7 @@ class UtilityTask(DPTask):
                 }
 
                 if self.with_wandb:
-                    wandb.init(project="ydnpd", config=config, **self.wandb_kwargs)
+                    wandb.init(project="ydnpd-harness", config=config, **self.wandb_kwargs)
 
                 for run_id in range(self.num_runs):
 
