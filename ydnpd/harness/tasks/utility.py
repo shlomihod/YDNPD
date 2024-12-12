@@ -412,7 +412,7 @@ class UtilityTask(DPTask):
     def plot_radar_dev_within_test(hparam_results, experiments, epsilon_reference):
         core_evaluation_metrics = [metric
                            for metric in EVALUATION_METRICS
-                           if "dataset" not in metric]
+                           if "train_dataset" not in metric]
 
         all_evaluation_df = pd.concat(
             [

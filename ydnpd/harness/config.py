@@ -4,7 +4,7 @@ from ydnpd.harness.experiment import Experiments
 
 import copy
 
-EPSILONS = [1., 2., 5., 7., 10., 20.]
+EPSILONS = [1, 2, 5, 7, 10, 20]
 
 NUM_RUNS = 5
 
@@ -96,6 +96,6 @@ EVALUATION_KWARGS = {
         "classification_target_column": "OWN_RENT",
     },
     "edad": {
-        "classification_target_column": "VISI_2_1",
+        "classification_target_column": "MOVI_21_1",
     },
 }

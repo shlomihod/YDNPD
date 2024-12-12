@@ -3,7 +3,7 @@ from math import comb
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from scipy.stats.contingency import association
 
@@ -17,12 +17,12 @@ EVALUATION_METRICS = [
     "pearson_corr_avg_abs_diff",
     "cramer_v_corr_max_abs_diff",
     "cramer_v_corr_avg_abs_diff",
-    "accuracy_diff",
-    "accuracy_train_dataset",
-    "accuracy_synth_dataset",
-    "auc_diff",
-    "auc_train_dataset",
-    "auc_synth_dataset",
+    "error_rate_diff",
+    "error_rate_train_dataset",
+    "error_rate_synth_dataset",
+    "aoc_diff",
+    "aoc_train_dataset",
+    "aoc_synth_dataset",
 ]
 
 
@@ -125,7 +125,7 @@ def calc_thresholded_marginals_k_abs_diff_errors(
     }
 
 
-def calc_classification_accuracy(
+def calc_classification_error_rate(
     train_dataset: pd.DataFrame,
     eval_dataset: pd.DataFrame,
     synth_dataset: pd.DataFrame,
@@ -145,44 +145,44 @@ def calc_classification_accuracy(
         synth_dataset[target_column],
     )
 
-    model_train = RandomForestClassifier().fit(X_train, y_train)
-    model_synth = RandomForestClassifier().fit(X_synth, y_synth)
+    model_train = GradientBoostingClassifier().fit(X_train, y_train)
+    model_synth = GradientBoostingClassifier().fit(X_synth, y_synth)
 
-    accuracy_train_dataset = model_train.score(X_eval, y_eval)
-    accuracy_synth_dataset = model_synth.score(X_eval, y_eval)
+    error_rate_train_dataset = 1 - model_train.score(X_eval, y_eval)
+    error_rate_synth_dataset = 1 - model_synth.score(X_eval, y_eval)
 
     # Use predict_proba instead of predict to get probabilities
     y_pred_proba_train = model_train.predict_proba(X_eval)
     y_pred_proba_synth = model_synth.predict_proba(X_eval)
 
     try:
-        # Calculate AUC scores
+        # Calculate AOC scores
         y_eval_np = y_eval.to_numpy()
         if len(np.unique(y_eval_np)) > 2:
-            auc_train_dataset = roc_auc_score(
+            aoc_train_dataset = 1 - roc_auc_score(
                 y_eval_np, y_pred_proba_train, multi_class="ovo"
             )
-            auc_synth_dataset = roc_auc_score(
+            aoc_synth_dataset = 1 - roc_auc_score(
                 y_eval_np, y_pred_proba_synth, multi_class="ovo"
             )
         else:
-            auc_train_dataset = roc_auc_score(y_eval_np, y_pred_proba_train[:, 1])
-            auc_synth_dataset = roc_auc_score(y_eval_np, y_pred_proba_synth[:, 1])
+            aoc_train_dataset = 1 - roc_auc_score(y_eval_np, y_pred_proba_train[:, 1])
+            aoc_synth_dataset = 1 - roc_auc_score(y_eval_np, y_pred_proba_synth[:, 1])
 
-        auc_diff = auc_train_dataset - auc_synth_dataset
+        aoc_diff = aoc_train_dataset - aoc_synth_dataset
 
     except IndexError:
-        auc_train_dataset = np.nan
-        auc_synth_dataset = np.nan
-        auc_diff = np.nan
+        aoc_train_dataset = np.nan
+        aoc_synth_dataset = np.nan
+        aoc_diff = np.nan
 
     return {
-        "accuracy_train_dataset": accuracy_train_dataset,
-        "accuracy_synth_dataset": accuracy_synth_dataset,
-        "accuracy_diff": accuracy_train_dataset - accuracy_synth_dataset,
-        "auc_train_dataset": auc_train_dataset,
-        "auc_synth_dataset": auc_synth_dataset,
-        "auc_diff": auc_diff,
+        "error_rate_train_dataset": error_rate_train_dataset,
+        "error_rate_synth_dataset": error_rate_synth_dataset,
+        "error_rate_diff": error_rate_train_dataset - error_rate_synth_dataset,
+        "aoc_train_dataset": aoc_train_dataset,
+        "aoc_synth_dataset": aoc_synth_dataset,
+        "aoc_diff": aoc_diff,
     }
 
 
@@ -231,7 +231,7 @@ def evaluate_two(
             train_dataset, synth_dataset, schema, marginals_k
         )
         | calculate_corr(train_dataset, synth_dataset)
-        | calc_classification_accuracy(
+        | calc_classification_error_rate(
             train_dataset,
             eval_dataset,
             synth_dataset,
