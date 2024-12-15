@@ -408,12 +408,15 @@ class UtilityTask(DPTask):
             plot_best_dev_vs_test(),
         )
 
-    @staticmethod
-    def plot_radar_dev_within_test(hparam_results, experiments, epsilon_reference):
-        core_evaluation_metrics = [metric
-                           for metric in EVALUATION_METRICS
-                           if "train_dataset" not in metric]
+    def plot_overall(hparam_results, experiments, epsilon_reference):
+        plt.style.use(['science', 'no-latex'])
 
+        # Get core evaluation metrics
+        core_evaluation_metrics = [metric
+                                for metric in EVALUATION_METRICS
+                                if "train_dataset" not in metric]
+
+        # Create evaluation dataframe
         all_evaluation_df = pd.concat(
             [
                 UtilityTask.evaluate(
@@ -423,91 +426,167 @@ class UtilityTask(DPTask):
             for metric in core_evaluation_metrics
             ]).reset_index()
 
+        # Filter for reference epsilon
         ref_eps_all_evaluation_df = all_evaluation_df[all_evaluation_df["epsilon"] == epsilon_reference]
 
-        result_traces = (ref_eps_all_evaluation_df
-                         .groupby("synth_name")
-                         .apply(
-                            lambda group: (
-                                group
-                                .groupby("experiment")
-                                ["correspond_test"]
-                                .apply(lambda g: g.to_numpy())
-                            ),
-                            include_groups=False
-                        )
-        )
+        # Create color mapping for consistency using tab10
+        dataset_members = sorted(set([exp.split('/')[-1] for exp in ref_eps_all_evaluation_df['experiment'].unique()]))
+        tab10 = plt.cm.tab10(np.linspace(0, 1, 10))
+        color_dict = dict(zip(dataset_members, [f'rgb({int(r*255)},{int(g*255)},{int(b*255)})' 
+                                            for r, g, b, _ in tab10[:len(dataset_members)]]))
 
-        # Create a figure with subplots
-        fig = sp.make_subplots(
-            rows=len(result_traces), 
-            cols=1,
-            specs=[[{'type': 'polar'}] for _ in range(len(result_traces))],
-            subplot_titles=[synth_name for synth_name in result_traces.index]
-        )
+        # Initialize figures list
+        figs = []
 
-        # Keep track of added legend entries
-        legend_entries = set()
+        for measure in ["correspond_test", "best_dev"]:
 
-        # Create separate plots for each synth_name
-        for idx, (synth_name, synth_results) in enumerate(result_traces.iterrows(), 1):
-            for experiment_name, trace in synth_results.items():
-                *_, dataset_member = experiment_name.split("/")
-
-                jitter = np.random.normal(0, PLOT_RADAR_JITTER, size=len(trace))  # Adjust the 0.001 to control jitter amount
-                jittered_trace = trace + jitter
-
-                 # Close the polygon by repeating first value
-                r_values = np.append(jittered_trace, jittered_trace[0])
-                theta_values = np.append(core_evaluation_metrics, core_evaluation_metrics[0])
-
-                # Only show legend for first subplot, but maintain consistency in names
-                showlegend = dataset_member not in legend_entries
-                if showlegend:
-                    legend_entries.add(dataset_member)
-
-                fig.add_trace(
-                    go.Scatterpolar(
-                        r=r_values,
-                        theta=theta_values,
-                        opacity=1,
-                        name=dataset_member,
-                        showlegend=showlegend  # Control legend visibility here
-                    ),
-                    row=idx, 
-                    col=1
-                )
-
-            max_value = np.ceil(ref_eps_all_evaluation_df["correspond_test"] * 20) / 20
-            # Update layout for each subplot
-            fig.update_layout({
-                f'polar{idx}': dict(
-                    radialaxis=dict(
-                        visible=True,
-                        range=[0, max_value]
-                    ),
-                    angularaxis=dict(
-                        tickfont=dict(size=8)  # Smaller font for metric labels
-                    )
-                )
-            })
-
-        # Update overall layout
-        fig.update_layout(
-            height=500 * len(result_traces),  # Height of 500 per subplot
-            showlegend=True,
-            legend=dict(
-                orientation="h",  # Make legend horizontal
-                yanchor="bottom",
-                y=1.1,         # Position above the plots
-                xanchor="center",
-                x=0.5,          # Center horizontally
-                font=dict(size=10),  # Legend font size
-                itemwidth=40    # Space between legend items
+            # Process data for radar plot
+            result_traces = (ref_eps_all_evaluation_df
+                                .groupby("synth_name")
+                                .apply(
+                                lambda group: (
+                                    group
+                                    .groupby("experiment")
+                                    [measure]
+                                    .apply(lambda g: g.to_numpy())
+                                ),
+                                include_groups=False
+                            )
             )
-        )
 
-        return fig
+            # Create a figure with subplots
+            radar_fig = sp.make_subplots(
+                rows=len(result_traces), 
+                cols=1,
+                specs=[[{'type': 'polar'}] for _ in range(len(result_traces))],
+                subplot_titles=[f"{measure} - {synth_name}" for synth_name in result_traces.index]  # Updated subplot titles
+            )
+
+            legend_entries = set()
+            for idx, (synth_name, synth_results) in enumerate(result_traces.iterrows(), 1):
+                for experiment_name, trace in synth_results.items():
+                    *_, dataset_member = experiment_name.split("/")
+
+                    jitter = np.random.normal(0, PLOT_RADAR_JITTER, size=len(trace))
+                    jittered_trace = trace + jitter
+
+                    r_values = np.append(jittered_trace, jittered_trace[0])
+                    theta_values = np.append(core_evaluation_metrics, core_evaluation_metrics[0])
+
+                    showlegend = dataset_member not in legend_entries
+                    if showlegend:
+                        legend_entries.add(dataset_member)
+
+                    radar_fig.add_trace(
+                        go.Scatterpolar(
+                            r=r_values,
+                            theta=theta_values,
+                            opacity=1,
+                            name=dataset_member,
+                            showlegend=showlegend,
+                            line=dict(color=color_dict[dataset_member])
+                        ),
+                        row=idx, 
+                        col=1
+                    )
+
+                max_value = np.ceil(ref_eps_all_evaluation_df[measure] * 20) / 20
+                # Update layout for each subplot - you might want to adjust title font size here
+                radar_fig.update_layout({
+                    f'polar{idx}': dict(
+                        radialaxis=dict(visible=True, range=[0, max_value]),
+                        angularaxis=dict(tickfont=dict(size=8)),
+                        domain=dict(y=[0, 0.85])  # This leaves space at the top for the title
+                    )
+                })
+
+            # Optional: Update the subplot title font size if needed
+            radar_fig.update_annotations(font_size=12)  # Adjust size as needed
+
+            radar_fig.update_layout(
+                height=500 * len(result_traces),
+                showlegend=True,
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.1,
+                    xanchor="center",
+                    x=0.5,
+                    font=dict(size=10),
+                    itemwidth=40
+                )
+            )
+
+            figs.append(radar_fig)
+
+            # 2. Create bar plot using go.Figure for consistency
+            mpl_color_dict = dict(zip(dataset_members, [tab10[i] for i in range(len(dataset_members))]))
+
+            # Create a figure wrapper class for the seaborn plot
+            class SeabornFigure:
+                def __init__(self, data, synth_names, color_dict, core_metrics, max_value):
+                    self.data = data
+                    self.synth_names = synth_names
+                    self.color_dict = color_dict
+                    self.core_metrics = core_metrics
+                    self.max_value = max_value
+
+                def show(self):
+                    fig, axes = plt.subplots(len(self.synth_names), 1, 
+                                        figsize=(12, 6*len(self.synth_names)), 
+                                        squeeze=False)
+                    axes = axes.flatten()
+
+                    for idx, synth_name in enumerate(self.synth_names):
+                        synth_data = self.data[self.data['synth_name'] == synth_name]
+
+                        plot_data = []
+                        for metric in self.core_metrics:
+                            metric_data = synth_data[synth_data['metric'] == metric]
+                            for exp in metric_data['experiment'].unique():
+                                dataset_member = exp.split('/')[-1]
+                                plot_data.append({
+                                    'Metric': metric,
+                                    'Value': metric_data[metric_data['experiment'] == exp][measure].iloc[0],
+                                    'Dataset': dataset_member
+                                })
+
+                        plot_df = pd.DataFrame(plot_data)
+
+                        sns.barplot(data=plot_df, 
+                                x='Metric', 
+                                y='Value', 
+                                hue='Dataset',
+                                palette=self.color_dict,
+                                ax=axes[idx])
+
+                        axes[idx].set_title(f"{measure} - {synth_name}")
+                        axes[idx].tick_params(axis='x', rotation=45)
+                        axes[idx].set_ylim(0, self.max_value)
+
+                        if idx != 0:
+                            axes[idx].get_legend().remove()
+
+                    plt.legend(bbox_to_anchor=(0.5, len(self.synth_names) + 0.2),
+                            loc='center',
+                            ncol=len(dataset_members),
+                            borderaxespad=0.)
+                    plt.tight_layout()
+                    display(fig)
+                    plt.close()
+
+            # Create seaborn figure wrapper
+            seaborn_fig = SeabornFigure(
+                data=ref_eps_all_evaluation_df,
+                synth_names=result_traces.index,
+                color_dict=mpl_color_dict,
+                core_metrics=core_evaluation_metrics,
+                max_value=np.ceil(ref_eps_all_evaluation_df[measure].max() * 20) / 20
+            )
+
+            figs.append(seaborn_fig)
+
+        return figs
 
     @staticmethod
     def process(hparam_results, experiemnts):
