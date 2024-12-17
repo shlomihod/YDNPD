@@ -21,6 +21,9 @@ from ydnpd.harness.tasks import DPTask
 PLOT_RADAR_JITTER = 0.005
 
 
+# plt.style.use(['science', 'no-latex'])
+
+
 class UtilityTask(DPTask):
 
     METRIC_DEFAULT = "marginals_3_max_abs_diff_error"
@@ -229,8 +232,6 @@ class UtilityTask(DPTask):
 
     @staticmethod
     def plot(hparam_results, experiments, metric=None):
-        plt.style.use(['science', 'no-latex'])
-
         sns.set_context("paper", rc={"axes.titlesize":16, 
                                      "axes.labelsize":14, 
                                      "xtick.labelsize":12, 
@@ -409,8 +410,6 @@ class UtilityTask(DPTask):
         )
 
     def plot_overall(hparam_results, experiments, epsilon_reference):
-        plt.style.use(['science', 'no-latex'])
-
         # Get core evaluation metrics
         core_evaluation_metrics = [metric
                                 for metric in EVALUATION_METRICS
@@ -490,11 +489,12 @@ class UtilityTask(DPTask):
                         col=1
                     )
 
-                max_value = np.ceil(ref_eps_all_evaluation_df[measure] * 20) / 20
+                max_value = np.ceil(ref_eps_all_evaluation_df[measure].max() * 20) / 20
+                min_value = np.floor(ref_eps_all_evaluation_df[measure].min() * 20) / 20
                 # Update layout for each subplot - you might want to adjust title font size here
                 radar_fig.update_layout({
                     f'polar{idx}': dict(
-                        radialaxis=dict(visible=True, range=[0, max_value]),
+                        radialaxis=dict(visible=True, range=[min_value, max_value]),
                         angularaxis=dict(tickfont=dict(size=8)),
                         domain=dict(y=[0, 0.85])  # This leaves space at the top for the title
                     )
@@ -524,12 +524,14 @@ class UtilityTask(DPTask):
 
             # Create a figure wrapper class for the seaborn plot
             class SeabornFigure:
-                def __init__(self, data, synth_names, color_dict, core_metrics, max_value):
+                def __init__(self, data, measure, synth_names, color_dict, core_metrics, max_value, min_value):
                     self.data = data
+                    self.measure = measure
                     self.synth_names = synth_names
                     self.color_dict = color_dict
                     self.core_metrics = core_metrics
                     self.max_value = max_value
+                    self.min_value = min_value
 
                 def show(self):
                     fig, axes = plt.subplots(len(self.synth_names), 1, 
@@ -547,7 +549,7 @@ class UtilityTask(DPTask):
                                 dataset_member = exp.split('/')[-1]
                                 plot_data.append({
                                     'Metric': metric,
-                                    'Value': metric_data[metric_data['experiment'] == exp][measure].iloc[0],
+                                    'Value': metric_data[metric_data['experiment'] == exp][self.measure].iloc[0],
                                     'Dataset': dataset_member
                                 })
 
@@ -560,9 +562,9 @@ class UtilityTask(DPTask):
                                 palette=self.color_dict,
                                 ax=axes[idx])
 
-                        axes[idx].set_title(f"{measure} - {synth_name}")
+                        axes[idx].set_title(f"{self.measure} - {synth_name}")
                         axes[idx].tick_params(axis='x', rotation=45)
-                        axes[idx].set_ylim(0, self.max_value)
+                        axes[idx].set_ylim(self.min_value, self.max_value)
 
                         if idx != 0:
                             axes[idx].get_legend().remove()
@@ -578,10 +580,13 @@ class UtilityTask(DPTask):
             # Create seaborn figure wrapper
             seaborn_fig = SeabornFigure(
                 data=ref_eps_all_evaluation_df,
+                measure=measure,
                 synth_names=result_traces.index,
                 color_dict=mpl_color_dict,
                 core_metrics=core_evaluation_metrics,
-                max_value=np.ceil(ref_eps_all_evaluation_df[measure].max() * 20) / 20
+                max_value=np.ceil(ref_eps_all_evaluation_df[measure].max() * 20) / 20,
+                min_value=np.floor(ref_eps_all_evaluation_df[measure].min() * 20) / 20
+
             )
 
             figs.append(seaborn_fig)

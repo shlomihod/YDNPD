@@ -9,6 +9,7 @@ from scipy.stats.contingency import association
 
 
 EVALUATION_METRICS = [
+    "total_variation_distance",
     "marginals_3_max_abs_diff_error",
     "marginals_3_avg_abs_diff_error",
     "thresholded_marginals_3_max_abs_diff_error",
@@ -52,6 +53,17 @@ def _asocciation_matrix(df, method):
                 cramers_v_mat[i, j] = _safe_association(confusion_matrix, method)
     return pd.DataFrame(cramers_v_mat, index=cols, columns=cols)
 
+
+def calc_distribution_distances(train_dataset: pd.DataFrame, synth_dataset: pd.DataFrame):
+    train_dist = train_dataset.value_counts(normalize=True)
+    synth_dist = synth_dataset.value_counts(normalize=True)
+
+    train_dist, synth_dist = train_dist.align(synth_dist, fill_value=0)
+
+    return {"total_variation_distance": ((train_dist - synth_dist)
+                                         .abs()
+                                         .sum()
+                                         / 2)}
 
 def calc_k_marginals_abs_diff_errors(
     train_dataset: pd.DataFrame, synth_dataset: pd.DataFrame, marginals_k: int
@@ -226,7 +238,8 @@ def evaluate_two(
     assert list(train_dataset.columns) == list(synth_dataset.columns)
 
     return (
-        calc_k_marginals_abs_diff_errors(train_dataset, synth_dataset, marginals_k)
+        calc_distribution_distances(train_dataset, synth_dataset)
+        | calc_k_marginals_abs_diff_errors(train_dataset, synth_dataset, marginals_k)
         | calc_thresholded_marginals_k_abs_diff_errors(
             train_dataset, synth_dataset, schema, marginals_k
         )
