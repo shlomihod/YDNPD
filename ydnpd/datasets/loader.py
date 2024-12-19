@@ -19,11 +19,13 @@ DATASETS = {
         "massachusetts", "massachusetts_upsampled",
         "texas", "texas_upsampled",
         "baseline_domain", "baseline_univariate",
+        "arbitrary",
     },
     "edad": {
         "2023",
         "2020",
         "baseline_domain", "baseline_univariate",
+        "arbitrary",
     },
     "we": {
         "survey",

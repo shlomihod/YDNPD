@@ -5,9 +5,12 @@ import pandas as pd
 import numpy as np
 
 from ydnpd.datasets.loader import load_dataset, split_train_eval_datasets, DATA_ROOT
+from ydnpd.datasets.arbitrary import RandomBayesianNetwork
 
 
-RADNOM_SEED_GENERATION = 42
+RANDOM_SEED_GENERATION = 42
+ARBITRARY_MAX_DEGREE = 5
+ARBITRARY_ALPHA = 1
 
 
 def save_dataset(dataset, data_path, name):
@@ -19,7 +22,7 @@ def save_dataset(dataset, data_path, name):
 
 def generate_baseline_domain(dataset, schema, null_prop=None):
 
-    rng = np.random.default_rng(RADNOM_SEED_GENERATION)
+    rng = np.random.default_rng(RANDOM_SEED_GENERATION)
 
     num_records = len(dataset)
 
@@ -59,7 +62,7 @@ def generate_baseline_univariate(dataset, schema, rounding):
             {
                 column: (
                     values.sample(
-                        n=len(dataset), replace=True, random_state=RADNOM_SEED_GENERATION
+                        n=len(dataset), replace=True, random_state=RANDOM_SEED_GENERATION
                     ).reset_index(drop=True)
                 )
                 for column, values in train_dataet.items()
@@ -68,7 +71,7 @@ def generate_baseline_univariate(dataset, schema, rounding):
 
     else:
 
-        rng = np.random.default_rng(RADNOM_SEED_GENERATION)
+        rng = np.random.default_rng(RANDOM_SEED_GENERATION)
 
         pseudo_probs = {column:
                         dataset[column]
@@ -112,13 +115,24 @@ def create_upsampled(dataset_name, other_dataset_name, data_path):
     dataset, _, _ = load_dataset(dataset_name)
 
     upsampled_dataset = dataset.sample(
-        num_records, replace=True, random_state=RADNOM_SEED_GENERATION
+        num_records, replace=True, random_state=RANDOM_SEED_GENERATION
     )
 
     _, dataset_core_name = dataset_name.split("/")
     name = f"{dataset_core_name}_upsampled"
 
     save_dataset(upsampled_dataset, data_path, name)
+
+
+def create_arbitrary(dataset_name, data_path, max_degree=ARBITRARY_MAX_DEGREE, alpha=ARBITRARY_ALPHA):
+    dataset, schema, _ = load_dataset(dataset_name)
+    num_records = len(dataset)
+
+    rbn = RandomBayesianNetwork(schema, max_degree, alpha, RANDOM_SEED_GENERATION)
+    rbn.print_structure()
+    arbitrary_dataset = rbn.sample(num_records)
+
+    save_dataset(arbitrary_dataset, data_path, "arbitrary")
 
 
 if __name__ == "__main__":
@@ -129,5 +143,7 @@ if __name__ == "__main__":
     create_baselines("acs/national", acs_path)
     create_upsampled("acs/massachusetts", "acs/national", acs_path)
     create_upsampled("acs/texas", "acs/national", acs_path)
+    create_arbitrary("acs/national", acs_path)
 
     create_baselines("edad/2023", edad_path)
+    create_arbitrary("edad/2023", edad_path)

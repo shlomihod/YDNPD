@@ -66,6 +66,7 @@ ALL_EXPERIMENTS = {
             "acs/massachusetts_upsampled",
             "acs/baseline_univariate",
             "acs/baseline_domain",
+            "acs/arbitrary",
         ],
     ),
     "edad": Experiments(
@@ -75,6 +76,7 @@ ALL_EXPERIMENTS = {
             "edad/2020",
             "edad/baseline_univariate",
             "edad/baseline_domain",
+            "edad/arbitrary",
         ],
     )
 }
