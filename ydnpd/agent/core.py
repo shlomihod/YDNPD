@@ -12,6 +12,7 @@ from openai import OpenAI
 import weave
 
 from ydnpd.utils import metadata_to_pandera_schema
+from ydnpd.agent.errors import AgentError
 
 
 OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'
@@ -23,8 +24,8 @@ MAX_ATTEMPTS = 8
 class LLMSession:
     def __init__(self, specification, metadata,
                  llm_name="gpt-4o-mini",
-                 llm_temperature=0.7,
-                 llm_max_tokens=10000,
+                 llm_temperature=1,
+                 llm_max_tokens=None,
                  llm_top_p=1,
                  llm_frequency_penalty=0,
                  llm_presence_penalty=0,
@@ -75,8 +76,8 @@ class LLMSession:
             "content": user_message
             })
 
-        if self.verbose:
-            pprint(f"USER: {user_message}")
+        # if self.verbose:
+        #     pprint(f"USER: {user_message}")
 
         # try:
         response = CLIENT.chat.completions.create(
@@ -95,26 +96,10 @@ class LLMSession:
                                                assistant_message,
                                                re.DOTALL)):
 
-            answer = match.group(1)
-            # answer = [item.strip() for item in match.group(1).split(",")]
-
-            # answer_message = f"\n Extracted answer from response: {answer}\n\n"
-
-            # self.message_history.append({
-            #     "role": "assistant",
-            #     "content": answer_message
-            # })
-
-            # TODO: DOES IT MESS THINGS UP?
-            if self.verbose:    
-                pprint(f"ASSITANT: {assistant_message}")
+            answer = match.group(1).strip()
 
         else:
             answer = None
-
-        # except Exception as e:
-        #     print(f"An error occurred: {e}")
-        #     return None
 
         return assistant_message, answer
 
@@ -124,6 +109,8 @@ class LLMSession:
 
         if prompt:
             _, answer = self.chat_complete(prompt)
+            if self.verbose:
+                print(f"{answer=}")
         else:
             answer = None
 
@@ -131,23 +118,30 @@ class LLMSession:
             additional_context = process_fn(answer, self.context)
 
             if self.verbose:
-                pprint(f"{additional_context=}")
+                print(f"{additional_context=}")
 
-        except ValueError:
+            check_info = check_fn(answer,
+                                  additional_context,
+                                  self.context)
+
+            check_result = True
+
+            self.context |= additional_context
+
+            if self.verbose:
+                print(f"{self.context=}")
+
+        except AgentError as err:
             check_result = False
-            check_info = traceback.format_exc(*sys.exc_info(), limit=1)
-
-        else:
-            (check_result,
-             check_info) = check_fn(answer,
-                                    additional_context,
-                                    self.context)
-
-            if check_result:
-                self.context |= additional_context
+            check_info = str(err)
 
         finally:
             self.context["last_check_info"] = check_info
+
+            if self.verbose:
+                print(f"{check_result=}")
+                print(f"{check_info=}")
+                print()
 
         return check_result
 
@@ -158,7 +152,7 @@ class StepMixIn:
     def on_enter_state(self, event, state):
 
         if self.model.attempts[state.id] > MAX_ATTEMPTS:
-            raise RuntimeError(f"Reached max attempts on state {state.id} ({self.model.attempts[state.id]} > {MAX_ATTEMPTS})")
+            raise AgentError(f"Reached max attempts on state {state.id} ({self.model.attempts[state.id]} > {MAX_ATTEMPTS})")
 
         self.model.attempts[state.id] += 1
 
@@ -167,8 +161,11 @@ class StepMixIn:
                                                self.model.specification[state.id]["check_fn"])
 
         if state.final:
-            weave.publish(self.model.context, "context")
-            return
+            if check_result:
+                weave.publish(self.model.context, "context")
+                return
+            else:
+                raise ValueError("Final state should be always successful")
 
         follow_event_name = f"{state.id}_{'success' if check_result else 'failed'}"
         follow_event = getattr(self, follow_event_name)
@@ -186,7 +183,7 @@ class CasualModelingAgentStage(Enum):
     PARAMETERS = 8
     PYRO_CODE = 9
     ENFORCE_RANGE = 10
-    ENFORCE_CONTRAINTS = 11
+    ENFORCE_CONSTRAINTS = 11
     FINITO = 12
 
 
@@ -228,7 +225,7 @@ class CasualModelingAgentMachine(StateMachine, StepMixIn):
     PYRO_CODE_success = states.PYRO_CODE.to(states.ENFORCE_RANGE)
 
     ENFORCE_RANGE_failed = states.ENFORCE_RANGE.to.itself()
-    ENFORCE_RANGE_success = states.ENFORCE_RANGE.to(states.ENFORCE_CONTRAINTS)
+    ENFORCE_RANGE_success = states.ENFORCE_RANGE.to(states.ENFORCE_CONSTRAINTS)
 
-    ENFORCE_CONTRAINTS_failed = states.ENFORCE_CONTRAINTS.to.itself()
-    ENFORCE_CONTRAINTS_success = states.ENFORCE_CONTRAINTS.to(states.FINITO)
+    ENFORCE_CONSTRAINTS_failed = states.ENFORCE_CONSTRAINTS.to.itself()
+    ENFORCE_CONSTRAINTS_success = states.ENFORCE_CONSTRAINTS.to(states.FINITO)

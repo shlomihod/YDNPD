@@ -1,4 +1,6 @@
-import traceback
+import linecache
+from io import StringIO
+import sys
 from multiprocessing import Process, Queue
 from typing import Any, Optional
 import time
@@ -8,9 +10,11 @@ import pyro
 import pyro.distributions as dist
 import networkx as nx
 import pandas as pd
+import pandera as pa
 
 from ydnpd.datasets import load_dataset
 from ydnpd.utils import metadata_to_pandera_schema
+from ydnpd.agent.errors import AgentError
 
 
 MAX_TIMEOUT_SAMPLING = 10
@@ -25,37 +29,131 @@ def extract_single(answer):
 
 
 def clean_split(s, sep=","):
-    return [item.strip() for item in s.split(sep)]
+    try:
+        return [item.strip() for item in s.split(sep)]
+    except Exception:
+        raise AgentError("Splitting answer into componenets failed.")
 
 
 def build_graph(relationships):
     G = nx.DiGraph()
-    for relationship in relationships:
-        source, target = map(str.strip, relationship.split("->"))
-        G.add_edge(source, target)
+    try:
+        for relationship in relationships:
+            source, target = map(str.strip, relationship.split("->"))
+            G.add_edge(source, target)
 
+    except Exception as err:
+        raise AgentError(f"Graph building based on relationships failed: {str(err)}")
     return G
 
 
-def sample_dataset(model, num_samples, pandera_schema):
+def sample_dataset(model, num_samples, pandera_schema, code=None):
     records = []
     for _ in range(num_samples):
-        sample = model()
+        try:
+            sample = model()
+        except Exception as err:
+            err_str = format_exec_error(code, err) if code is not None else str(err)
+            raise AgentError(f"Model execution failed:\n{err_str}")
         if sample is None:
-            raise ValueError("Model sampled a None value")
-        record = {key: value if isinstance(value, (int, float)) else value.item()
-                  for key, value in sample.items()}
+            raise AgentError("Model sampled a None value")
+        elif not isinstance(sample, dict):
+            raise AgentError("Model should return a dictionary")
+        elif any(none_vars := [key for key, value in sample.items() if value is None]):
+            raise AgentError(f"Model sampled a None value in var(s): {none_vars}")
+
+        record = {}
+        for key, value in sample.items():
+            if isinstance(value, (int, float)):
+                record[key] = value
+            elif isinstance(value, torch.Tensor):
+                if value.dim() == 0:  # Check if tensor is a scalar
+                    record[key] = value.item()
+                else:
+                    raise AgentError(f"Model sampled a tensor for variable '{key}' which not a scalar (shape: {value.shape})")
+            else:
+                raise AgentError(f"Model sampled a value for variable '{key}' is neither numeric nor a PyTorch tensor")
+
         records.append(record)
 
     df = pd.DataFrame(records)
 
     if pandera_schema is not None:
-        pandera_schema.validate(df)
+        try:
+            pandera_schema.validate(df)
+        except pa.errors.SchemaError as err:
+            raise AgentError(f"Schema validation of sampled dataset failed: {str(err)}")
 
     return df
 
 
+def format_exec_error(code_str, error):
+    """
+    Format error information for code executed via exec(), showing exact line numbers and context.
+
+    Args:
+        code_str (str): The source code string that was executed
+        error (Exception): The exception that was caught
+
+    Returns:
+        str: Formatted error message with line numbers and context
+    """
+
+    # Create a custom string source for linecache
+    error_lines = code_str.splitlines()
+    source_name = "<string>"  # This matches exec's internal name
+
+    # Add the code to linecache
+    linecache.cache[source_name] = (
+        len(code_str),
+        None,
+        error_lines,
+        source_name
+    )
+
+    # Get the full traceback
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+
+    try:
+        # Format the error message
+        error_msg = StringIO()
+        error_msg.write(f"Error Type: {exc_type.__name__}\n")
+        error_msg.write(f"Error Message: {str(exc_value)}\n\n")
+
+        # Extract traceback for the exec'd code
+        tb = exc_traceback
+        while tb and tb.tb_frame.f_code.co_filename != "<string>":
+            tb = tb.tb_next
+
+        if tb:
+            error_line_no = tb.tb_lineno
+
+            # Show the problematic line and its context
+            context_range = 2
+            start_line = max(error_line_no - context_range, 1)
+            end_line = min(error_line_no + context_range, len(error_lines))
+
+            error_msg.write("Code context:\n")
+            for i in range(start_line - 1, end_line):
+                line_marker = ">" if i + 1 == error_line_no else " "
+                line_number = f"{i + 1:4d}"
+                code_line = error_lines[i]
+                error_msg.write(f"{line_marker} {line_number}| {code_line}\n")
+
+            error_msg.write("\n")
+
+        return error_msg.getvalue()
+
+    finally:
+        # Clean up linecache
+        del linecache.cache[source_name]
+
+
 def retrieve_pyro_model(pyro_code):
+
+    if pyro_code is None:
+        raise AgentError("Code could not be extracted. Make sure that the code is within the tags <Answer>...</Answer>")
+
     local_dict = {}
 
     local_dict.update({
@@ -64,7 +162,11 @@ def retrieve_pyro_model(pyro_code):
         'torch': torch
     })
 
-    exec(pyro_code, globals(), local_dict)
+    try:
+        exec(pyro_code, globals(), local_dict)
+    except Exception as err:
+        raise AgentError(f"Model compilation failed:\n{format_exec_error(pyro_code, err)}")
+
     model = local_dict['model']
     pyro.clear_param_store()
     # model_trace = pyro.poutine.trace(model).get_trace()
@@ -72,20 +174,19 @@ def retrieve_pyro_model(pyro_code):
     return model
 
 
-def _run_pyro_model_worker(queue: Queue, pyro_code: str, pandera_schema) -> None:
+def _run_pyro_model_worker(queue: Queue, pyro_code: str, max_attempts: int, pandera_schema) -> None:
     """Worker function that creates and runs Pyro model in the subprocess."""
+    model = retrieve_pyro_model(pyro_code)
     try:
-        model = retrieve_pyro_model(pyro_code)
-        result = sample_dataset(model, MAX_SAMPLING_CHECKS, pandera_schema)
-        for _ in range(MAX_SAMPLING_CHECKS):
-            result = model()
-        queue.put(("success", result))
-    except Exception:
-        queue.put(("error", traceback.format_exc(limit=1)))
+        result = sample_dataset(model, max_attempts, pandera_schema, pyro_code)
+        queue.put((True, result))
+    except AgentError as err:
+        queue.put((False, err))
 
 
 def run_pyro_model_with_timeout(
     pyro_code: str,
+    max_attempts: int,
     timeout: float,
     pandera_schema,
 ) -> tuple[bool, Any]:
@@ -102,7 +203,7 @@ def run_pyro_model_with_timeout(
     queue = Queue()
     process = Process(
         target=_run_pyro_model_worker,
-        args=(queue, pyro_code, pandera_schema)
+        args=(queue, pyro_code, max_attempts, pandera_schema)
     )
 
     try:
@@ -116,13 +217,12 @@ def run_pyro_model_with_timeout(
 
         if not queue.empty():
             status, result = queue.get_nowait()
-            if status == "error":
-                return False, result
-            elif result is None:
-                return False, "Model returned None instead of a sample"
-            return True, result
+            if status:
+                return result
+            else:
+                raise result
 
-        raise TimeoutError(f"Model execution timed out after {timeout} seconds")
+        raise AgentError(f"Model execution timed out after {timeout} seconds")
 
     finally:
         if process.is_alive():
@@ -138,25 +238,13 @@ def is_valid_pyro_code(
     pandera_schema: Optional[dict] = None,
     max_attempts: int = MAX_SAMPLING_CHECKS,
     sampling_timeout: int = MAX_TIMEOUT_SAMPLING,
-) -> tuple[bool, Optional[str]]:
+) -> Optional[str]:
     """
     Validate Pyro code with process-based timeout handling.
     """
-    try:
-        # Verify model can be created before attempting runs
-        retrieve_pyro_model(pyro_code)
 
-        for _ in range(max_attempts):
-            success, result = run_pyro_model_with_timeout(pyro_code, sampling_timeout, pandera_schema)
-            if not success:
-                return False, f"ERROR: {result}"
-
-    except KeyboardInterrupt:
-        raise
-    except Exception:
-        return False, traceback.format_exc(limit=1)
-    else:
-        return True, None
+    retrieve_pyro_model(pyro_code)
+    return run_pyro_model_with_timeout(pyro_code, max_attempts, sampling_timeout, pandera_schema)
 
 
 def produce_dataset(metadata, specification, num_samples, **llm_kwargs):
@@ -180,15 +268,15 @@ def produce_dataset(metadata, specification, num_samples, **llm_kwargs):
 
         error = None
 
-    except Exception as e:
+    except AgentError as e:
         df, code, error = None, None, e
 
     return df, code, error
 
 
-def produce_mixture_dataset(dataset_name, specification,
-                            num_samples, num_datasets, random_state=PRODUCTION_RANDOM_STATE,
-                            **llm_kwargs):
+def produce_datasets(dataset_name, specification,
+                     num_samples, num_datasets,
+                     **llm_kwargs):
     dfs = []
     codes = []
     errors = []
@@ -199,16 +287,36 @@ def produce_mixture_dataset(dataset_name, specification,
     while len(dfs) < num_datasets:
         print(len(dfs))
 
-        df, code, error = produce_dataset(medatadata, specification, num_samples, **llm_kwargs)
+        df, code, error = produce_dataset(medatadata,
+                                          specification,
+                                          num_samples,
+                                          **llm_kwargs)
         if error is None:
             dfs.append(df)
             codes.append(code)
         else:
-            errors.append(error)    
+            errors.append(error)
             print(error)
 
-    mixture_df = (pd.concat(dfs)
-                  .sample(num_samples, replace=False, random_state=random_state)
-                  .reset_index(drop=True))
+    return dfs, codes, errors
+
+
+def mix_datasets(dfs, num_samples,
+                 random_state=PRODUCTION_RANDOM_STATE):
+    return (pd.concat(dfs)
+            .sample(num_samples, replace=False, random_state=random_state)
+            .reset_index(drop=True))
+
+
+def produce_mixture_dataset(dataset_name, specification,
+                            num_samples, num_datasets,
+                            random_state=PRODUCTION_RANDOM_STATE,
+                            **llm_kwargs):
+
+    dfs, codes, errors = produce_datasets(dataset_name, specification,
+                                          num_samples, num_datasets,
+                                          **llm_kwargs)
+
+    mixture_df = (dfs, num_samples, random_state)
 
     return mixture_df, (dfs, codes, errors)
