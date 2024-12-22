@@ -563,7 +563,7 @@ class UtilityTask(DPTask):
                                 ax=axes[idx])
 
                         axes[idx].set_title(f"{self.measure} - {synth_name}")
-                        axes[idx].tick_params(axis='x', rotation=45)
+                        axes[idx].tick_params(axis='x', rotation=90)
                         axes[idx].set_ylim(self.min_value, self.max_value)
 
                         if idx != 0:
