@@ -25,4 +25,5 @@ dependencies:
     - openai
     - python-statemachine
     - ydata_profiling
+    - apricot-select
     # - synthcity
