@@ -154,12 +154,12 @@ class UtilityTask(DPTask):
         return results
 
     @staticmethod
-    def evaluate(hparam_results, experiemnts, metric=None):
+    def evaluate(hparam_results, experiments, metric=None):
         if metric is None:
             metric = UtilityTask.METRIC_DEFAULT
         metric_column = f"evaluation_{metric}"
 
-        results_df = UtilityTask.process(hparam_results, experiemnts)
+        results_df = UtilityTask.process(hparam_results, experiments)
 
         best_hparams_df = results_df.groupby(["dataset_name", "synth_name", "epsilon"])[
             metric_column
@@ -207,18 +207,18 @@ class UtilityTask(DPTask):
                     (
                         pd.DataFrame(best_hparams_df[dev_name])
                         .apply(
-                            extractor(experiemnts.test_name, dev_name),
+                            extractor(experiments.test_name, dev_name),
                             result_type="expand",
                             axis=1,
                         )
                         .reset_index()
                         .assign(
                             dev_name=dev_name,
-                            test_name=experiemnts.test_name,
-                            experiment=f"{experiemnts.test_name}/{dev_name}",
+                            test_name=experiments.test_name,
+                            experiment=f"{experiments.test_name}/{dev_name}",
                         )
                     )
-                    for dev_name in experiemnts.dev_names
+                    for dev_name in experiments.dev_names
                 ]
             )
             .set_index(["synth_name", "experiment", "epsilon"])
@@ -428,7 +428,7 @@ class UtilityTask(DPTask):
 
         # Create color mapping for consistency using tab10
         dataset_members = sorted(set([exp.split('/')[-1] for exp in ref_eps_all_evaluation_df['experiment'].unique()]))
-        tab10 = plt.cm.tab10(np.linspace(0, 1, 10))
+        tab10 = plt.cm.tab10(np.linspace(0, 1, len(dataset_members)))
         color_dict = dict(zip(dataset_members, [f'rgb({int(r*255)},{int(g*255)},{int(b*255)})' 
                                             for r, g, b, _ in tab10[:len(dataset_members)]]))
 
@@ -533,7 +533,7 @@ class UtilityTask(DPTask):
 
                 def show(self):
                     fig, axes = plt.subplots(len(self.synth_names), 1, 
-                                        figsize=(12, 6*len(self.synth_names)), 
+                                        figsize=(20, 6*len(self.synth_names)), 
                                         squeeze=False)
                     axes = axes.flatten()
 
@@ -558,11 +558,14 @@ class UtilityTask(DPTask):
                                 y='Value', 
                                 hue='Dataset',
                                 palette=self.color_dict,
-                                ax=axes[idx])
+                                ax=axes[idx],
+                                width=0.9)
 
                         axes[idx].set_title(f"{self.measure} - {synth_name}")
-                        axes[idx].tick_params(axis='x', rotation=90)
+                        axes[idx].set_xticklabels(axes[idx].get_xticklabels(), rotation=90, ha='right', va='center')
+                        axes[idx].tick_params(axis='x', labelrotation=90, pad=150)  # Increase the pad value from 10 to larger number if needed
                         axes[idx].set_ylim(self.min_value, self.max_value)
+                        axes[idx].margins(x=0.05) 
 
                         if idx != 0:
                             axes[idx].get_legend().remove()
@@ -571,7 +574,9 @@ class UtilityTask(DPTask):
                             loc='center',
                             ncol=len(dataset_members),
                             borderaxespad=0.)
-                    plt.tight_layout()
+                    
+                    plt.subplots_adjust(wspace=0.2)  # Add this before tight_layout
+                    plt.tight_layout(rect=[0, 2, 1, 0.95])  # Add bottom margin by adjusting the second number (0.1)
                     display(fig)
                     plt.close()
 
@@ -592,17 +597,17 @@ class UtilityTask(DPTask):
         return figs
 
     @staticmethod
-    def process(hparam_results, experiemnts):
+    def process(hparam_results, experiments):
 
         df = pd.DataFrame(hparam_results)
 
-        dataset_names = list(set([experiemnts.test_name] + experiemnts.dev_names))
+        dataset_names = list(set([experiments.test_name] + experiments.dev_names))
         df = df[df["dataset_name"].isin(dataset_names)].reset_index(drop=True)
 
         df["hparams_frozen"] = df["hparams"].apply(_freeze)
 
         metric_columns = []
-        for metric in list(df.loc[0, "evaluation"].keys()):
+        for metric in EVALUATION_METRICS:
             if not metric.startswith("_"):
                 metric_column = f"evaluation_{metric}"
                 df[metric_column] = df["evaluation"].apply(lambda x: x[metric])
