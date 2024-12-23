@@ -131,10 +131,7 @@ class UtilityTask(DPTask):
                             train_dataset, eval_dataset, schema, epsilon, hparams
                         )
                     except Exception as e:
-                        # print(f"Error: {e}")
                         print(traceback.format_exc())
-
-
 
                         if self.with_wandb:
                             wandb.log({"_error": str(e)})
@@ -143,7 +140,8 @@ class UtilityTask(DPTask):
                         synth_dataset = None
                     else:
                         if self.with_wandb:
-                            wandb.log(metric_results)
+                            wandb.log({key: value if not isinstance(value, np.ndarray) else value.tolist()
+                                       for key, value in metric_results.items()})
 
                     results.append(
                         config
