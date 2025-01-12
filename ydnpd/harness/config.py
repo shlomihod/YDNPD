@@ -6,13 +6,20 @@ import copy
 
 EPSILONS = [1, 2, 5, 7, 10, 20]
 
-NUM_RUNS = 5
+NUM_RUNS = 5 # 1
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS = ["privbayes"]#, "mwem", "aim_torch", "patectgan"]
+SYNTHESIZERS = ["gem"]#, "privbayes", "mwem", "aim_torch", "patectgan", "gem"]
 
 HPARAMS_DIMS = {
+    "gem": {
+        "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
+        "k": [2, 3], # 
+        "T": [50],
+        # TODO: add the rest of the params here!
+        # need to discuss...
+    },
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
         "q_count": [512, 1024],  # [128, 512],
@@ -80,6 +87,18 @@ ALL_EXPERIMENTS = {
         ],
     )
 }
+
+# ALL_EXPERIMENTS = {
+#     "acs": Experiments(
+#         "acs/national",
+#         [
+#             "acs/national",
+#             "acs/massachusetts_upsampled",
+#             "acs/baseline_univariate",
+#             "acs/baseline_domain",
+#         ],
+#     )
+# }
 
 DATASET_NAMES = set(
     it.chain(

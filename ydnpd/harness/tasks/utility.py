@@ -90,6 +90,9 @@ class UtilityTask(DPTask):
         synth_dataset = generate_synthetic_data(
             train_dataset, schema, epsilon, self.synth_name, **hparams
         )
+        # NOTE: this is important for GEM, which returns an aligned
+        # dataset with the train dataset, but with renamed columns
+        synth_dataset.columns = train_dataset.columns
 
         metric_results = evaluate_two(
             train_dataset, eval_dataset, synth_dataset, schema, **self.evaluation_kwargs
