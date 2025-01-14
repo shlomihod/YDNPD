@@ -6,9 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 import wandb
 
-from ydnpd.agent.core import CasualModelingAgentMachine, LLMSession
-from ydnpd.agent.specifications import SPECIFICATION_V0
-from ydnpd.agent.data_config import SCHEMA
+from ydnpd.generation.agent.core import CasualModelingAgentMachine, LLMSession
+from ydnpd.generation.agent.specifications import SPECIFICATION_V0
+from ydnpd.generation.agent.data_config import SCHEMA
 
 
 wandb.init(project="llm_state_machine", name="LLM_Causal_Model_Agent")
