@@ -139,6 +139,7 @@ if __name__ == "__main__":
 
     acs_path = DATA_ROOT / "acs"
     edad_path = DATA_ROOT / "edad"
+    we_path = DATA_ROOT / "we"
 
     create_baselines("acs/national", acs_path)
     create_upsampled("acs/massachusetts", "acs/national", acs_path)
@@ -147,3 +148,6 @@ if __name__ == "__main__":
 
     create_baselines("edad/2023", edad_path)
     create_arbitrary("edad/2023", edad_path)
+
+    create_baselines("we/survey", we_path)
+    create_arbitrary("we/survey", we_path)
