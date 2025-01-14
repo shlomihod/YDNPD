@@ -85,20 +85,17 @@ ALL_EXPERIMENTS = {
             "edad/baseline_domain",
             "edad/arbitrary",
         ],
-    )
+    ),
+        "we": Experiments(
+        "we/survey",
+        [
+            "we/survey",
+            "we/baseline_univariate",
+            "we/baseline_domain",
+            "we/arbitrary",
+        ],
+    ),
 }
-
-# ALL_EXPERIMENTS = {
-#     "acs": Experiments(
-#         "acs/national",
-#         [
-#             "acs/national",
-#             "acs/massachusetts_upsampled",
-#             "acs/baseline_univariate",
-#             "acs/baseline_domain",
-#         ],
-#     )
-# }
 
 DATASET_NAMES = set(
     it.chain(
@@ -118,5 +115,8 @@ EVALUATION_KWARGS = {
     },
     "edad": {
         "classification_target_column": "MOVI_21_1",
+    },
+    "we": {
+        "classification_target_column": "how_long_have_you_worked_for_your_current_employer",
     },
 }
