@@ -12,7 +12,7 @@ from openai import OpenAI
 import weave
 
 from ydnpd.utils import metadata_to_pandera_schema
-from ydnpd.agent.errors import AgentError
+from ydnpd.generation.agent.errors import AgentError
 
 
 OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'

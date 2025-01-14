@@ -74,6 +74,8 @@ def plot_distribution_distances(
     g.ax_heatmap.set_yticklabels(g.ax_heatmap.get_yticklabels(), rotation=0)
     plt.suptitle(f'Hierarchically Clustered {metric.title()} Distance', y=1.02)
 
+    return g
+
     # 2. 2D TSNE
     # coords_2d = TSNE(
     #     n_components=2,

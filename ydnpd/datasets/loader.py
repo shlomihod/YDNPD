@@ -13,25 +13,6 @@ EVAL_SPLIT_PROPORTION = 0.3
 
 DATA_ROOT = Path(__file__).parent / "data"
 
-DATASETS = {
-    "acs": {
-        "national",
-        "massachusetts", "massachusetts_upsampled",
-        "texas", "texas_upsampled",
-        "baseline_domain", "baseline_univariate",
-        "arbitrary",
-    },
-    "edad": {
-        "2023",
-        "2020",
-        "baseline_domain", "baseline_univariate",
-        "arbitrary",
-    },
-    "we": {
-        "survey",
-    }
-}
-
 # https://pages.nist.gov/privacy_collaborative_research_cycle/pages/participate.html
 # maybe only run on the categorical columns>?
 COL_SUBSETS = {
@@ -58,21 +39,16 @@ def load_dataset(
 ):
 
     family, member = dataset_name.split("/")
+    metadata_path = DATA_ROOT / family / "metadata.json"
 
-    if family not in DATASETS:
+    if not metadata_path.exists():
         raise ValueError(f"dataset family `{family}` unkown")
 
-    if path is None:
-        if member not in DATASETS[family]:
-            raise ValueError(f"dataset member `{member}` is not part of family `{family}`")
-
-        dataset_dir_path = DATA_ROOT
-
-    else:
-        dataset_dir_path = Path(path) 
+    dataset_dir_path = DATA_ROOT if path is None else Path(path)
 
     dataset_path = dataset_dir_path / family / f"{member}.csv"
-    metadata_path = DATA_ROOT / family / "metadata.json"
+    if not dataset_path.exists():
+        raise ValueError(f"dataset member `{member}` is not part of family `{family}` in path `{dataset_dir_path}`")
 
     dataset = pd.read_csv(dataset_path)
     metadata = json.load(open(metadata_path))

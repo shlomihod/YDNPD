@@ -6,13 +6,20 @@ import copy
 
 EPSILONS = [1, 2, 5, 7, 10, 20]
 
-NUM_RUNS = 5
+NUM_RUNS = 5 # 1
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS = ["privbayes"]#, "mwem", "aim_torch", "patectgan"]
+SYNTHESIZERS = ["gem"]#, "privbayes", "mwem", "aim_torch", "patectgan", "gem"]
 
 HPARAMS_DIMS = {
+    "gem": {
+        "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
+        "k": [2, 3], # 
+        "T": [50],
+        # TODO: add the rest of the params here!
+        # need to discuss...
+    },
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
         "q_count": [512, 1024],  # [128, 512],
@@ -78,7 +85,16 @@ ALL_EXPERIMENTS = {
             "edad/baseline_domain",
             "edad/arbitrary",
         ],
-    )
+    ),
+        "we": Experiments(
+        "we/survey",
+        [
+            "we/survey",
+            "we/baseline_univariate",
+            "we/baseline_domain",
+            "we/arbitrary",
+        ],
+    ),
 }
 
 DATASET_NAMES = set(
@@ -99,5 +115,8 @@ EVALUATION_KWARGS = {
     },
     "edad": {
         "classification_target_column": "MOVI_21_1",
+    },
+    "we": {
+        "classification_target_column": "how_long_have_you_worked_for_your_current_employer",
     },
 }

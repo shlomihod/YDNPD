@@ -41,7 +41,7 @@ def span_utility_ray_tasks(additional_datasets: Optional[list[tuple[str, str]]] 
 
     return [
         ray.remote(task_execute_wrapper(task))
-        .options(num_gpus=(1 if task.synth_name in ("patectgan", "aim_torch") else 0))
+        .options(num_gpus=(1 if task.synth_name in ("patectgan", "aim_torch", "gem") else 0))
         .remote()
         for task in span_utility_tasks(additional_datasets, task_kwargs)
     ]

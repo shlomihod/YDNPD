@@ -14,7 +14,7 @@ import pandera as pa
 
 from ydnpd.datasets import load_dataset
 from ydnpd.utils import metadata_to_pandera_schema
-from ydnpd.agent.errors import AgentError
+from ydnpd.generation.agent.errors import AgentError
 
 
 MAX_TIMEOUT_SAMPLING = 10
@@ -249,7 +249,7 @@ def is_valid_pyro_code(
 
 def produce_dataset(metadata, specification, num_samples, **llm_kwargs):
 
-    from ydnpd.agent.core import CasualModelingAgentMachine, LLMSession
+    from ydnpd.generation.agent.core import CasualModelingAgentMachine, LLMSession
 
     try:
 

@@ -2,11 +2,11 @@ from pprint import pformat
 
 import networkx as nx
 
-from ydnpd.agent.utils import (clean_split,
+from ydnpd.generation.agent.utils import (clean_split,
                                build_graph,
                                is_valid_pyro_code,
                                retrieve_pyro_model)
-from ydnpd.agent.errors import AgentError
+from ydnpd.generation.agent.errors import AgentError
 
 
 def raise_agenet_error(msg=None):

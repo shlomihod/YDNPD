@@ -1,6 +1,6 @@
 import networkx as nx
 
-from ydnpd.agent.utils import (clean_split,
+from ydnpd.generation.agent.utils import (clean_split,
                                build_graph,
                                is_valid_pyro_code,
                                retrieve_pyro_model)

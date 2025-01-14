@@ -3,9 +3,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from ydnpd.agent.core import CasualModelingAgentMachine, LLMSession
-from ydnpd.agent.specifications import SPECIFICATION_V0
-from ydnpd.agent.data_config import SCHEMA
+from ydnpd.generation.agent.core import CasualModelingAgentMachine, LLMSession
+from ydnpd.generation.agent.specifications import SPECIFICATION_V0
+from ydnpd.generation.agent.data_config import SCHEMA
 
 import wandb
 
