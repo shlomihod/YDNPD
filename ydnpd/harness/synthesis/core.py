@@ -2,6 +2,7 @@ import warnings
 
 import pandas as pd
 
+import shutil
 
 SYNTHESIZERS = [
     "id",
@@ -12,6 +13,7 @@ SYNTHESIZERS = [
     "aim",
     "aim_torch",
     "mwem",
+    "gem",
     "mst",
     "pacsynth",
     "dpctgan",
@@ -146,6 +148,41 @@ def generate_synthetic_data(
             categorical_columns=categorical_columns,
         )
         synth_df = synthesizer.sample(num_samples)
+
+    
+    elif synth_name == "gem":
+        from ydnpd.harness.synthesis.gem import GEMSynthesizer
+
+        continuous_columns = []
+        categorical_columns = []
+
+        for col, info in schema.items():
+            match info["dtype"]:
+                case "object":
+                    categorical_columns.append(col)
+                case "int32" | "int64":
+                    if len(dataset[col].unique()) > 100:
+                        continuous_columns.append(col)
+                    else:
+                        categorical_columns.append(col)
+                case "float64":
+                    continuous_columns.append(col)
+                case _:
+                    print(f"Unknown type: {info['dtype']}")
+
+        preprocessor_eps = hparams.pop("preprocessor_eps")
+
+        synthesizer = GEMSynthesizer(epsilon=epsilon, verbose=True, **hparams)
+        synthesizer.fit(
+            dataset,
+            preprocessor_eps=preprocessor_eps,
+            continuous_columns=continuous_columns,
+            categorical_columns=categorical_columns,
+        )
+        synth_df = synthesizer.sample(num_samples)
+
+        # let's clear the cache, which is a folder under synthesizer.algo.default_dir
+        shutil.rmtree(synthesizer.algo.default_dir, ignore_errors=True)
 
     else:
         raise ValueError(f"Unknown synthesizer name: {synth_name}")
