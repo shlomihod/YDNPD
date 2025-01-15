@@ -167,7 +167,11 @@ def retrieve_pyro_model(pyro_code):
     except Exception as err:
         raise AgentError(f"Model compilation failed:\n{format_exec_error(pyro_code, err)}")
 
-    model = local_dict['model']
+    try:
+        model = local_dict['model']
+    except KeyError:
+        raise AgentError("`model` function was not found in the code")
+
     pyro.clear_param_store()
     # model_trace = pyro.poutine.trace(model).get_trace()
 
