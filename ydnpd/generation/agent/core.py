@@ -21,7 +21,7 @@ MAX_ATTEMPTS = 8
 class LLMSession:
     def __init__(self, specification, metadata,
                  llm_path="openai/gpt-4o-mini",
-                 llm_temperature=1,
+                 llm_temperature=0.7,
                  llm_max_tokens=8192,
                  llm_top_p=1,
                 #  llm_frequency_penalty=0,
