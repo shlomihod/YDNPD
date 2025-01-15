@@ -10,17 +10,21 @@ NUM_RUNS = 5 # 1
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS = ["gem"]#, "privbayes", "mwem", "aim_torch", "patectgan", "gem"]
+SYNTHESIZERS = ["privbayes", "aim_torch", "gem"]
 
 HPARAMS_DIMS = {
     # this is probably too many parameter combinations...
     "gem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "k": [2, 3], # 
+        "k": [2, 3], #
         "T": [50, 100],
         "alpha": [0.1, 0.5],
-        "lr": [1e-4, 1e-3],
         "ema_error_factor": [0.1, 0.9]
+    },
+    "aim": {
+        "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
+        "degree": [2, 3],
+        "rounds": [5, 10, 20],
     },
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
@@ -33,11 +37,6 @@ HPARAMS_DIMS = {
     },
     "mst": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-    },
-    "aim": {
-        "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "degree": [1, 2, 3],
-        "rounds": [5, 10, 20, None],
     },
     "privbayes": {
         "theta": [2, 8, 32, 64],
