@@ -9,12 +9,8 @@
         "description": "How long have you worked for your current employer?",
         "dtype": "int64",
         "values": {
-          "1": "Less than 1 year",
-          "2": "1 to 5 years",
-          "3": "6 to 10 years",
-          "4": "11 to 20 years",
-          "5": "21 years or more",
-          "0": "Missing value"
+          "0": "10 years or less",
+          "1": "11 or more years"
         }
       },
       "which_of_the_following_groups_best_describes_your_employment_level": {

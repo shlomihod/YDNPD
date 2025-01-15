@@ -4,7 +4,7 @@ from ydnpd.harness.experiment import Experiments
 
 import copy
 
-EPSILONS = [1, 2, 5, 7, 10, 20]
+EPSILONS = [0.5, 1, 2, 4, 8, 16]
 
 NUM_RUNS = 5 # 1
 
@@ -13,12 +13,14 @@ FIXED_PREPROCESSOR_EPSILON = 0.0
 SYNTHESIZERS = ["gem"]#, "privbayes", "mwem", "aim_torch", "patectgan", "gem"]
 
 HPARAMS_DIMS = {
+    # this is probably too many parameter combinations...
     "gem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
         "k": [2, 3], # 
-        "T": [50],
-        # TODO: add the rest of the params here!
-        # need to discuss...
+        "T": [50, 100],
+        "alpha": [0.1, 0.5],
+        "lr": [1e-4, 1e-3],
+        "ema_error_factor": [0.1, 0.9]
     },
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
