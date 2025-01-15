@@ -20,7 +20,7 @@ dependencies:
     - weave
     - ray[default]
     - smartnoise-synth
-    - git+https://github.com/ryan112358/private-pgm.git
+    - git+https://github.com/ryan112358/private-pgm.git@70b6684
     - SciencePlots
     - pyro-ppl
     - openai

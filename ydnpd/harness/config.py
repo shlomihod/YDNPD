@@ -4,23 +4,27 @@ from ydnpd.harness.experiment import Experiments
 
 import copy
 
-EPSILONS = [0.5, 1, 2, 4, 8, 16]
+EPSILONS = [1, 4, 8, 16]
 
 NUM_RUNS = 5 # 1
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS = ["gem"]#, "privbayes", "mwem", "aim_torch", "patectgan", "gem"]
+SYNTHESIZERS =  ["aim_torch"]#, "gem, "aim_torch", ] # ["privbayes",
 
 HPARAMS_DIMS = {
     # this is probably too many parameter combinations...
     "gem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "k": [2, 3], # 
+        "k": [2, 3], #
         "T": [50, 100],
         "alpha": [0.1, 0.5],
-        "lr": [1e-4, 1e-3],
-        "ema_error_factor": [0.1, 0.9]
+        "ema_weights_beta": [0.1, 0.9]
+    },
+    "aim": {
+        "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
+        "degree": [2, 3],
+        "rounds": [20, 40],
     },
     "mwem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
@@ -33,11 +37,6 @@ HPARAMS_DIMS = {
     },
     "mst": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-    },
-    "aim": {
-        "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "degree": [1, 2, 3],
-        "rounds": [5, 10, 20, None],
     },
     "privbayes": {
         "theta": [2, 8, 32, 64],
@@ -68,33 +67,34 @@ HPARAMS_DIMS = {
 HPARAMS_DIMS['aim_torch'] = copy.copy(HPARAMS_DIMS['aim'])
 
 ALL_EXPERIMENTS = {
-    "acs": Experiments(
-        "acs/national",
+    # "acs": Experiments(
+    #     "acs/national",
+    #     [
+    #         "acs/national",
+    #         "acs/massachusetts_upsampled",
+    #         "acs/baseline_univariate",
+    #         "acs/baseline_domain",
+    #         "acs/arbitrary",
+    #     ],
+    # ),
+    # "edad": Experiments(
+    #     "edad/2023",
+    #     [
+    #         "edad/2023",
+    #         "edad/2020",
+    #         "edad/baseline_univariate",
+    #         "edad/baseline_domain",
+    #         "edad/arbitrary",
+    #     ],
+    # ),
+    "we": Experiments(
+        "we/2023",
         [
-            "acs/national",
-            "acs/massachusetts_upsampled",
-            "acs/baseline_univariate",
-            "acs/baseline_domain",
-            "acs/arbitrary",
-        ],
-    ),
-    "edad": Experiments(
-        "edad/2023",
-        [
-            "edad/2023",
-            "edad/2020",
-            "edad/baseline_univariate",
-            "edad/baseline_domain",
-            "edad/arbitrary",
-        ],
-    ),
-        "we": Experiments(
-        "we/survey",
-        [
-            "we/survey",
-            "we/baseline_univariate",
-            "we/baseline_domain",
-            "we/arbitrary",
+            "we/2023",
+            "we/2018",
+            # "we/baseline_univariate",
+            # "we/baseline_domain",
+            # "we/arbitrary",
         ],
     ),
 }

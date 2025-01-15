@@ -632,6 +632,10 @@ class AIMSynthesizerTorch(Synthesizer):
             sensitivity[cl] = abs(wgt)
 
         max_sensitivity = max(sensitivity.values())  # if all weights are 0, could be a problem
+        print('Check weights:')
+        print(errors)
+        print(max_sensitivity)
+        print()
         return exponential_mechanism(errors, eps, max_sensitivity)
 
     def AIM(self, data, workload):
@@ -673,6 +677,12 @@ class AIMSynthesizerTorch(Synthesizer):
             if self.rho - rho_used < 2 * (0.5 / sigma ** 2 + 1.0 / 8 * epsilon ** 2):
                 # Just use up whatever remaining budget there is for one last round
                 remaining = self.rho - rho_used
+                print('Rho check')
+                print(self.rho)
+                print(rho_used)
+                print(remaining)
+                assert remaining > 0
+                print()
                 sigma = np.sqrt(1 / (2 * 0.9 * remaining))
                 epsilon = np.sqrt(8 * 0.1 * remaining)
                 terminate = True
