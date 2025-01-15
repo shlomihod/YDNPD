@@ -88,10 +88,11 @@ ALL_EXPERIMENTS = {
             "edad/arbitrary",
         ],
     ),
-        "we": Experiments(
-        "we/survey",
+    "we": Experiments(
+        "we/2023",
         [
-            "we/survey",
+            "we/2023",
+            "we/2018",
             "we/baseline_univariate",
             "we/baseline_domain",
             "we/arbitrary",

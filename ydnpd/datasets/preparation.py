@@ -149,5 +149,5 @@ if __name__ == "__main__":
     create_baselines("edad/2023", edad_path)
     create_arbitrary("edad/2023", edad_path)
 
-    create_baselines("we/survey", we_path)
-    create_arbitrary("we/survey", we_path)
+    create_baselines("we/2023", we_path)
+    create_arbitrary("we/2023", we_path)
