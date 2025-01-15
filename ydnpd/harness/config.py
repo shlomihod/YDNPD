@@ -67,16 +67,16 @@ HPARAMS_DIMS = {
 HPARAMS_DIMS['aim_torch'] = copy.copy(HPARAMS_DIMS['aim'])
 
 ALL_EXPERIMENTS = {
-    "acs": Experiments(
-        "acs/national",
-        [
-            "acs/national",
-            "acs/massachusetts_upsampled",
-            "acs/baseline_univariate",
-            "acs/baseline_domain",
-            "acs/arbitrary",
-        ],
-    ),
+    # "acs": Experiments(
+    #     "acs/national",
+    #     [
+    #         "acs/national",
+    #         "acs/massachusetts_upsampled",
+    #         "acs/baseline_univariate",
+    #         "acs/baseline_domain",
+    #         "acs/arbitrary",
+    #     ],
+    # ),
     # "edad": Experiments(
     #     "edad/2023",
     #     [
@@ -87,16 +87,16 @@ ALL_EXPERIMENTS = {
     #         "edad/arbitrary",
     #     ],
     # ),
-    # "we": Experiments(
-    #     "we/2023",
-    #     [
-    #         "we/2023",
-    #         "we/2018",
-    #         "we/baseline_univariate",
-    #         "we/baseline_domain",
-    #         "we/arbitrary",
-    #     ],
-    # ),
+    "we": Experiments(
+        "we/2023",
+        [
+            "we/2023",
+            "we/2018",
+            # "we/baseline_univariate",
+            # "we/baseline_domain",
+            # "we/arbitrary",
+        ],
+    ),
 }
 
 DATASET_NAMES = set(

@@ -117,25 +117,8 @@
           "1": "Yes"
         }
       },
-      "recognition_from_colleaguespeers": {
-        "description": "Recognition from colleagues/peers (ternary-encoded).",
-        "dtype": "int64",
-        "values": {
-          "0": "Missing or Not applicable",
-          "1": "Dissatisfied",
-          "2": "Satisfied"
-        }
-      },
       "yes_one_or_more_children": {
         "description": "Yes, one or more children",
-        "dtype": "int64",
-        "values": {
-          "0": "No",
-          "1": "Yes"
-        }
-      },
-      "socialize_with_peers_within_my_company": {
-        "description": "Socialize with peers within my company",
         "dtype": "int64",
         "values": {
           "0": "No",
