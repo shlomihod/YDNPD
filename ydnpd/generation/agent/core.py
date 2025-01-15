@@ -8,39 +8,36 @@ from enum import Enum
 
 from statemachine import StateMachine
 from statemachine.states import States
-from openai import OpenAI
 import weave
 
 from ydnpd.utils import metadata_to_pandera_schema
 from ydnpd.generation.agent.errors import AgentError
+from ydnpd.generation.llm import create_llm
 
-
-OPENAI_KEY = 'sk-proj-qa3W3yKyqgIqIr8YXHZOT3BlbkFJNLB17J7qTKF4rrdVfLDt'
-CLIENT = OpenAI(api_key=OPENAI_KEY)
 
 MAX_ATTEMPTS = 8
 
 
 class LLMSession:
     def __init__(self, specification, metadata,
-                 llm_name="gpt-4o-mini",
+                 llm_path="openai/gpt-4o-mini",
                  llm_temperature=1,
-                 llm_max_tokens=None,
+                 llm_max_tokens=8192,
                  llm_top_p=1,
-                 llm_frequency_penalty=0,
-                 llm_presence_penalty=0,
+                #  llm_frequency_penalty=0,
+                #  llm_presence_penalty=0,
                  verbose=False):
 
         self.specification = specification
 
-        if "o1" in llm_name:
+        if llm_path.startswith("openai") and "o1" in llm_path:
             initial_role = "user"
-            max_token_param_name = "max_completion_tokens"
+            # max_token_param_name = "max_completion_tokens"
             if llm_temperature != 1:
                 raise ValueError("temperature must be 1 for this model")
         else:
             initial_role = "system"
-            max_token_param_name = "max_tokens"
+            # max_token_param_name = "max_tokens"
 
         self.context = {
             "metadata": metadata,
@@ -49,13 +46,15 @@ class LLMSession:
         }
 
         self.llm_params = {
-            "model": llm_name,
+            "model_path": llm_path,
             "temperature": llm_temperature,
-            max_token_param_name: llm_max_tokens,
+            "max_tokens": llm_max_tokens,
             "top_p": llm_top_p,
-            "frequency_penalty": llm_frequency_penalty,
-            "presence_penalty": llm_presence_penalty,
+            # "frequency_penalty": llm_frequency_penalty,
+            # "presence_penalty": llm_presence_penalty,
         }
+
+        self.chat_fn = create_llm(**self.llm_params)
 
         self.message_history = [
             {
@@ -80,12 +79,7 @@ class LLMSession:
         #     pprint(f"USER: {user_message}")
 
         # try:
-        response = CLIENT.chat.completions.create(
-            messages=self.message_history,
-            **self.llm_params
-        )
-
-        assistant_message = response.choices[0].message.content
+        assistant_message = self.chat_fn(self.message_history)
 
         self.message_history.append({
             "role": "assistant",
