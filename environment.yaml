@@ -15,6 +15,7 @@ dependencies:
   - pandera
   - ipywidgets
   - pip:
+    - papermill
     - python-dotenv
     - wandb
     - weave
