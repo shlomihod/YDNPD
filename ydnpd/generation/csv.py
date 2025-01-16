@@ -27,23 +27,19 @@ def _get_system_prompt(domain: str) -> str:
         "Follow exactly these rules:\n"
         "1. Only output the CSV data with no additional text or explanations\n"
         "2. Always include a header row matching the schema exactly\n"
-        "3. Use comma as the separator\n"
-        "4. Ensure all values and relationships between fields are realistic and statistically plausible\n"
-        "5. Generate diverse data while maintaining real-world patterns and constraints\n"
-        "6. Include occasional edge cases at realistic frequencies\n"
+        "3. Strictly adhere to the provided schema's data types and possible values for all fields\n"
+        "4. Use comma as the separator\n"
+        "5. Ensure all values and relationships between fields are realistic and statistically plausible\n"
+        "6. Generate diverse data while maintaining real-world patterns and constraints\n"
+        "7. Include occasional edge cases at realistic frequencies\n"
     )
 
 
 def _format_user_prompt(num_rows: int, schema: Dict[str, Any]) -> str:
     """Format the user prompt for CSV generation."""
-    schema_info = "\n".join(
-        f" - {col}: {details}" 
-        for col, details in schema.items()
-    )
-
     return (
         f"Generate {num_rows} rows of data with these fields:\n\n"
-        f"{pformat(schema_info)}"
+        f"{pformat(schema)}"
     )
 
 
@@ -73,9 +69,9 @@ def _validate_single_record(row: pd.Series, schema: pa.DataFrameSchema) -> bool:
 @weave.op
 def generate_csv(
     dataset_name: str,
+    llm_path: str,
     total_rows: None | int = None,
     batch_size: int = DEFAULT_BATCH_SIZE,
-    llm_path: str = "openai/gpt-4o-mini",
     temperature: float = 0.7,
     max_tokens: int = 8192,
     retry_factor: int = DEFAULT_RETRY_FACTOR,
@@ -94,8 +90,9 @@ def generate_csv(
         retry_factor: Number of tries allowed per needed batch
         verbose: Whether to print progress information
     """
+    family_name, _ = dataset_name.split("/")
     reference_df, raw_schema, domain = load_dataset(dataset_name)
-    schema = metadata_to_pandera_schema(raw_schema)
+    schema = metadata_to_pandera_schema(raw_schema, coerce=True)
 
     if total_rows is None:
         total_rows = len(reference_df)
@@ -112,7 +109,8 @@ def generate_csv(
     )
 
     if verbose:
-        print(f"\nStarting generation of {total_rows} records")
+        print(f"\n### {family_name} @ {llm_path} ###")
+        print(f"Starting generation of {total_rows} records")
         print(f"Strategy: {needed_batches} batches of {batch_size} rows")
         print(f"Maximum tries: {max_tries} ({retry_factor}x per batch)")
 
@@ -121,7 +119,8 @@ def generate_csv(
             break
 
         if verbose:
-            print(f"\nTry {try_num + 1}/{max_tries}")
+            print(f"\n### {family_name} @ {llm_path} ###")
+            print(f"Try {try_num + 1}/{max_tries}")
             print(f"Generating batch of {batch_size} rows ({len(valid_records)}/{total_rows} collected)")
 
         messages = [
@@ -163,6 +162,7 @@ def generate_csv(
         raise AgentError(f"Could not generate any valid records after {max_tries} tries")
 
     result_df = pd.DataFrame(valid_records)
+    result_df = schema.validate(result_df)
 
     if verbose:
         print(f"\nGeneration complete: got {len(result_df)} valid records")
@@ -171,6 +171,8 @@ def generate_csv(
 
     # Return exact number of rows if we have enough, otherwise return what we have
     if len(result_df) >= total_rows:
-        return result_df.sample(total_rows, random_state=RANDOM_STATE)
+        return (result_df
+                .sample(total_rows, random_state=RANDOM_STATE)
+                .reset_index(drop=True))
 
     return result_df
