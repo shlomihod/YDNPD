@@ -61,3 +61,12 @@ def metadata_to_pandera_schema(metadata_schema: dict[str, Any], coerce=False) ->
     )
 
     return schema
+
+
+def get_compute_resources():
+    import psutil
+    import jax
+    return {
+        "num_cpus": psutil.cpu_count(logical=False),  # physical cores only
+        "num_gpus": len(jax.devices("gpu")),
+    }
