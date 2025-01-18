@@ -13,15 +13,19 @@ dependencies:
   - sdv
   - nbformat
   - pandera
+  - jupyter
   - ipywidgets
+  - pip
   - pip:
+    - --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+    - "jax[cuda]"
     - papermill
     - python-dotenv
     - wandb
     - weave
     - ray[default]
     - smartnoise-synth
-    - git+https://github.com/ryan112358/private-pgm.git@70b6684
+    - git+https://github.com/ryan112358/private-pgm.git@b84fd83
     - SciencePlots
     - pyro-ppl
     - openai
