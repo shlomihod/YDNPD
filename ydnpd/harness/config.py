@@ -6,17 +6,17 @@ import copy
 
 EPSILONS = [1, 4, 8, 16]
 
-NUM_RUNS = 5 # 1
+NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS =  ["aim_torch"]#, "gem, "aim_torch", ] # ["privbayes",
+SYNTHESIZERS = ["aim_jax", "privbayes", "gem"]
 
 HPARAMS_DIMS = {
     # this is probably too many parameter combinations...
     "gem": {
         "preprocessor_eps": [FIXED_PREPROCESSOR_EPSILON],
-        "k": [2, 3], #
+        "k": [2, 3],
         "T": [50, 100],
         "alpha": [0.1, 0.5],
         "ema_weights_beta": [0.1, 0.9]
@@ -65,36 +65,37 @@ HPARAMS_DIMS = {
 }
 
 HPARAMS_DIMS['aim_torch'] = copy.copy(HPARAMS_DIMS['aim'])
+HPARAMS_DIMS['aim_jax'] = copy.copy(HPARAMS_DIMS['aim'])
 
 ALL_EXPERIMENTS = {
-    # "acs": Experiments(
-    #     "acs/national",
-    #     [
-    #         "acs/national",
-    #         "acs/massachusetts_upsampled",
-    #         "acs/baseline_univariate",
-    #         "acs/baseline_domain",
-    #         "acs/arbitrary",
-    #     ],
-    # ),
-    # "edad": Experiments(
-    #     "edad/2023",
-    #     [
-    #         "edad/2023",
-    #         "edad/2020",
-    #         "edad/baseline_univariate",
-    #         "edad/baseline_domain",
-    #         "edad/arbitrary",
-    #     ],
-    # ),
+    "acs": Experiments(
+        "acs/national",
+        [
+            "acs/national",
+            "acs/massachusetts_upsampled",
+            "acs/baseline_univariate",
+            "acs/baseline_domain",
+            "acs/arbitrary",
+        ],
+    ),
+    "edad": Experiments(
+        "edad/2023",
+        [
+            "edad/2023",
+            "edad/2020",
+            "edad/baseline_univariate",
+            "edad/baseline_domain",
+            "edad/arbitrary",
+        ],
+    ),
     "we": Experiments(
         "we/2023",
         [
             "we/2023",
             "we/2018",
-            # "we/baseline_univariate",
-            # "we/baseline_domain",
-            # "we/arbitrary",
+            "we/baseline_univariate",
+            "we/baseline_domain",
+            "we/arbitrary",
         ],
     ),
 }

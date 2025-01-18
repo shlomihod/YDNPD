@@ -33,7 +33,7 @@ def _freeze(d):
         return d
 
 
-def metadata_to_pandera_schema(metadata_schema: dict[str, Any]) -> pa.DataFrameSchema:
+def metadata_to_pandera_schema(metadata_schema: dict[str, Any], coerce=False) -> pa.DataFrameSchema:
     schema_dict = {}
 
     for column_name, column_info in metadata_schema.items():
@@ -51,12 +51,22 @@ def metadata_to_pandera_schema(metadata_schema: dict[str, Any]) -> pa.DataFrameS
             dtype=dtype,
             checks=checks,
             title=column_info.get("description", column_name),
-            nullable=False
+            nullable=False,
         )
 
     schema = pa.DataFrameSchema(
         schema_dict,
-        strict=True
+        strict=True,
+        coerce=coerce
     )
 
     return schema
+
+
+def get_compute_resources():
+    import psutil
+    import jax
+    return {
+        "num_cpus": psutil.cpu_count(logical=False),  # physical cores only
+        "num_gpus": len(jax.devices("gpu")),
+    }
