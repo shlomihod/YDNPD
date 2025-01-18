@@ -10,7 +10,7 @@ NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS =  ["privbayes", "aim_torch", "gem"]
+SYNTHESIZERS =  ["aim_jax", "privbayes", "gem"] # aim_torch
 
 HPARAMS_DIMS = {
     # this is probably too many parameter combinations...
@@ -65,6 +65,7 @@ HPARAMS_DIMS = {
 }
 
 HPARAMS_DIMS['aim_torch'] = copy.copy(HPARAMS_DIMS['aim'])
+HPARAMS_DIMS['aim_jax'] = copy.copy(HPARAMS_DIMS['aim'])
 
 ALL_EXPERIMENTS = {
     "acs": Experiments(

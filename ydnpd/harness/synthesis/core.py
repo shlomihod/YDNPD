@@ -12,6 +12,7 @@ SYNTHESIZERS = [
     "TVAE",
     "aim",
     "aim_torch",
+    "aim_jax",
     "mwem",
     "gem",
     "mst",
@@ -119,8 +120,8 @@ def generate_synthetic_data(
         synthesizer = PrivBayes(epsilon=epsilon, **hparams)
         synth_df = synthesizer.fit_sample(dataset, schema)
 
-    elif synth_name == "aim_torch":
-        from ydnpd.harness.synthesis.aim_torch import AIMSynthesizerTorch
+    elif synth_name == "aim_jax":
+        from ydnpd.harness.synthesis.aim_jax import AIMSynthesizerJax
 
         continuous_columns = []
         categorical_columns = []
@@ -140,7 +141,7 @@ def generate_synthetic_data(
                     print(f"Unknown type: {info['dtype']}")
 
         preprocessor_eps = hparams.pop("preprocessor_eps")
-        synthesizer = AIMSynthesizerTorch(epsilon=epsilon, verbose=True, **hparams)
+        synthesizer = AIMSynthesizerJax(epsilon=epsilon, verbose=True, **hparams)
         synthesizer.fit(
             dataset,
             preprocessor_eps=preprocessor_eps,
