@@ -183,6 +183,7 @@ class UtilityTask(DPTask):
                     & base_mask,
                     metric_column,
                 ].item()
+
                 correspond_test_result = results_df.loc[
                     (results_df["dataset_name"] == test_name)
                     & (results_df["hparams_frozen"] == hparams)
@@ -233,9 +234,9 @@ class UtilityTask(DPTask):
 
     @staticmethod
     def plot(hparam_results, experiments, metric=None):
-        sns.set_context("paper", rc={"axes.titlesize":16, 
-                                     "axes.labelsize":14, 
-                                     "xtick.labelsize":12, 
+        sns.set_context("paper", rc={"axes.titlesize":16,
+                                     "axes.labelsize":14,
+                                     "xtick.labelsize":12,
                                      "ytick.labelsize":12})
 
         if metric is None:
@@ -301,13 +302,13 @@ class UtilityTask(DPTask):
                 col="experiment",
                 ci=None,
                 height=4,
-                aspect=1, 
+                aspect=1,
             )
 
             g.set(xlim=(0, 100), ylim=(0, 100))
             g.set_titles("{row_name} | {col_name}")
             g.set_axis_labels("Dev Metric (%)", "Test Metric (%)")
-            g.fig.suptitle(f"Dev (per panel) vs Test ({experiments.test_name}) Performance for Each HParam Configuration", y=1.02, fontsize=18) 
+            g.fig.suptitle(f"Dev (per panel) vs Test ({experiments.test_name}) Performance for Each HParam Configuration", y=1.02, fontsize=18)
 
             return g
 
@@ -332,14 +333,14 @@ class UtilityTask(DPTask):
                 results_df[results_df["dataset_name"] == experiments.test_name],
                 col="synth_name",
                 height=4,
-                aspect=1, 
+                aspect=1,
             )
             g.map_dataframe(plot_swarm_and_line)
 
             g.add_legend()
             g.set_axis_labels(r"$\epsilon$", f"{metric} (%)")
             g.set_titles("{col_name}")
-            g.fig.suptitle(f"Test ({experiments.test_name}) Performance If Best HParams Choosen According to Dev (per line)", y=1.02, fontsize=18) 
+            g.fig.suptitle(f"Test ({experiments.test_name}) Performance If Best HParams Choosen According to Dev (per line)", y=1.02, fontsize=18)
 
 
             return g
@@ -362,7 +363,7 @@ class UtilityTask(DPTask):
                 col="synth_name",
                 kind="line",
                 errorbar=None,
-                height=4,  
+                height=4,
                 aspect=1,
             )
 
@@ -392,8 +393,8 @@ class UtilityTask(DPTask):
                 row="synth_name",
                 kind="line",
                 errorbar=None,
-                height=4, 
-                aspect=1, 
+                height=4,
+                aspect=1,
             )
 
             g.set(xticks=epsilons)
@@ -429,44 +430,40 @@ class UtilityTask(DPTask):
         # Filter for reference epsilon
         ref_eps_all_evaluation_df = all_evaluation_df[all_evaluation_df["epsilon"] == epsilon_reference]
 
-        # Create color mapping for consistency using tab10
+        # Create color mapping
         dataset_members = sorted(set([exp.split('/')[-1] for exp in ref_eps_all_evaluation_df['experiment'].unique()]))
         tab10 = plt.cm.tab10(np.linspace(0, 1, len(dataset_members)))
-        color_dict = dict(zip(dataset_members, [f'rgb({int(r*255)},{int(g*255)},{int(b*255)})' 
+        color_dict = dict(zip(dataset_members, [f'rgb({int(r*255)},{int(g*255)},{int(b*255)})'
                                             for r, g, b, _ in tab10[:len(dataset_members)]]))
+
+        # Create matplotlib color dict for seaborn plots
+        mpl_color_dict = dict(zip(dataset_members, [tab10[i] for i in range(len(dataset_members))]))
 
         # Initialize figures list
         figs = []
 
         for measure in ["correspond_test", "best_dev"]:
+            print(f"\nProcessing measure: {measure}")
 
-            # Process data for radar plot
-            result_traces = (ref_eps_all_evaluation_df
-                                .groupby("synth_name")
-                                .apply(
-                                lambda group: (
-                                    group
-                                    .groupby("experiment")
-                                    [measure]
-                                    .apply(lambda g: g.to_numpy())
-                                ),
-                                include_groups=False
-                            )
-            )
+            # Process data for radar plot - modified to handle the structure correctly
+            result_traces = {}
+            for synth_name in ref_eps_all_evaluation_df['synth_name'].unique():
+                synth_data = ref_eps_all_evaluation_df[ref_eps_all_evaluation_df['synth_name'] == synth_name]
+                experiment_data = {}
 
-            # Create a figure with subplots
-            radar_fig = sp.make_subplots(
-                rows=len(result_traces), 
-                cols=1,
-                specs=[[{'type': 'polar'}] for _ in range(len(result_traces))],
-                subplot_titles=[f"{measure} - {synth_name}" for synth_name in result_traces.index]  # Updated subplot titles
-            )
+                for experiment in synth_data['experiment'].unique():
+                    data = synth_data[synth_data['experiment'] == experiment][measure].to_numpy()
+                    dataset_member = experiment.split('/')[-1]
+                    experiment_data[dataset_member] = data
 
-            legend_entries = set()
-            for idx, (synth_name, synth_results) in enumerate(result_traces.iterrows(), 1):
-                for experiment_name, trace in synth_results.items():
-                    *_, dataset_member = experiment_name.split("/")
+                result_traces[synth_name] = experiment_data
 
+            # Create separate radar plots for each synth_name
+            for synth_name, synth_results in result_traces.items():
+                radar_fig = go.Figure()
+
+                legend_entries = set()
+                for dataset_member, trace in synth_results.items():
                     jitter = np.random.normal(0, PLOT_RADAR_JITTER, size=len(trace))
                     jittered_trace = trace + jitter
 
@@ -485,45 +482,35 @@ class UtilityTask(DPTask):
                             name=dataset_member,
                             showlegend=showlegend,
                             line=dict(color=color_dict[dataset_member])
-                        ),
-                        row=idx, 
-                        col=1
+                        )
                     )
 
+                # Update layout for this specific radar plot
                 max_value = np.ceil(ref_eps_all_evaluation_df[measure].max() * 20) / 20
                 min_value = np.floor(ref_eps_all_evaluation_df[measure].min() * 20) / 20
-                # Update layout for each subplot - you might want to adjust title font size here
-                radar_fig.update_layout({
-                    f'polar{idx}': dict(
+
+                radar_fig.update_layout(
+                    title=f"{measure} - {synth_name}",
+                    polar=dict(
                         radialaxis=dict(visible=True, range=[min_value, max_value]),
-                        angularaxis=dict(tickfont=dict(size=8)),
-                        domain=dict(y=[0, 0.85])  # This leaves space at the top for the title
-                    )
-                })
-
-            # Optional: Update the subplot title font size if needed
-            radar_fig.update_annotations(font_size=12)  # Adjust size as needed
-
-            radar_fig.update_layout(
-                height=500 * len(result_traces),
-                showlegend=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=1.1,
-                    xanchor="center",
-                    x=0.5,
-                    font=dict(size=10),
-                    itemwidth=40
+                        angularaxis=dict(tickfont=dict(size=8))
+                    ),
+                    showlegend=True,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.1,
+                        xanchor="center",
+                        x=0.5,
+                        font=dict(size=10),
+                        itemwidth=40
+                    ),
+                    height=500,
                 )
-            )
 
-            figs.append(radar_fig)
+                figs.append(radar_fig)
 
-            # 2. Create bar plot using go.Figure for consistency
-            mpl_color_dict = dict(zip(dataset_members, [tab10[i] for i in range(len(dataset_members))]))
-
-            # Create a figure wrapper class for the seaborn plot
+            # Create bar plot using seaborn
             class SeabornFigure:
                 def __init__(self, data, measure, synth_names, color_dict, core_metrics, max_value, min_value):
                     self.data = data
@@ -535,8 +522,8 @@ class UtilityTask(DPTask):
                     self.min_value = min_value
 
                 def show(self):
-                    fig, axes = plt.subplots(len(self.synth_names), 1, 
-                                        figsize=(20, 6*len(self.synth_names)), 
+                    fig, axes = plt.subplots(len(self.synth_names), 1,
+                                        figsize=(20, 6*len(self.synth_names)),
                                         squeeze=False)
                     axes = axes.flatten()
 
@@ -556,9 +543,9 @@ class UtilityTask(DPTask):
 
                         plot_df = pd.DataFrame(plot_data)
 
-                        sns.barplot(data=plot_df, 
-                                x='Metric', 
-                                y='Value', 
+                        sns.barplot(data=plot_df,
+                                x='Metric',
+                                y='Value',
                                 hue='Dataset',
                                 palette=self.color_dict,
                                 ax=axes[idx],
@@ -566,9 +553,9 @@ class UtilityTask(DPTask):
 
                         axes[idx].set_title(f"{self.measure} - {synth_name}")
                         axes[idx].set_xticklabels(axes[idx].get_xticklabels(), rotation=90, ha='right', va='center')
-                        axes[idx].tick_params(axis='x', labelrotation=90, pad=150)  # Increase the pad value from 10 to larger number if needed
+                        axes[idx].tick_params(axis='x', labelrotation=90, pad=150)
                         axes[idx].set_ylim(self.min_value, self.max_value)
-                        axes[idx].margins(x=0.05) 
+                        axes[idx].margins(x=0.05)
 
                         if idx != 0:
                             axes[idx].get_legend().remove()
@@ -577,22 +564,21 @@ class UtilityTask(DPTask):
                             loc='center',
                             ncol=len(dataset_members),
                             borderaxespad=0.)
-                    
-                    plt.subplots_adjust(wspace=0.2)  # Add this before tight_layout
-                    plt.tight_layout(rect=[0, 2, 1, 0.95])  # Add bottom margin by adjusting the second number (0.1)
+
+                    plt.subplots_adjust(wspace=0.2)
+                    plt.tight_layout(rect=[0, 2, 1, 0.95])
                     display(fig)
                     plt.close()
 
-            # Create seaborn figure wrapper
+            # Create seaborn figure
             seaborn_fig = SeabornFigure(
                 data=ref_eps_all_evaluation_df,
                 measure=measure,
-                synth_names=result_traces.index,
+                synth_names=ref_eps_all_evaluation_df['synth_name'].unique(),
                 color_dict=mpl_color_dict,
                 core_metrics=core_evaluation_metrics,
                 max_value=np.ceil(ref_eps_all_evaluation_df[measure].max() * 20) / 20,
                 min_value=np.floor(ref_eps_all_evaluation_df[measure].min() * 20) / 20
-
             )
 
             figs.append(seaborn_fig)
