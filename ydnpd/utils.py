@@ -24,7 +24,7 @@ def suppress_output():
 def _freeze(d):
     """Recursively freezes a dictionary, converting it and its nested dictionaries to immutable versions."""
     if isinstance(d, dict):
-        return tuple({(k, _freeze(v)) for k, v in d.items()})
+        return tuple((k, _freeze(v)) for k, v in sorted(d.items()))
     elif isinstance(d, list):
         return tuple(_freeze(v) for v in d)
     elif isinstance(d, set):
