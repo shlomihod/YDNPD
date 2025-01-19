@@ -278,15 +278,21 @@ def produce_dataset(metadata, specification, num_samples, **llm_kwargs):
     return df, code, error
 
 
-def produce_datasets(dataset_name, specification,
-                     num_samples, num_datasets,
+def produce_datasets(dataset_name,
+                     specification,
+                     num_datasets,
+                     num_samples=None,
                      **llm_kwargs):
     dfs = []
     codes = []
     errors = []
 
-    _, schema, domain = load_dataset(dataset_name)
+    reference_df, schema, domain = load_dataset(dataset_name)
+
     medatadata = {"schema": schema, "domain": domain}
+
+    if num_samples is None:
+        num_samples = len(reference_df)
 
     while len(dfs) < num_datasets:
         print(len(dfs))
