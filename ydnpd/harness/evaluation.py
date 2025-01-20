@@ -158,40 +158,46 @@ def calc_classification_error_rate(
     )
 
     model_train = GradientBoostingClassifier().fit(X_train, y_train)
-    model_synth = GradientBoostingClassifier().fit(X_synth, y_synth)
-
     error_rate_train_dataset = 1 - model_train.score(X_eval, y_eval)
-    error_rate_synth_dataset = 1 - model_synth.score(X_eval, y_eval)
-
-    # Use predict_proba instead of predict to get probabilities
     y_pred_proba_train = model_train.predict_proba(X_eval)
-    y_pred_proba_synth = model_synth.predict_proba(X_eval)
 
-    try:
-        # Calculate AOC scores
-        y_eval_np = y_eval.to_numpy()
+    y_eval_np = y_eval.to_numpy()
+    
+    if len(np.unique(y_eval_np)) > 2:
+        aoc_train_dataset = 1 - roc_auc_score(
+            y_eval_np, y_pred_proba_train, multi_class="ovo"
+        )
+    else:
+        aoc_train_dataset = 1 - roc_auc_score(y_eval_np, y_pred_proba_train[:, 1])
+
+    if y_synth.nunique() > 1:
+
+        model_synth = GradientBoostingClassifier().fit(X_synth, y_synth)
+        error_rate_synth_dataset = 1 - model_synth.score(X_eval, y_eval)
+
+        error_rate_diff = error_rate_train_dataset - error_rate_synth_dataset,
+
+        y_pred_proba_synth = model_synth.predict_proba(X_eval)
+
         if len(np.unique(y_eval_np)) > 2:
-            aoc_train_dataset = 1 - roc_auc_score(
-                y_eval_np, y_pred_proba_train, multi_class="ovo"
-            )
             aoc_synth_dataset = 1 - roc_auc_score(
                 y_eval_np, y_pred_proba_synth, multi_class="ovo"
             )
         else:
-            aoc_train_dataset = 1 - roc_auc_score(y_eval_np, y_pred_proba_train[:, 1])
             aoc_synth_dataset = 1 - roc_auc_score(y_eval_np, y_pred_proba_synth[:, 1])
 
         aoc_diff = aoc_train_dataset - aoc_synth_dataset
 
-    except IndexError:
-        aoc_train_dataset = np.nan
+    else:
+        error_rate_synth_dataset = np.nan
+        error_rate_diff = np.nan
         aoc_synth_dataset = np.nan
         aoc_diff = np.nan
 
     return {
         "error_rate_train_dataset": error_rate_train_dataset,
         "error_rate_synth_dataset": error_rate_synth_dataset,
-        "error_rate_diff": error_rate_train_dataset - error_rate_synth_dataset,
+        "error_rate_diff": error_rate_diff,
         "aoc_train_dataset": aoc_train_dataset,
         "aoc_synth_dataset": aoc_synth_dataset,
         "aoc_diff": aoc_diff,
