@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import ydnpd
 
 
-@dataclass 
+@dataclass
 class ConfigStats:
     """Statistics about configurations for a synth_name/dataset pair."""
     total_configs: int
@@ -24,16 +24,6 @@ class ConfigStats:
 def format_config(epsilon: float, hparams: Tuple) -> str:
     """Formats a configuration for printing."""
     return f"epsilon: {epsilon}, hparams: dict({hparams})"
-
-
-def get_config_key(result: Dict[str, Any]) -> Tuple:
-    """Creates a unique key for identifying configurations."""
-    return (
-        result['epsilon'], 
-        result['synth_name'],
-        result['dataset_name'],
-        tuple(sorted(result['hparams'].items()))
-    )
 
 
 def analyze_experiment_pair(
@@ -79,12 +69,12 @@ def analyze_experiment_pair(
     )
 
 
-def analyze_grid_search(
-    results: List[Dict[str, Any]], 
+def analyze_grid_search_completeness(
+    results: List[Dict[str, Any]],
     additional_datasets: List[str] = None
 ) -> None:
     """
-    Analyzes grid search results for completeness and correctness.
+    Analyzes grid search completeness and prints both analysis report and code for missing configurations.
 
     Args:
         results: List of result dictionaries
@@ -92,11 +82,15 @@ def analyze_grid_search(
     """
     tasks = ydnpd.span_utility_tasks(additional_datasets)
 
-    print("=== Grid Search Analysis ===\n")
+    print("=== Grid Search Analysis Report ===\n")
 
     total_results = len(results)
     total_expected = sum(task.size() for task in tasks)
 
+    # Collect missing configurations for code generation
+    missing_by_dataset = {}
+
+    # Print analysis for each task
     for task in sorted(tasks, key=lambda t: (t.synth_name, t.dataset_name)):
         stats = analyze_experiment_pair(results, task)
 
@@ -115,52 +109,29 @@ def analyze_grid_search(
             print("\nMissing configurations:")
             for config in sorted(stats.missing_configs):
                 print(format_config(*config))
+            missing_by_dataset[(task.synth_name, task.dataset_name)] = stats.missing_configs
 
     print("\n=== Summary ===")
     print(f"Total results: {total_results}")
     print(f"Expected total: {total_expected}")
     print(f"Missing runs: {total_expected - total_results}")
 
+    if missing_by_dataset:
+        print("\n=== Generated Code for Missing Configurations ===\n")
+        code_parts = ["from ydnpd.harness.tasks import UtilityTask\n"]
 
-def generate_missing_tasks_code(results: List[Dict[str, Any]], additional_datasets: List[str] = None) -> str:
-    """
-    Generates Python code to create UtilityTask objects for missing configurations.
+        for (synth_name, dataset_name), configs in sorted(missing_by_dataset.items()):
+            # Extract unique parameters
+            epsilons = sorted({eps for eps, _ in configs})
+            all_hparams = [dict(hparams) for _, hparams in configs]
 
-    Args:
-        results: List of result dictionaries
-        additional_datasets: List of additional dataset names to include
+            # Extract unique values for each hparam
+            hparam_dims = {}
+            for param in all_hparams[0].keys():
+                hparam_dims[param] = sorted({h[param] for h in all_hparams})
 
-    Returns:
-        str: Python code that creates the missing task configurations
-    """
-    tasks = ydnpd.span_utility_tasks(additional_datasets)
-
-    # Collect all missing configurations
-    missing_by_dataset = {}
-    for task in tasks:
-        stats = analyze_experiment_pair(results, task)
-        if stats.missing_configs:
-            missing_by_dataset[(task.synth_name, task.dataset_name)] = stats.missing_configs
-
-    if not missing_by_dataset:
-        return "# No missing configurations found"
-
-    # Generate code
-    code_parts = ["from ydnpd.harness.tasks import UtilityTask\n\n# Tasks for missing configurations"]
-
-    for (synth_name, dataset_name), configs in sorted(missing_by_dataset.items()):
-        # Extract unique parameters
-        epsilons = sorted({eps for eps, _ in configs})
-        all_hparams = [dict(hparams) for _, hparams in configs]
-
-        # Extract unique values for each hparam
-        hparam_dims = {}
-        for param in all_hparams[0].keys():
-            hparam_dims[param] = sorted({h[param] for h in all_hparams})
-
-        # Generate task code
-        task_code = f"""
-# Task for {synth_name} & {dataset_name}
+            # Generate task code
+            task_code = f"""# Task for {synth_name} & {dataset_name}
 {dataset_name.replace('/', '_').replace('-', '_')}_task = UtilityTask(
     dataset_pointer="{dataset_name}",
     epsilons={epsilons},
@@ -169,12 +140,14 @@ def generate_missing_tasks_code(results: List[Dict[str, Any]], additional_datase
     num_runs=5,
     verbose=True
 )"""
-        code_parts.append(task_code)
+            code_parts.append(task_code)
 
-    # Add list of all tasks
-    task_names = [f"{dataset_name.replace('/', '_').replace('-', '_')}_task" 
-                 for synth_name, dataset_name in missing_by_dataset.keys()]
-    code_parts.append("\n# List of all missing tasks")
-    code_parts.append(f"missing_tasks = [{', '.join(task_names)}]")
+        # Add list of all tasks
+        task_names = [f"{dataset_name.replace('/', '_').replace('-', '_')}_task"
+                    for synth_name, dataset_name in missing_by_dataset.keys()]
+        code_parts.append("\n# List of all missing tasks")
+        code_parts.append(f"missing_tasks = [{', '.join(task_names)}]")
 
-    return '\n'.join(code_parts)
+        print('\n'.join(code_parts))
+    else:
+        print("\nNo missing configurations found - no code generation needed.")
