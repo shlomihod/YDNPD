@@ -132,13 +132,17 @@ def analyze_grid_search_completeness(
 
             # Generate task code
             task_code = f"""# Task for {synth_name} & {dataset_name}
-{dataset_name.replace('/', '_').replace('-', '_')}_task = UtilityTask(
+{dataset_name.replace('/', '_').replace('-', '_')}_task = ydnpd.UtilityTask(
     dataset_pointer="{dataset_name}",
     epsilons={epsilons},
     synth_name="{synth_name}",
     hparam_dims={hparam_dims},
     num_runs=5,
-    verbose=True
+    verbose=True,
+    with_wandb=True,
+    evaluation_kwargs=ydnpd.harness.config.EVALUATION_KWARGS,
+    wandb_kwargs={"group": "TODO"}
+
 )"""
             code_parts.append(task_code)
 
