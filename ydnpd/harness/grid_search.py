@@ -141,7 +141,7 @@ def analyze_grid_search_completeness(
     verbose=True,
     with_wandb=True,
     evaluation_kwargs=ydnpd.harness.config.EVALUATION_KWARGS,
-    wandb_kwargs={"group": "TODO"}
+    wandb_kwargs={{"group": "TODO"}}
 
 )"""
             code_parts.append(task_code)
