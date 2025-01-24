@@ -1,66 +1,113 @@
+import os
+import random
+import hashlib
+
 import pandas as pd
 import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, accuracy_score, roc_auc_score, precision_recall_curve, classification_report
 
+from ydnpd import load_dataset
+
 SMALL_CONSTANT = 1e-12
 
-def _preprocess_data(df, target_column='y', unique_value_threshold=50, config=None):
-    feature_columns = [col for col in df.columns if col != target_column]
+RANDOM_STATE = 42
 
+
+def get_seed_from_config(config):
+    items_str = str(sorted(config.items()))
+    return int(hashlib.sha256(items_str.encode()).hexdigest()[:8], 16)
+
+
+def set_reproducibility(seed=RANDOM_STATE, deterministic=True, cublas_workspace_config=":4096:8"):
+    """
+    Set up environment for reproducibility.
+
+    Args:
+        seed (int): Seed for random number generators
+        deterministic (bool): Whether to force deterministic behavior
+        cublas_workspace_config (str): CUBLAS workspace configuration
+            ":4096:8" - More memory (24MB) but possibly better performance
+            ":16:8" - Less memory but may limit performance
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+  
+        # Set CUBLAS workspace config before creating CUDA tensors
+        os.environ['CUBLAS_WORKSPACE_CONFIG'] = cublas_workspace_config
+  
+        # Ensure one stream per handle for determinism
+        torch.cuda.set_device(torch.cuda.current_device())
+
+    if deterministic:
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        torch.use_deterministic_algorithms(True)
+
+    return {
+        'Python seed': seed,
+        'NumPy seed': np.random.get_state()[1][0],
+        'PyTorch seed': torch.initial_seed(),
+        'CUDA seed': torch.cuda.initial_seed() if torch.cuda.is_available() else None,
+        'Deterministic': deterministic,
+        'CUDNN benchmark': torch.backends.cudnn.benchmark,
+        'CUDNN deterministic': torch.backends.cudnn.deterministic,
+        'CUBLAS workspace': os.environ.get('CUBLAS_WORKSPACE_CONFIG', 'not set')
+    }
+
+
+def set_strict_reproducibility_by_config(config):
+    return set_reproducibility(seed=get_seed_from_config(config),
+                               deterministic=True)
+
+
+def preprocess_data(df, schema, target_column='y', test_size_ratio=0.2, random_state=RANDOM_STATE):
+
+    feature_columns = [col for col in df.columns if col != target_column]
     y = df[target_column].values
     X = df[feature_columns]
 
-    # make the categories in order, 0 to k-1
-    for column in X.columns:
-        X.loc[:, column] = pd.Categorical(X[column]).codes 
+    cat_features = [col for col in feature_columns if schema[col]['type'] == 'categorical']
+    cont_features = [col for col in feature_columns if schema[col]['type'] == 'continuous']
 
-    if config is None:
-        config = {}
-        for col in feature_columns:
-            if df[col].nunique() <= unique_value_threshold:
-                print(f"column {col} is categorical")
-                config[col] = {'type': 'categorical'}
-            else:
-                print(f"column {col} is continuous")
-                config[col] = {'type': 'continuous'}
+    print("Features to process:", (set(cat_features) | set(cont_features)))
+    print("Available columns:", X.columns)
 
-    cat_features = [col for col in feature_columns if config[col]['type'] == 'categorical']
-    cont_features = [col for col in feature_columns if config[col]['type'] == 'continuous']
-
-    print((set(cat_features) | set(cont_features)))
-    print(X.columns)
     missing = (set(cat_features) | set(cont_features)) - set(X.columns)
     if missing:
-        raise KeyError(f"the following features are missing after transformation: {missing}")
+        raise KeyError(f"Missing features after transformation: {missing}")
 
     X_cat = X[cat_features].copy()
     X_cont = X[cont_features].copy()
 
+    # Print original values before encoding
     for col in cat_features:
-        print(X_cat[col].unique())
+        print(f"{col} original values:", sorted(X_cat[col].unique()))
 
-    # adjusted cardinalities calculation
-    cat_cardinalities = [X_cat[col].max()+1 for col in cat_features]
+    print(f"{schema=}")
 
-    X_cont = (X_cont - X_cont.mean()) / (X_cont.std() + SMALL_CONSTANT)
+    # Make categories 0 to k-1
+    for column in cat_features:
+        value_map = {v: i for i, v in enumerate(schema[column]['values'])}
+        X_cat.loc[:, column] = X_cat[column].map(value_map)
+        print(f"{column} encoded values:", sorted(X_cat[column].unique()))
 
-    (X_cat_train, 
-     X_cat_valid, 
-     X_cont_train, 
-     X_cont_valid, 
-     y_train, 
-     y_valid) = train_test_split(X_cat, X_cont, y, test_size=0.2, random_state=0)
+    cat_cardinalities = [len(schema[col]['values']) for col in cat_features]
 
-    X_cat_train_tensor = torch.tensor(X_cat_train.to_numpy(), dtype=torch.long)
-    X_cat_valid_tensor = torch.tensor(X_cat_valid.to_numpy(), dtype=torch.long)
+    print("Categorical cardinalities:", cat_cardinalities)
 
-    X_cont_train_tensor = torch.tensor(X_cont_train.to_numpy(), dtype=torch.float32)
-    X_cont_valid_tensor = torch.tensor(X_cont_valid.to_numpy(), dtype=torch.float32)
+    if X_cont.shape[1] > 0:
+        X_cont = (X_cont - X_cont.mean()) / (X_cont.std() + SMALL_CONSTANT)
 
-    y_train_tensor = torch.tensor(y_train, dtype=torch.float32)
-    y_valid_tensor = torch.tensor(y_valid, dtype=torch.float32)
+    X_cat_train, X_cat_valid, X_cont_train, X_cont_valid, y_train, y_valid = train_test_split(
+        X_cat, X_cont, y, test_size=test_size_ratio, random_state=random_state
+    )
 
     print(f"cat training features shape: {X_cat_train.shape}")
     print(f"cont training features shape: {X_cont_train.shape}")
@@ -68,76 +115,80 @@ def _preprocess_data(df, target_column='y', unique_value_threshold=50, config=No
     print(f"cont val features shape: {X_cont_valid.shape}")
     print(f"training targets shape: {y_train.shape}")
     print(f"val targets shape: {y_valid.shape}")
-    print(f"cat feature cards: {cat_cardinalities}")
-    print(f"config: {config}")
 
     return (
-        X_cat_train_tensor,
-        X_cont_train_tensor,
-        X_cat_valid_tensor,
-        X_cont_valid_tensor,
-        y_train_tensor,
-        y_valid_tensor,
+        torch.tensor(X_cat_train.to_numpy(), dtype=torch.long),
+        torch.tensor(X_cont_train.to_numpy(), dtype=torch.float32),
+        torch.tensor(X_cat_valid.to_numpy(), dtype=torch.long),
+        torch.tensor(X_cont_valid.to_numpy(), dtype=torch.float32),
+        torch.tensor(y_train, dtype=torch.float32),
+        torch.tensor(y_valid, dtype=torch.float32),
         cat_cardinalities,
-        config
+        schema
     )
 
-def preprocess_acs_for_classification(df, random_state=42):
-    acs_column_set = set(["SEX", "MSP", "RAC1P", "OWN_RENT", "PINCP_DECILE", "EDU", "HOUSING_TYPE"])
-    assert set(df.columns) == acs_column_set
-    
-    # we will subset based on the two most common OWN_RENT categories
-    df = df[df['OWN_RENT'] != 0].copy() 
 
-    # set 'OWN_RENT' column as 'y' and remove it from data
-    df.loc[:, 'y'] = df['OWN_RENT'] 
-    df = df.drop('OWN_RENT', axis=1)
+def load_data_for_classification(dataset_name: str, random_state: int = RANDOM_STATE):
+    if 'acs' not in dataset_name:
+        raise ValueError("Only ACS dataset is supported for classification")
 
-    # map y (which is 1, 2) to 0, 1
-    df.loc[:, 'y'] = df['y'].to_numpy() - 1 
-    
-    # stratify the data
-    df_pos = df[df['y'] == 1]
-    df_neg = df[df['y'] == 0]
+    dataset, schema, _ = load_dataset(dataset_name)
 
+    dataset = dataset.copy()
+
+    target_col_name = "OWN_RENT"
+    # "0": "Group quarters",
+    # "1": "Own housing unit",
+    # "2": "Rent housing unit"
+    # Definition. The Census Bureau classifies all people not living in housing units as living in group quarters. A group quarters is a place where people live or stay, in a group living arrangement, that is owned or managed by an entity or organization providing housing and/or services for the residents.
+    dataset[dataset['OWN_RENT'] == 0] = 2
+    dataset.loc[:, 'y'] = dataset['OWN_RENT'] - 1  # Map 1,2 to 0,1 directly
+
+    # Stratify
+    df_pos = dataset[dataset['y'] == 1]
+    df_neg = dataset[dataset['y'] == 0]
     min_size = min(len(df_pos), len(df_neg))
-
     df_pos = df_pos.sample(n=min_size, random_state=random_state)
     df_neg = df_neg.sample(n=min_size, random_state=random_state)
 
-    df = pd.concat([df_pos, df_neg])
-    df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
-    return df
+    dataset = pd.concat([df_pos, df_neg])
+    dataset = dataset.drop('OWN_RENT', axis=1)
+    dataset = dataset.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
+    schema_without_target = {col: col_schema for col, col_schema in schema.items()
+                             if col != target_col_name}
 
-def preprocess_acs_for_ft_transformer(df, config=None, random_state=42):
-    df = preprocess_acs_for_classification(df, random_state=random_state)
+    cat_schema = {
+        col: col_schema | {"type": "categorical"}
+        for col, col_schema in schema_without_target.items()
+        if 'values' in col_schema
+    }
+    assert set(cat_schema.keys()) | {"y"} == set(dataset.columns)
+    dataset = preprocess_data(dataset, cat_schema)
 
-    return _preprocess_data(df, target_column='y', unique_value_threshold=100, config=config)
+    return dataset
+
 
 def print_model_performance(classifier, X_cat_test, X_cont_test, y_test):
     y_pred_prob = classifier.predict_proba(X_cat_test, X_cont_test)[:, 1]
-    
+
     # roc curve
     precision, recall, thresholds = precision_recall_curve(y_test, y_pred_prob)
-    
+
     # compute an f-score for the optimal threshold
     fscore = (2 * precision * recall) / (precision + recall + 1e-8)  # Avoid division by zero
     ix = np.argmax(fscore)
     optimal_threshold = thresholds[ix]
-    
+
     # pred using the optimal threshold
     y_pred = classifier.predict(X_cat_test, X_cont_test, binary=True, threshold=optimal_threshold)
-    
+
     # calc auc
     auc = roc_auc_score(y_test, y_pred_prob)
-    
+
     # print results
     print()
     print(f"AUC: {auc:.4f}")
     print(f"Optimal Threshold: {optimal_threshold:.4f}")
     print(classification_report(y_test, y_pred))
     print()
-
-
-

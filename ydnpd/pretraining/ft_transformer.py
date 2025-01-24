@@ -196,6 +196,7 @@ class FTTransformer(nn.Module):
 
         xs = []
         if self.num_unique_categories > 0:
+
             x_categ = x_categ + self.categories_offset
 
             x_categ = self.categorical_embeds(x_categ)
@@ -335,9 +336,7 @@ class FTTransformerModel(BaseEstimator):
         #                                                               random_state=42)
         #     X_cont_train, X_cont_val = torch.tensor([]).to(self.device), torch.tensor([]).to(self.device)
         # else:
-        print("X_cat_pre", X_cat_pre.shape)
-        print("X_cont_pre", X_cont_pre.shape)
-        print("y_pre", y_pre.shape)
+
         X_cat_train, X_cat_val, X_cont_train, X_cont_val, y_train, y_val = train_test_split(
             X_cat_pre,
             X_cont_pre,
