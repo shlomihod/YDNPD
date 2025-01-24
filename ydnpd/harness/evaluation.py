@@ -157,50 +157,37 @@ def calc_classification_error_rate(
         synth_dataset[target_column],
     )
 
-    model_train = GradientBoostingClassifier().fit(X_train, y_train)
-    error_rate_train_dataset = 1 - model_train.score(X_eval, y_eval)
-    y_pred_proba_train = model_train.predict_proba(X_eval)
-
     y_eval_np = y_eval.to_numpy()
-    
-    if len(np.unique(y_eval_np)) > 2:
-        aoc_train_dataset = 1 - roc_auc_score(
-            y_eval_np, y_pred_proba_train, multi_class="ovo"
-        )
-    else:
-        aoc_train_dataset = 1 - roc_auc_score(y_eval_np, y_pred_proba_train[:, 1])
 
-    if y_synth.nunique() > 1:
+    def _calc_stats(X, y):
+        if y.nunique() > 1:
+            model = GradientBoostingClassifier().fit(X, y)
+            error_rate = 1 - model.score(X_eval, y_eval)
+            y_pred_proba = model.predict_proba(X_eval)
 
-        model_synth = GradientBoostingClassifier().fit(X_synth, y_synth)
-        error_rate_synth_dataset = 1 - model_synth.score(X_eval, y_eval)
+            if len(np.unique(y_eval_np)) > 2:
+                aoc = 1 - roc_auc_score(
+                    y_eval_np, y_pred_proba, multi_class="ovo"
+                )
+            else:
+                aoc = 1 - roc_auc_score(y_eval_np, y_pred_proba[:, 1])
 
-        error_rate_diff = error_rate_train_dataset - error_rate_synth_dataset,
-
-        y_pred_proba_synth = model_synth.predict_proba(X_eval)
-
-        if len(np.unique(y_eval_np)) > 2:
-            aoc_synth_dataset = 1 - roc_auc_score(
-                y_eval_np, y_pred_proba_synth, multi_class="ovo"
-            )
         else:
-            aoc_synth_dataset = 1 - roc_auc_score(y_eval_np, y_pred_proba_synth[:, 1])
+            error_rate = np.nan
+            aoc = np.nan
 
-        aoc_diff = aoc_train_dataset - aoc_synth_dataset
+        return error_rate, aoc
 
-    else:
-        error_rate_synth_dataset = np.nan
-        error_rate_diff = np.nan
-        aoc_synth_dataset = np.nan
-        aoc_diff = np.nan
+    error_rate_train_dataset, aoc_train_dataset= _calc_stats(X_train, y_train)
+    error_rate_synth_dataset, aoc_synth_dataset= _calc_stats(X_synth, y_synth)
 
     return {
         "error_rate_train_dataset": error_rate_train_dataset,
         "error_rate_synth_dataset": error_rate_synth_dataset,
-        "error_rate_diff": error_rate_diff,
+        "error_rate_diff": error_rate_train_dataset - error_rate_synth_dataset,
         "aoc_train_dataset": aoc_train_dataset,
         "aoc_synth_dataset": aoc_synth_dataset,
-        "aoc_diff": aoc_diff,
+        "aoc_diff": aoc_train_dataset - aoc_synth_dataset,
     }
 
 

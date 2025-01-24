@@ -156,6 +156,83 @@ class UtilityTask(DPTask):
 
         return results
 
+    # @staticmethod
+    # def evaluate(hparam_results, experiments, metric=None):
+    #     if metric is None:
+    #         metric = UtilityTask.METRIC_DEFAULT
+    #     metric_column = f"evaluation_{metric}"
+
+    #     results_df = UtilityTask.process(hparam_results, experiments)
+
+    #     best_hparams_df = results_df.groupby(["dataset_name", "synth_name", "epsilon"])[
+    #         metric_column
+    #     ].idxmin()
+
+    #     def extractor(test_name, dev_name):
+
+    #         def function(r):
+    #             metric_column = f"evaluation_{metric}"
+    #             synth_name, epsilon = r.name
+    #             hparams = results_df.iloc[r.item()]["hparams_frozen"]
+    #             base_mask = (results_df["synth_name"] == synth_name) & (
+    #                 results_df["epsilon"] == epsilon
+    #             )
+    #             best_dev_result = results_df.loc[
+    #                 (results_df["dataset_name"] == dev_name)
+    #                 & (results_df["hparams_frozen"] == hparams)
+    #                 & base_mask,
+    #                 metric_column,
+    #             ].item()
+
+    #             correspond_test_result = results_df.loc[
+    #                 (results_df["dataset_name"] == test_name)
+    #                 & (results_df["hparams_frozen"] == hparams)
+    #                 & base_mask,
+    #                 metric_column,
+    #             ].item()
+    #             test_results = results_df.loc[
+    #                 (results_df["dataset_name"] == test_name) & base_mask, metric_column
+    #             ]
+    #             return {
+    #                 "quantile": (correspond_test_result > test_results).sum()
+    #                 / len(test_results),
+    #                 "best_dev": best_dev_result,
+    #                 "correspond_test": correspond_test_result,
+    #                 "best_test": test_results.min(),
+    #                 "median_test": test_results.median(),
+    #                 "worst_test": test_results.max(),
+    #             }
+
+    #         return function
+
+    #     hparams_evaluation_df = (
+    #         pd.concat(
+    #             [
+    #                 (
+    #                     pd.DataFrame(best_hparams_df[dev_name])
+    #                     .apply(
+    #                         extractor(experiments.test_name, dev_name),
+    #                         result_type="expand",
+    #                         axis=1,
+    #                     )
+    #                     .reset_index()
+    #                     .assign(
+    #                         dev_name=dev_name,
+    #                         test_name=experiments.test_name,
+    #                         experiment=f"{experiments.test_name}/{dev_name}",
+    #                     )
+    #                 )
+    #                 for dev_name in experiments.dev_names
+    #             ]
+    #         )
+    #         .set_index(["synth_name", "experiment", "epsilon"])
+    #         .sort_index()
+    #         .drop(columns=["test_name", "dev_name"])
+    #     )
+            
+
+    #     return hparams_evaluation_df
+
     @staticmethod
     def evaluate(hparam_results, experiments, metric=None):
         if metric is None:
@@ -173,64 +250,112 @@ class UtilityTask(DPTask):
             def function(r):
                 metric_column = f"evaluation_{metric}"
                 synth_name, epsilon = r.name
-                hparams = results_df.iloc[r.item()]["hparams_frozen"]
-                base_mask = (results_df["synth_name"] == synth_name) & (
-                    results_df["epsilon"] == epsilon
-                )
-                best_dev_result = results_df.loc[
-                    (results_df["dataset_name"] == dev_name)
-                    & (results_df["hparams_frozen"] == hparams)
-                    & base_mask,
-                    metric_column,
-                ].item()
 
-                correspond_test_result = results_df.loc[
-                    (results_df["dataset_name"] == test_name)
-                    & (results_df["hparams_frozen"] == hparams)
-                    & base_mask,
-                    metric_column,
-                ].item()
-                test_results = results_df.loc[
-                    (results_df["dataset_name"] == test_name) & base_mask, metric_column
-                ]
-                return {
-                    "quantile": (correspond_test_result > test_results).sum()
-                    / len(test_results),
-                    "best_dev": best_dev_result,
-                    "correspond_test": correspond_test_result,
-                    "best_test": test_results.min(),
-                    "median_test": test_results.median(),
-                    "worst_test": test_results.max(),
-                }
+                try:
+                    # Extract the frozen hyperparameters for the current configuration
+                    hparams = results_df.iloc[r.item()]["hparams_frozen"]
+
+                    # Base mask to filter results_df
+                    base_mask = (results_df["synth_name"] == synth_name) & (
+                        results_df["epsilon"] == epsilon
+                    )
+
+                    # Fetch best dev result
+                    best_dev_result = results_df.loc[
+                        (results_df["dataset_name"] == dev_name)
+                        & (results_df["hparams_frozen"] == hparams)
+                        & base_mask,
+                        metric_column,
+                    ]
+
+                    # Fetch corresponding test result
+                    correspond_test_result = results_df.loc[
+                        (results_df["dataset_name"] == test_name)
+                        & (results_df["hparams_frozen"] == hparams)
+                        & base_mask,
+                        metric_column,
+                    ]
+
+                    # Fetch all test results for quantile computation
+                    test_results = results_df.loc[
+                        (results_df["dataset_name"] == test_name) & base_mask,
+                        metric_column,
+                    ]
+
+                    # Ensure results are valid
+                    if best_dev_result.size != 1 or correspond_test_result.size != 1:
+                        raise ValueError(
+                            f"Unexpected number of results: best_dev_result.size={best_dev_result.size}, "
+                            f"correspond_test_result.size={correspond_test_result.size}.\n"
+                            f"Details:\n"
+                            # f" - synth_name={synth_name}\n"
+                            # f" - epsilon={epsilon}\n"
+                            # f" - dev_name={dev_name}\n"
+                            # f" - test_name={test_name}\n"
+                            # f" - hparams={hparams}\n"
+                            # f" - best_dev_result:\n{best_dev_result}\n"
+                            # f" - correspond_test_result:\n{correspond_test_result}"
+                        )
+                    
+
+                    return {
+                        "quantile": (correspond_test_result.item() > test_results).sum()
+                        / len(test_results),
+                        "best_dev": best_dev_result.item(),
+                        "correspond_test": correspond_test_result.item(),
+                        "best_test": test_results.min(),
+                        "median_test": test_results.median(),
+                        "worst_test": test_results.max(),
+                    }
+
+                except Exception as e:
+                    print(
+                        f"Error in extractor function:\n"
+                        f" - synth_name: {synth_name}\n"
+                        f" - epsilon: {epsilon}\n"
+                        f" - dev_name: {dev_name}\n"
+                        f" - test_name: {test_name}\n"
+                        # f" - hparams: {hparams}\n"
+                        # f" - Results DataFrame snippet:\n{results_df[0]}\n"
+                        f" - Error: {e}"
+                    )
+                    raise
 
             return function
 
-        hparams_evaluation_df = (
-            pd.concat(
-                [
-                    (
-                        pd.DataFrame(best_hparams_df[dev_name])
-                        .apply(
-                            extractor(experiments.test_name, dev_name),
-                            result_type="expand",
-                            axis=1,
+
+        try:
+            hparams_evaluation_df = (
+                pd.concat(
+                    [
+                        (
+                            pd.DataFrame(best_hparams_df[dev_name])
+                            .apply(
+                                extractor(experiments.test_name, dev_name),
+                                result_type="expand",
+                                axis=1,
+                            )
+                            .reset_index()
+                            .assign(
+                                dev_name=dev_name,
+                                test_name=experiments.test_name,
+                                experiment=f"{experiments.test_name}/{dev_name}",
+                            )
                         )
-                        .reset_index()
-                        .assign(
-                            dev_name=dev_name,
-                            test_name=experiments.test_name,
-                            experiment=f"{experiments.test_name}/{dev_name}",
-                        )
-                    )
-                    for dev_name in experiments.dev_names
-                ]
+                        for dev_name in experiments.dev_names
+                    ]
+                )
+                .set_index(["synth_name", "experiment", "epsilon"])
+                .sort_index()
+                .drop(columns=["test_name", "dev_name"])
             )
-            .set_index(["synth_name", "experiment", "epsilon"])
-            .sort_index()
-            .drop(columns=["test_name", "dev_name"])
-        )
+        except Exception as e:
+            print(f"Error in evaluate method: {e}")
+            # print(f"Results DataFrame:\n{results_df.head()}")
+            raise
 
         return hparams_evaluation_df
+
 
     @staticmethod
     def plot(hparam_results, experiments, metric=None):
