@@ -9,10 +9,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, accuracy_score, roc_auc_score, precision_recall_curve, classification_report
 
 from ydnpd import load_dataset
+from ydnpd.pretraining.consts import TEST_PROP, RANDOM_STATE
 
 SMALL_CONSTANT = 1e-12
-
-RANDOM_STATE = 42
 
 
 def get_seed_from_config(config):
@@ -38,10 +37,10 @@ def set_reproducibility(seed=RANDOM_STATE, deterministic=True, cublas_workspace_
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
-  
+
         # Set CUBLAS workspace config before creating CUDA tensors
         os.environ['CUBLAS_WORKSPACE_CONFIG'] = cublas_workspace_config
-  
+
         # Ensure one stream per handle for determinism
         torch.cuda.set_device(torch.cuda.current_device())
 
@@ -67,7 +66,9 @@ def set_strict_reproducibility_by_config(config):
                                deterministic=True)
 
 
-def preprocess_data(df, schema, target_column='y', test_size_ratio=0.2, random_state=RANDOM_STATE):
+def preprocess_data(df, schema, target_column='y',
+                    test_prop=TEST_PROP,
+                    random_state=RANDOM_STATE):
 
     feature_columns = [col for col in df.columns if col != target_column]
     y = df[target_column].values
@@ -105,24 +106,24 @@ def preprocess_data(df, schema, target_column='y', test_size_ratio=0.2, random_s
     if X_cont.shape[1] > 0:
         X_cont = (X_cont - X_cont.mean()) / (X_cont.std() + SMALL_CONSTANT)
 
-    X_cat_train, X_cat_valid, X_cont_train, X_cont_valid, y_train, y_valid = train_test_split(
-        X_cat, X_cont, y, test_size=test_size_ratio, random_state=random_state
+    X_cat_train, X_cat_valid, X_cont_train, X_cont_test, y_train, y_test = train_test_split(
+        X_cat, X_cont, y, test_size=test_prop, random_state=random_state
     )
 
     print(f"cat training features shape: {X_cat_train.shape}")
     print(f"cont training features shape: {X_cont_train.shape}")
     print(f"cat val features shape: {X_cat_valid.shape}")
-    print(f"cont val features shape: {X_cont_valid.shape}")
+    print(f"cont test features shape: {X_cont_test.shape}")
     print(f"training targets shape: {y_train.shape}")
-    print(f"val targets shape: {y_valid.shape}")
+    print(f"test targets shape: {y_test.shape}")
 
     return (
         torch.tensor(X_cat_train.to_numpy(), dtype=torch.long),
         torch.tensor(X_cont_train.to_numpy(), dtype=torch.float32),
         torch.tensor(X_cat_valid.to_numpy(), dtype=torch.long),
-        torch.tensor(X_cont_valid.to_numpy(), dtype=torch.float32),
+        torch.tensor(X_cont_test.to_numpy(), dtype=torch.float32),
         torch.tensor(y_train, dtype=torch.float32),
-        torch.tensor(y_valid, dtype=torch.float32),
+        torch.tensor(y_test, dtype=torch.float32),
         cat_cardinalities,
         schema
     )

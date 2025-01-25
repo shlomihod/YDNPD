@@ -8,22 +8,16 @@ import torch.nn.functional as F
 from torch.optim import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from torch import einsum
-
 from opacus import PrivacyEngine
 from opacus.validators import ModuleValidator
-
-from sklearn.base import BaseEstimator, ClassifierMixin
+from tqdm import tqdm
+from einops import rearrange
+from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, roc_auc_score
 
-import matplotlib.pyplot as plt
-import seaborn as sns
+from ydnpd.pretraining.consts import VAL_PROP, RANDOM_STATE
 
-from tqdm import tqdm
-
-from scipy.stats import randint
-
-from einops import rearrange
 
 ## NOTE: Below is modified version of https://github.com/lucidrains/tab-transformer-pytorch
 # tab_transformer_pytorch implementation of FTTransformer
@@ -307,14 +301,14 @@ class FTTransformerModel(BaseEstimator):
         # i.e. train the model on a given pretraining dataset before the private training
         if self.model is None:
             self.model = self.build_model(
-                categories,
-                num_continuous,
-                self.dim,
-                self.dim_out,
-                self.depth,
-                self.heads,
-                self.attn_dropout,
-                self.ff_dropout,
+                categories=categories,
+                num_continuous=num_continuous,
+                dim=self.dim,
+                dim_out=self.dim_out,
+                depth=self.depth,
+                heads=self.heads,
+                attn_dropout=self.attn_dropout,
+                ff_dropout=self.ff_dropout,
             ).to(self.device)
 
         self.model.train()
@@ -424,22 +418,22 @@ class FTTransformerModel(BaseEstimator):
         if self.load_best_model_when_trained and self.best_model_dict is not None:
             self.model.load_state_dict(self.best_model_dict)
 
+    def fit_pre(self,
+                pre_X_cat,
+                pre_X_cont,
+                pre_y,
+                categories,
+                num_continuous,
+                focal_class_weights=None):
 
-    def fit(self,
-            X_cat_train,
-            X_cont_train,
-            y_train,
-            categories,
-            num_continuous,
-            use_class_weights=False,
-            focal_class_weights=None):
+        print(f"{categories=}")
 
         # if partial_dp is true, do a pretraining step without dp first
-        if self.partial_dp and self.partial_pretrain_config is not None:
+        if self.partial_dp:  # and self.partial_pretrain_config is not None:
+            if self.partial_pretrain_config is None:
+                raise ValueError("`partial_pretrain_config` should be set")
+
             self.dp = True
-            pre_X_cat = self.partial_pretrain_config.get('X_cat_pre', torch.tensor([]))
-            pre_X_cont = self.partial_pretrain_config.get('X_cont_pre', torch.tensor([]))
-            pre_y = self.partial_pretrain_config.get('y_pre', torch.tensor([]))
             pre_epochs = self.partial_pretrain_config.get('pre_epochs', 10)
             pre_batch_size = self.partial_pretrain_config.get('pre_batch_size', 64)
             pre_lr = self.partial_pretrain_config.get('pre_lr', 3e-4)
@@ -456,17 +450,53 @@ class FTTransformerModel(BaseEstimator):
                 focal_class_weights=focal_class_weights
             )
 
+    def fit(self,
+            X_cat_train,
+            X_cont_train,
+            y_train,
+            categories,
+            num_continuous,
+            ):
+
+            # use_class_weights=False,
+            # focal_class_weights=None):
+
+        # # if partial_dp is true, do a pretraining step without dp first
+        # if self.partial_dp and self.partial_pretrain_config is not None:
+        #     self.dp = True
+        #     pre_X_cat = self.partial_pretrain_config.get('X_cat_pre', torch.tensor([]))
+        #     pre_X_cont = self.partial_pretrain_config.get('X_cont_pre', torch.tensor([]))
+        #     pre_y = self.partial_pretrain_config.get('y_pre', torch.tensor([]))
+        #     pre_epochs = self.partial_pretrain_config.get('pre_epochs', 10)
+        #     pre_batch_size = self.partial_pretrain_config.get('pre_batch_size', 64)
+        #     pre_lr = self.partial_pretrain_config.get('pre_lr', 3e-4)
+
+        #     self._pretrain(
+        #         X_cat_pre=pre_X_cat,
+        #         X_cont_pre=pre_X_cont,
+        #         y_pre=pre_y,
+        #         categories=categories,
+        #         num_continuous=num_continuous,
+        #         pre_epochs=pre_epochs,
+        #         pre_batch_size=pre_batch_size,
+        #         pre_lr=pre_lr,
+        #         focal_class_weights=focal_class_weights
+        #     )
+
+        if self.partial_dp and self.model is None:
+            raise ValueError("`fit_pre` should be called first")
+
         # after pretraining, proceed with dp training, or non-dp if dp=False
         if self.model is None:
             self.model = self.build_model(
-                categories,
-                num_continuous,
-                self.dim,
-                self.dim_out,
-                self.depth,
-                self.heads,
-                self.attn_dropout,
-                self.ff_dropout,
+                categories=categories,
+                num_continuous=num_continuous,
+                dim=self.dim,
+                dim_out=self.dim_out,
+                depth=self.depth,
+                heads=self.heads,
+                attn_dropout=self.attn_dropout,
+                ff_dropout=self.ff_dropout,
             ).to(self.device)
 
         self.model.train()
@@ -492,20 +522,20 @@ class FTTransformerModel(BaseEstimator):
             X_cat_train, X_cat_val = torch.tensor([]).to(self.device), torch.tensor([]).to(self.device)
             X_cont_train, X_cont_val, y_train, y_val = train_test_split(X_cont_train,
                                                                         y_train,
-                                                                        test_size=0.1,
-                                                                        random_state=42)
+                                                                        test_size=VAL_PROP,
+                                                                        random_state=RANDOM_STATE)
         elif len(X_cont_train) == 0:
             X_cat_train, X_cat_val, y_train, y_val = train_test_split(X_cat_train,
                                                                       y_train,
-                                                                      test_size=0.1,
-                                                                      random_state=42)
+                                                                      test_size=VAL_PROP,
+                                                                      random_state=RANDOM_STATE)
             X_cont_train, X_cont_val = torch.tensor([]).to(self.device), torch.tensor([]).to(self.device)
         else:
             X_cat_train, X_cat_val, X_cont_train, X_cont_val, y_train, y_val = train_test_split(X_cat_train,
                                                                                                 X_cont_train,
                                                                                                 y_train,
-                                                                                                test_size=0.1,
-                                                                                                random_state=42)
+                                                                                                test_size=VAL_PROP,
+                                                                                                random_state=RANDOM_STATE)
 
         if len(X_cat_train) > 0 and len(X_cont_train) > 0:
             train_dataset = TensorDataset(X_cat_train, X_cont_train, y_train)

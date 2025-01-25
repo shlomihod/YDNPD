@@ -45,7 +45,7 @@ class TransformerTrainer:
 
     def __init__(
         self,
-        config: ModelConfig,
+        config: Optional[ModelConfig] = None,
         pretrain_config: Optional[PreTrainConfig] = None,
     ):
         """
@@ -55,9 +55,11 @@ class TransformerTrainer:
             config: ModelConfig object containing model hyperparameters
             pretrain_config: Optional configuration for pretraining phase
         """
-        self.config = config
+        self.config = config or ModelConfig()
         self.pretrain_config = pretrain_config or PreTrainConfig()
         self.model = None
+
+
 
     def _create_model(self, dp: bool = False, partial_dp: bool = False) -> FTTransformerModel:
         """Create a new FTTransformerModel instance with specified privacy settings"""
@@ -90,13 +92,13 @@ class TransformerTrainer:
 
         return FTTransformerModel(**model_params)
 
-    def train(
+    def execute(
         self,
         private_data: Optional[DataTuple] = None,
         public_data: Optional[DataTuple] = None
-    ) -> None:
+    ) -> dict:
         """
-        Train the model based on provided data.
+        Train and evaluate the model based on provided data.
         Mode is automatically determined by data availability:
         - public_data only -> non-private training
         - private_data only -> private training with DP
@@ -109,89 +111,104 @@ class TransformerTrainer:
         if private_data is None and public_data is None:
             raise ValueError("At least one of private_data or public_data must be provided")
 
-        # Determine training mode based on data availability
+        # Public data only - non-DP training
         if private_data is None:
-            # Public data only - non-private training
-            self._train_public(public_data)
+            self.model = self._create_model(dp=False)
+
+            X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = public_data
+
+            self.model.fit(
+                X_cat_train,
+                X_cont_train,
+                y_train.flatten(),
+                cat_cardinalities,
+                X_cont_train.shape[1],
+            )
+
+            return {"auc": self.evaluate(public_data)}
+
+        # Private data only - DP training
         elif public_data is None:
-            # Private data only - DP training
-            self._train_private(private_data)
+            self.model = self._create_model(dp=True)
+
+            X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = private_data
+
+            self.model.fit(
+                X_cat_train,
+                X_cont_train,
+                y_train.flatten(),
+                cat_cardinalities,
+                X_cont_train.shape[1],
+            )
+
+            return {"auc": self.evaluate(private_data)}
+
         else:
+
+            results = {}
+
             # Both - pretrain on public, finetune on private with DP
-            self._train_pretrain_private(public_data, private_data)
+            X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = private_data
+            X_cat_pre, X_cont_pre, _, _, y_pre, _, cat_cardinalities_pre, _ = public_data
 
-    def _train_public(self, data: DataTuple) -> None:
-        """Train model on public data without privacy"""
-        X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = data
+            assert cat_cardinalities == cat_cardinalities_pre
 
-        self.model = self._create_model(dp=False)
-        self.model.fit(
-            X_cat_train,
-            X_cont_train,
-            y_train.flatten(),
-            cat_cardinalities,
-            X_cont_train.shape[1],
-            use_class_weights=True
-        )
+            # Create model with partial DP and pretraining configuration
+            self.model = self._create_model(dp=True, partial_dp=True)
 
-    def _train_private(self, data: DataTuple) -> None:
-        """Train model on private data with differential privacy"""
-        X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = data
+            # Set up pretraining configuration
+            pretrain_config = {
+                'pre_epochs': self.pretrain_config.num_epochs,
+                'pre_batch_size': self.pretrain_config.batch_size,
+                'pre_lr': self.pretrain_config.lr,
+            }
+            self.model.partial_pretrain_config = pretrain_config
 
-        self.model = self._create_model(dp=True)
-        self.model.fit(
-            X_cat_train,
-            X_cont_train,
-            y_train.flatten(),
-            cat_cardinalities,
-            X_cont_train.shape[1]
-        )
+            self.model.fit_pre(
+                X_cat_pre,
+                X_cont_pre,
+                y_pre.flatten(),
+                cat_cardinalities_pre,
+                X_cont_pre.shape[1])
 
-    def _train_pretrain_private(self, public_data: DataTuple, private_data: DataTuple) -> None:
-        """Pretrain on public data then finetune with privacy on private data"""
-        X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = private_data
-        X_cat_pre, X_cont_pre, _, _, y_pre, _, _, _ = public_data
+            results |= {
+                "auc/pre/private": self.evaluate(private_data),
+                "auc/pre/public": self.evaluate(public_data)
+                }
 
-        # Create model with partial DP and pretraining configuration
-        self.model = self._create_model(dp=True, partial_dp=True)
+            # Fit model with pretraining and private finetuning
+            self.model.fit(
+                X_cat_train,
+                X_cont_train,
+                y_train.flatten(),
+                cat_cardinalities,
+                X_cont_train.shape[1]
+            )
 
-        # Set up pretraining configuration
-        pretrain_config = {
-            'X_cat_pre': X_cat_pre,
-            'X_cont_pre': X_cont_pre,
-            'y_pre': y_pre,
-            'pre_epochs': self.pretrain_config.num_epochs,
-            'pre_batch_size': self.pretrain_config.batch_size,
-            'pre_lr': self.pretrain_config.lr,
-        }
-        self.model.partial_pretrain_config = pretrain_config
+            results |= {
+                "auc/dp/private": self.evaluate(private_data),
+                "auc/dp/public": self.evaluate(public_data)
+                }
 
-        # Fit model with pretraining and private finetuning
-        self.model.fit(
-            X_cat_train,
-            X_cont_train,
-            y_train.flatten(),
-            cat_cardinalities,
-            X_cont_train.shape[1]
-        )
+            return results
 
     def evaluate(self, data: DataTuple) -> dict[str, float]:
-        """Evaluate model on validation data"""
+        """Evaluate model on test data"""
         if self.model is None:
             raise ValueError("Model has not been trained yet")
 
-        _, _, X_cat_val, X_cont_val, _, y_val, _, _ = data
+        _, _, X_cat_test, X_cont_test, _, y_test, _, _ = data
 
-        y_pred = self.model.predict_proba(X_cat_val, X_cont_val)[:, 1]
-        auc = roc_auc_score(y_val, y_pred)
+        y_pred = self.model.predict_proba(X_cat_test, X_cont_test)[:, 1]
+        auc = roc_auc_score(y_test, y_pred)
 
         return {'auc': auc}
 
     @staticmethod
     def train_and_evaluate(
-        config: ModelConfig,
         private_data_pointer: Optional[Union[str, tuple]] = None,
         public_data_pointer: Optional[Union[str, tuple]] = None,
+        config: Optional[ModelConfig] = None,
         pretrain_config: Optional[PreTrainConfig] = None,
     ) -> dict[str, float]:
         """Convenience method to train and evaluate in one call"""
@@ -200,8 +217,4 @@ class TransformerTrainer:
         private_data = None if private_data_pointer is None else load_data_for_classification(private_data_pointer)
         public_data = None if public_data_pointer is None else load_data_for_classification(public_data_pointer)
 
-        trainer.train(private_data=private_data, public_data=public_data)
-
-        # Evaluate on private data if available, otherwise public data
-        eval_data = private_data if private_data is not None else public_data
-        return trainer.evaluate(eval_data)
+        return trainer.execute(private_data=private_data, public_data=public_data)
