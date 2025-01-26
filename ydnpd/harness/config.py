@@ -4,13 +4,13 @@ from ydnpd.harness.experiment import Experiments
 
 import copy
 
-EPSILONS = [1, 4, 8, 16]
+EPSILONS = [1, 2, 4, 8, 16]
 
 NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS = ["aim_jax", "privbayes", "gem"]
+SYNTHESIZERS = ["aim_jax", "privbayes"]  # "gem"
 
 HPARAMS_DIMS = {
     # this is probably too many parameter combinations...

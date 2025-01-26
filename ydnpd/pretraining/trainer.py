@@ -125,7 +125,7 @@ class TransformerTrainer:
                 X_cont_train.shape[1],
             )
 
-            return {"auc": self.evaluate(public_data)}
+            return {"no-dp": self.evaluate(public_data)}
 
         # Private data only - DP training
         elif public_data is None:
@@ -141,7 +141,7 @@ class TransformerTrainer:
                 X_cont_train.shape[1],
             )
 
-            return {"auc": self.evaluate(private_data)}
+            return {"dp": self.evaluate(private_data)}
 
         else:
 
@@ -172,8 +172,8 @@ class TransformerTrainer:
                 X_cont_pre.shape[1])
 
             results |= {
-                "auc/pre/private": self.evaluate(private_data),
-                "auc/pre/public": self.evaluate(public_data)
+                "pre/private": self.evaluate(private_data),
+                "pre/public": self.evaluate(public_data)
                 }
 
             # Fit model with pretraining and private finetuning
@@ -186,8 +186,8 @@ class TransformerTrainer:
             )
 
             results |= {
-                "auc/dp/private": self.evaluate(private_data),
-                "auc/dp/public": self.evaluate(public_data)
+                "dp/private": self.evaluate(private_data),
+                "dp/public": self.evaluate(public_data)
                 }
 
             return results

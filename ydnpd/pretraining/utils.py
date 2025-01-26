@@ -61,9 +61,9 @@ def set_reproducibility(seed=RANDOM_STATE, deterministic=True, cublas_workspace_
     }
 
 
-def set_strict_reproducibility_by_config(config):
+def set_strict_reproducibility_by_config(config, deterministic=True):
     return set_reproducibility(seed=get_seed_from_config(config),
-                               deterministic=True)
+                               deterministic=deterministic)
 
 
 def preprocess_data(df, schema, target_column='y',
