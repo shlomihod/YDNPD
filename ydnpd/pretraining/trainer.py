@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional, Union, Tuple
+from pathlib import Path
 import warnings
 
 from sklearn.metrics import roc_auc_score
-from ydnpd.pretraining.utils import load_data_for_classification
+from ydnpd.pretraining.utils import load_data_for_classification, split_train_val
 from ydnpd.pretraining.ft_transformer import FTTransformerModel
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -95,7 +96,8 @@ class TransformerTrainer:
     def execute(
         self,
         private_data: Optional[DataTuple] = None,
-        public_data: Optional[DataTuple] = None
+        public_data: Optional[DataTuple] = None,
+        save_path: Optional[str] = None,
     ) -> dict:
         """
         Train and evaluate the model based on provided data.
@@ -115,15 +117,18 @@ class TransformerTrainer:
         if private_data is None:
             self.model = self._create_model(dp=False)
 
-            X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = public_data
+            X_cat_train_val, X_cont_train_val, _, _, y_train_val, _, cat_cardinalities, _ = public_data
 
             self.model.fit(
-                X_cat_train,
-                X_cont_train,
-                y_train.flatten(),
+                X_cat_train_val,
+                X_cont_train_val,
+                y_train_val.flatten(),
                 cat_cardinalities,
-                X_cont_train.shape[1],
+                X_cont_train_val.shape[1],
             )
+
+            if save_path:
+                self.model.save_torch(Path(save_path) / "model.pkl")
 
             return {"no-dp": self.evaluate(public_data)}
 
@@ -131,15 +136,18 @@ class TransformerTrainer:
         elif public_data is None:
             self.model = self._create_model(dp=True)
 
-            X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = private_data
+            X_cat_train_val, X_cont_train_val, _, _, y_train_val, _, cat_cardinalities, _ = private_data
 
             self.model.fit(
-                X_cat_train,
-                X_cont_train,
-                y_train.flatten(),
+                X_cat_train_val,
+                X_cont_train_val,
+                y_train_val.flatten(),
                 cat_cardinalities,
-                X_cont_train.shape[1],
+                X_cont_train_val.shape[1],
             )
+
+            if save_path:
+                self.model.save_torch(Path(save_path) / "model.pkl")
 
             return {"dp": self.evaluate(private_data)}
 
@@ -148,8 +156,8 @@ class TransformerTrainer:
             results = {}
 
             # Both - pretrain on public, finetune on private with DP
-            X_cat_train, X_cont_train, _, _, y_train, _, cat_cardinalities, _ = private_data
-            X_cat_pre, X_cont_pre, _, _, y_pre, _, cat_cardinalities_pre, _ = public_data
+            X_cat_train_val, X_cont_train_val, _, _, y_train_val, _, cat_cardinalities, _ = private_data
+            X_cat_pre_train_val, X_cont_pre_train_val, _, _, y_pre_train_val, _, cat_cardinalities_pre, _ = public_data
 
             assert cat_cardinalities == cat_cardinalities_pre
 
@@ -165,11 +173,14 @@ class TransformerTrainer:
             self.model.partial_pretrain_config = pretrain_config
 
             self.model.fit_pre(
-                X_cat_pre,
-                X_cont_pre,
-                y_pre.flatten(),
+                X_cat_pre_train_val,
+                X_cont_pre_train_val,
+                y_pre_train_val.flatten(),
                 cat_cardinalities_pre,
-                X_cont_pre.shape[1])
+                X_cont_pre_train_val.shape[1])
+
+            if save_path:
+                self.model.save_torch(Path(save_path) / "model_pre.pkl")
 
             results |= {
                 "pre/private": self.evaluate(private_data),
@@ -178,12 +189,15 @@ class TransformerTrainer:
 
             # Fit model with pretraining and private finetuning
             self.model.fit(
-                X_cat_train,
-                X_cont_train,
-                y_train.flatten(),
+                X_cat_train_val,
+                X_cont_train_val,
+                y_train_val.flatten(),
                 cat_cardinalities,
-                X_cont_train.shape[1]
+                X_cont_train_val.shape[1]
             )
+
+            if save_path:
+                self.model.save_torch(Path(save_path) / "model.pkl")
 
             results |= {
                 "dp/private": self.evaluate(private_data),
@@ -197,12 +211,21 @@ class TransformerTrainer:
         if self.model is None:
             raise ValueError("Model has not been trained yet")
 
-        _, _, X_cat_test, X_cont_test, _, y_test, _, _ = data
+        X_cat_train_val, X_cont_train_val, X_cat_test, X_cont_test, y_train_val, y_test, _, _ = data
+        (X_cat_train, X_cat_val, X_cont_train, X_cont_val,
+         y_train, y_val) = split_train_val(X_cat_train_val, X_cont_train_val, y_train_val)
 
-        y_pred = self.model.predict_proba(X_cat_test, X_cont_test)[:, 1]
-        auc = roc_auc_score(y_test, y_pred)
+        results = {}
+        for (name, (X_cat, X_cont, y)) in [("test", (X_cat_test, X_cont_test, y_test)),
+                                           ("train", (X_cat_train, X_cont_train, y_train)),
+                                           ("val", (X_cat_val, X_cont_val, y_val))]:
 
-        return {'auc': auc}
+            y_pred = self.model.predict_proba(X_cat, X_cont)[:, 1]
+            auc = roc_auc_score(y, y_pred)
+
+            results[f"{name}/auc"] = auc
+
+        return results
 
     @staticmethod
     def train_and_evaluate(
@@ -210,6 +233,7 @@ class TransformerTrainer:
         public_data_pointer: Optional[Union[str, tuple]] = None,
         config: Optional[ModelConfig] = None,
         pretrain_config: Optional[PreTrainConfig] = None,
+        save_path: Optional[str] = None,
     ) -> dict[str, float]:
         """Convenience method to train and evaluate in one call"""
         trainer = TransformerTrainer(config, pretrain_config)
@@ -217,4 +241,4 @@ class TransformerTrainer:
         private_data = None if private_data_pointer is None else load_data_for_classification(private_data_pointer)
         public_data = None if public_data_pointer is None else load_data_for_classification(public_data_pointer)
 
-        return trainer.execute(private_data=private_data, public_data=public_data)
+        return trainer.execute(private_data=private_data, public_data=public_data, save_path=save_path)

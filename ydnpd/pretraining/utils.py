@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, accuracy_score, roc_auc_score, precision_recall_curve, classification_report
 
 from ydnpd import load_dataset
-from ydnpd.pretraining.consts import TEST_PROP, RANDOM_STATE
+from ydnpd.pretraining.consts import TEST_PROP, VAL_PROP, RANDOM_STATE
 
 SMALL_CONSTANT = 1e-12
 
@@ -129,11 +129,17 @@ def preprocess_data(df, schema, target_column='y',
     )
 
 
-def load_data_for_classification(dataset_name: str, random_state: int = RANDOM_STATE):
-    if 'acs' not in dataset_name:
+def load_data_for_classification(dataset_pointer: str | tuple, random_state: int = RANDOM_STATE):
+
+    if isinstance(dataset_pointer, (tuple, list)):
+        dataset_name, dataset_path = dataset_pointer
+    else:
+        dataset_name, dataset_path = dataset_pointer, None
+
+    if not dataset_name.startswith("acs"):
         raise ValueError("Only ACS dataset is supported for classification")
 
-    dataset, schema, _ = load_dataset(dataset_name)
+    dataset, schema, _ = load_dataset(dataset_name, path=dataset_path)
 
     dataset = dataset.copy()
 
@@ -193,3 +199,20 @@ def print_model_performance(classifier, X_cat_test, X_cont_test, y_test):
     print(f"Optimal Threshold: {optimal_threshold:.4f}")
     print(classification_report(y_test, y_pred))
     print()
+
+
+def split_train_val(X_cat_train_val, X_cont_train_val, y_train_val):
+
+    assert X_cont_train_val.shape[1] == 0
+
+    X_cat_train, X_cat_val, y_train, y_val = train_test_split(X_cat_train_val,
+                                                              y_train_val,
+                                                              test_size=VAL_PROP,
+                                                              random_state=RANDOM_STATE)
+
+    X_cont_train, X_cont_val, y_train, y_val = train_test_split(X_cont_train_val,
+                                                                y_train_val,
+                                                                test_size=VAL_PROP,
+                                                                random_state=RANDOM_STATE)
+
+    return X_cat_train, X_cat_val, X_cont_train, X_cont_val, y_train, y_val

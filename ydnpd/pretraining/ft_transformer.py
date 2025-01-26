@@ -335,8 +335,8 @@ class FTTransformerModel(BaseEstimator):
             X_cat_pre,
             X_cont_pre,
             y_pre,
-            test_size=0.1,
-            random_state=42
+            test_size=VAL_PROP,
+            random_state=RANDOM_STATE
         )
 
         if len(X_cat_train) > 0 and len(X_cont_train) > 0:
@@ -684,3 +684,7 @@ class FTTransformerModel(BaseEstimator):
             predictions = self.model(X_cat_test, X_cont_test)
             proba = predictions.softmax(dim=-1)
             return proba.cpu().numpy()
+
+    def save_torch(self, path: str):
+        print(f"save model to `{path}`")
+        torch.save(self.model.state_dict(), path)
