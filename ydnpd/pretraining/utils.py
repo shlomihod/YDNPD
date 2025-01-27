@@ -187,7 +187,6 @@ def load_data_for_classification(dataset_pointer: str | tuple, random_state: int
         if 'values' in col_schema
     }
 
-    print(f"XXX {cat_schema=}")
     assert set(cat_schema.keys()) | {"y"} == set(dataset.columns)
     dataset = preprocess_data(dataset, cat_schema)
 
