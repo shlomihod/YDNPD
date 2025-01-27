@@ -10,6 +10,7 @@ from sklearn.metrics import f1_score, accuracy_score, roc_auc_score, precision_r
 
 from ydnpd import load_dataset
 from ydnpd.pretraining.consts import TEST_PROP, VAL_PROP, RANDOM_STATE
+from ydnpd.harness.config import EVALUATION_KWARGS
 
 SMALL_CONSTANT = 1e-12
 
@@ -136,20 +137,31 @@ def load_data_for_classification(dataset_pointer: str | tuple, random_state: int
     else:
         dataset_name, dataset_path = dataset_pointer, None
 
-    if not dataset_name.startswith("acs"):
-        raise ValueError("Only ACS dataset is supported for classification")
+    dataset_family, _ = dataset_name.split("/")
+    if dataset_family not in {"acs", "edad", "we"}:
+        raise ValueError("Only ACS, EDAD, and WE datasets is supported for classification")
 
     dataset, schema, _ = load_dataset(dataset_name, path=dataset_path)
 
     dataset = dataset.copy()
 
-    target_col_name = "OWN_RENT"
-    # "0": "Group quarters",
-    # "1": "Own housing unit",
-    # "2": "Rent housing unit"
-    # Definition. The Census Bureau classifies all people not living in housing units as living in group quarters. A group quarters is a place where people live or stay, in a group living arrangement, that is owned or managed by an entity or organization providing housing and/or services for the residents.
-    dataset[dataset['OWN_RENT'] == 0] = 2
-    dataset.loc[:, 'y'] = dataset['OWN_RENT'] - 1  # Map 1,2 to 0,1 directly
+    target_col_name = EVALUATION_KWARGS[dataset_family]["classification_target_column"]
+
+    if dataset_family == "acs":
+        # "0": "Group quarters",
+        # "1": "Own housing unit",
+        # "2": "Rent housing unit"
+        # Definition. The Census Bureau classifies all people not living in housing units as living in group quarters. A group quarters is a place where people live or stay, in a group living arrangement, that is owned or managed by an entity or organization providing housing and/or services for the residents.
+        dataset[dataset[target_col_name] == 0] = 2
+        dataset.loc[:, 'y'] = dataset[target_col_name] - 1  # Map 1,2 to 0,1 directly
+
+    elif dataset_family == "edad":
+        dataset.loc[:, 'y'] = dataset[target_col_name] - 1  # Map 1,2 to 0,1 directly
+
+    elif dataset_family == "we":
+        dataset.loc[:, 'y'] = dataset[target_col_name]
+
+    assert set(dataset["y"].unique()) == {0, 1}
 
     # Stratify
     df_pos = dataset[dataset['y'] == 1]
@@ -159,7 +171,7 @@ def load_data_for_classification(dataset_pointer: str | tuple, random_state: int
     df_neg = df_neg.sample(n=min_size, random_state=random_state)
 
     dataset = pd.concat([df_pos, df_neg])
-    dataset = dataset.drop('OWN_RENT', axis=1)
+    dataset = dataset.drop(target_col_name, axis=1)
     dataset = dataset.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
     schema_without_target = {col: col_schema for col, col_schema in schema.items()
