@@ -14,7 +14,7 @@ def get_sweep_config(dataset_family, public_dataaset_pointers):
 
     parameters = {
         "dp_num_epochs": {"value": 20},
-        "dp_batch_size": {"values": [64, 128, 256]},
+        "dp_batch_size": {"value": 128},  # 64, 256
         "dp_lr": {"values": [3e-3, 3e-4]},
         "epsilon": {"values": EPSILONS},
         "private_data_pointer": {"value": ALL_EXPERIMENTS[dataset_family].test_name},
@@ -22,8 +22,8 @@ def get_sweep_config(dataset_family, public_dataaset_pointers):
 
     if public_dataaset_pointers:
         parameters |= {
-            "pre_num_epochs": {"values": [1, 3 ,9]},
-            "pre_batch_size": {"values": [4, 32, 128]},
+            "pre_num_epochs": {"values": [1 ,9]},  # 3 
+            "pre_batch_size": {"values": [32, 128]},  # 4
             "pre_lr": {"values": [3e-4, 3e-5]},
             "public_data_pointer": {"values": public_dataaset_pointers},
         }
