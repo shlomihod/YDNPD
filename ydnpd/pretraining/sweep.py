@@ -4,10 +4,39 @@ import argparse
 from pathlib import Path
 import tempfile
 
-from ydnpd import ALL_EXPERIMENTS
-from ydnpd.harness.config import EPSILONS
 
 PROJECT_NAME = "ydnpd-dp-ft"
+
+
+def get_sweep_config(dataset_family, public_dataaset_pointers):
+    from ydnpd import ALL_EXPERIMENTS
+    from ydnpd.harness.config import EPSILONS
+
+    parameters = {
+        "dp_num_epochs": {"value": 20},
+        "dp_batch_size": {"values": [64, 128, 256]},
+        "dp_lr": {"values": [3e-3, 3e-4]},
+        "epsilon": {"values": EPSILONS},
+        "private_data_pointer": {"value": ALL_EXPERIMENTS[dataset_family].test_name},
+    }
+
+    if public_dataaset_pointers:
+        parameters |= {
+            "pre_num_epochs": {"values": [1, 3 ,9]},
+            "pre_batch_size": {"values": [4, 32, 128]},
+            "pre_lr": {"values": [3e-4, 3e-5]},
+            "public_data_pointer": {"values": public_dataaset_pointers},
+        }
+    else:
+        parameters["public_data_pointer"] = {"value": ""}
+
+
+    return {
+        "method": "grid",
+        "metric": {"goal": "maximize", "name": "dp/private.test/auc"},
+        "parameters": parameters
+    }
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -24,35 +53,6 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_sweep_config(dataset_family, public_dataaset_pointers):
-
-    parameters = {
-        "dp_num_epochs": {"value": 20},
-        "dp_batch_size": {"values": [64, 128, 256]},
-        "dp_lr": {"values": [3e-3, 3e-4]},
-        "epsilon": {"values": EPSILONS},
-        "private_data_pointer": {"value": ALL_EXPERIMENTS[dataset_family].test_name},
-    }
-
-    if public_dataaset_pointers is not None:
-        parameters |= {
-            "pre_num_epochs": {"values": [1, 3 ,9]},
-            "pre_batch_size": {"values": [4, 32, 128]},
-            "pre_lr": {"values": [3e-4, 3e-5]},
-            "public_data_pointer": {"values": public_dataaset_pointers},
-        }
-    else:
-        parameters["public_data_pointer"] = {"value": None}
-
-    parse_args
-
-    return {
-        "method": "grid",
-        "metric": {"goal": "maximize", "name": "dp/private.test/auc"},
-        "parameters": parameters
-    }
-
-
 def runner():
     import wandb
     from ydnpd.pretraining.trainer import TransformerTrainer, ModelConfig, PreTrainConfig
@@ -64,13 +64,15 @@ def runner():
 
     with tempfile.TemporaryDirectory() as temp_dir:
 
-        if wandb.config.public_data_pointer is not None:
+        if wandb.config.public_data_pointer:
             pretrain_config = PreTrainConfig(
                 num_epochs=wandb.config.pre_num_epochs,
                 batch_size=wandb.config.pre_batch_size,
                 lr=wandb.config.pre_lr)
+            public_data_pointer = wandb.config.public_data_pointer
         else:
             pretrain_config = None
+            public_data_pointer = None
 
         results = TransformerTrainer.train_and_evaluate(
             config=ModelConfig(
@@ -80,7 +82,7 @@ def runner():
                 epsilon=wandb.config.epsilon
             ),
             pretrain_config=pretrain_config,
-            public_data_pointer=wandb.config.public_data_pointer,
+            public_data_pointer=public_data_pointer,
             private_data_pointer=wandb.config.private_data_pointer,
             save_path=temp_dir,
         )
