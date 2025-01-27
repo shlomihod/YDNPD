@@ -144,6 +144,10 @@ def load_data_for_classification(dataset_pointer: str | tuple, random_state: int
     dataset, schema, _ = load_dataset(dataset_name, path=dataset_path)
 
     dataset = dataset.copy()
+    column_ordered = sorted(schema.keys())
+    assert set(dataset.columns) == set(column_ordered)
+    dataset = dataset[column_ordered]
+    assert (dataset.columns == column_ordered).all()
 
     target_col_name = EVALUATION_KWARGS[dataset_family]["classification_target_column"]
 
@@ -182,6 +186,8 @@ def load_data_for_classification(dataset_pointer: str | tuple, random_state: int
         for col, col_schema in schema_without_target.items()
         if 'values' in col_schema
     }
+
+    print(f"XXX {cat_schema=}")
     assert set(cat_schema.keys()) | {"y"} == set(dataset.columns)
     dataset = preprocess_data(dataset, cat_schema)
 
