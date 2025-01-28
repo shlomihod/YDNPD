@@ -507,7 +507,6 @@ def identify_pareto_frontier(df, metric_columns):
             is_efficient[i] = True
     return is_efficient
 
-
 def pareto_frontier_analysis_for_df(df, synth_name='privbayes', dataset_name='acs'):
     from pandas.plotting import parallel_coordinates
 
@@ -579,27 +578,60 @@ merged_df_acs, grouped_df_acs = process_dataset(
     report_df, 
     pattern='acs', 
     caption="ACS Metrics", 
-    label="tab:all_metrics_acs"
+    label="tab:all_metrics_acs",
+    synth_name='privbayes'
 )
-facet_plot_builder(merged_df_acs, acs_method_name_map, plot_name="facet_plot_acs")
+facet_plot_builder(merged_df_acs, acs_method_name_map, plot_name="facet_plot_acs_privbayes")
 
 # EDAD
 merged_df_edad, grouped_df_edad = process_dataset(
     report_df,
     pattern='edad',
     caption="EDAD Metrics",
-    label="tab:all_metrics_edad"
+    label="tab:all_metrics_edad",
+    synth_name='privbayes'
 )
-facet_plot_builder(merged_df_edad, edad_method_name_map, plot_name="facet_plot_edad")
+facet_plot_builder(merged_df_edad, edad_method_name_map, plot_name="facet_plot_edad_privbayes")
 
 # WE
 merged_df_we, grouped_df_we = process_dataset(
     report_df,
     pattern='we',
     caption="WE Metrics",
-    label="tab:all_metrics_we"
+    label="tab:all_metrics_we",
+    synth_name='privbayes'
 )
-facet_plot_builder(merged_df_we, we_method_name_map, plot_name="facet_plot_we")
+facet_plot_builder(merged_df_we, we_method_name_map, plot_name="facet_plot_we_privbayes")
+
+# ACS
+merged_df_acs, grouped_df_acs = process_dataset(
+    report_df, 
+    pattern='acs', 
+    caption="ACS Metrics", 
+    label="tab:all_metrics_acs",
+    synth_name='aim_jax'
+)
+facet_plot_builder(merged_df_acs, acs_method_name_map, plot_name="facet_plot_acs_aim_jax")
+
+# EDAD
+merged_df_edad, grouped_df_edad = process_dataset(
+    report_df,
+    pattern='edad',
+    caption="EDAD Metrics",
+    label="tab:all_metrics_edad",
+    synth_name='aim_jax'
+)
+facet_plot_builder(merged_df_edad, edad_method_name_map, plot_name="facet_plot_edad_aim_jax")
+
+# WE
+merged_df_we, grouped_df_we = process_dataset(
+    report_df,
+    pattern='we',
+    caption="WE Metrics",
+    label="tab:all_metrics_we",
+    synth_name='aim_jax'
+)
+facet_plot_builder(merged_df_we, we_method_name_map, plot_name="facet_plot_we_aim_jax")
 
 pareto_frontier_analysis_for_df(report_df[(report_df['synth_name'] == 'privbayes') & (report_df['dataset_name'].str.contains('acs'))], synth_name='privbayes', dataset_name='acs')
 pareto_frontier_analysis_for_df(report_df[(report_df['synth_name'] == 'privbayes') & (report_df['dataset_name'].str.contains('edad'))], synth_name='privbayes', dataset_name='edad')
