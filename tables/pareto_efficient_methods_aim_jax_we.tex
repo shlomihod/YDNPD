@@ -1,0 +1,19 @@
+\begin{table}[t!]
+    \centering
+    \caption{Pareto Efficient Methods for aim_jax on we}
+    \label{tab:pareto_efficient_methods_aim_jax_we}
+    \begin{tabular}{lccc}
+    \toprule
+    Method & Classification & Correlation & Marginals \\
+    \midrule
+    Arbitrary (Baseline) & 0.252 & \cellcolor{gold!30}0.009 & 0.039 \\
+    CSV (Claude) & \cellcolor{silver!30}0.221 & \cellcolor{bronze!30}0.012 & 0.147 \\
+    CSV (LLaMA) & \cellcolor{bronze!30}0.244 & 0.016 & 0.118 \\
+    Gen. (MIX-UNIF) & 0.275 & 0.015 & 0.035 \\
+    Gen. (Claude MIX-MAX) & \cellcolor{gold!30}0.054 & 0.017 & \cellcolor{gold!30}0.013 \\
+    Gen. (GPT MIX-MAX) & 0.355 & 0.015 & 0.022 \\
+    Gen. (LLaMA MIX-UNIF) & 0.380 & 0.012 & \cellcolor{bronze!30}0.019 \\
+    SDSCM (GPT-2) & 0.403 & \cellcolor{silver!30}0.011 & \cellcolor{silver!30}0.019 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
