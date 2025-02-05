@@ -21,9 +21,9 @@ EVALUATION_METRICS = [
     "error_rate_diff",
     "error_rate_train_dataset",
     "error_rate_synth_dataset",
-    "aoc_diff",
-    "aoc_train_dataset",
-    "aoc_synth_dataset",
+    "auc_diff",
+    "auc_train_dataset",
+    "auc_synth_dataset",
 ]
 
 
@@ -166,28 +166,28 @@ def calc_classification_error_rate(
             y_pred_proba = model.predict_proba(X_eval)
 
             if len(np.unique(y_eval_np)) > 2:
-                aoc = 1 - roc_auc_score(
+                auc = 1 - roc_auc_score(
                     y_eval_np, y_pred_proba, multi_class="ovo"
                 )
             else:
-                aoc = 1 - roc_auc_score(y_eval_np, y_pred_proba[:, 1])
+                auc = 1 - roc_auc_score(y_eval_np, y_pred_proba[:, 1])
 
         else:
             error_rate = np.nan
-            aoc = np.nan
+            auc = np.nan
 
-        return error_rate, aoc
+        return error_rate, auc
 
-    error_rate_train_dataset, aoc_train_dataset= _calc_stats(X_train, y_train)
-    error_rate_synth_dataset, aoc_synth_dataset= _calc_stats(X_synth, y_synth)
+    error_rate_train_dataset, auc_train_dataset= _calc_stats(X_train, y_train)
+    error_rate_synth_dataset, auc_synth_dataset= _calc_stats(X_synth, y_synth)
 
     return {
         "error_rate_train_dataset": error_rate_train_dataset,
         "error_rate_synth_dataset": error_rate_synth_dataset,
         "error_rate_diff": error_rate_train_dataset - error_rate_synth_dataset,
-        "aoc_train_dataset": aoc_train_dataset,
-        "aoc_synth_dataset": aoc_synth_dataset,
-        "aoc_diff": aoc_train_dataset - aoc_synth_dataset,
+        "auc_train_dataset": auc_train_dataset,
+        "auc_synth_dataset": auc_synth_dataset,
+        "auc_diff": auc_train_dataset - auc_synth_dataset,
     }
 
 
