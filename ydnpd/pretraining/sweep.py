@@ -6,15 +6,17 @@ import tempfile
 
 
 PROJECT_NAME = "ydnpd-dp-ft"
+NUM_RUNS = 10
 
 
-def get_sweep_config(dataset_family, public_dataaset_pointers):
+def get_sweep_config(dataset_family, public_dataaset_pointers, num_runs=NUM_RUNS):
     from ydnpd import ALL_EXPERIMENTS
     from ydnpd.harness.config import EPSILONS
 
     parameters = {
+        "run_num": {"values": list(range(num_runs))},
         "dp_num_epochs": {"value": 20},
-        "dp_batch_size": {"value": 128},  # 64, 256
+        "dp_batch_size": {"value": 128},
         "dp_lr": {"values": [3e-3, 3e-4]},
         "epsilon": {"values": EPSILONS},
         "private_data_pointer": {"value": ALL_EXPERIMENTS[dataset_family].test_name},
@@ -22,14 +24,13 @@ def get_sweep_config(dataset_family, public_dataaset_pointers):
 
     if public_dataaset_pointers:
         parameters |= {
-            "pre_num_epochs": {"values": [1 ,9]},  # 3 
-            "pre_batch_size": {"values": [32, 128]},  # 4
+            "pre_num_epochs": {"values": [1 ,9]},
+            "pre_batch_size": {"values": [32, 128]},
             "pre_lr": {"values": [3e-4, 3e-5]},
             "public_data_pointer": {"values": public_dataaset_pointers},
         }
     else:
         parameters["public_data_pointer"] = {"value": ""}
-
 
     return {
         "method": "grid",
