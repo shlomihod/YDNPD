@@ -9,12 +9,14 @@ PROJECT_NAME = "ydnpd-dp-ft"
 NUM_RUNS = 10
 
 
-def get_sweep_config(dataset_family, public_dataaset_pointers, num_runs=NUM_RUNS):
+def get_sweep_config(dataset_family, public_dataaset_pointers,
+                     num_runs=NUM_RUNS, save_artifact=False):
     from ydnpd import ALL_EXPERIMENTS
     from ydnpd.harness.config import EPSILONS
 
     parameters = {
         "run_num": {"values": list(range(num_runs))},
+        "save_artifact": {"value": save_artifact},
         "dp_num_epochs": {"value": 20},
         "dp_batch_size": {"value": 128},
         "dp_lr": {"values": [3e-3, 3e-4]},
@@ -89,10 +91,11 @@ def runner():
         )
         wandb.log(results)
 
-        for model_path in Path(temp_dir).glob("*.pkl"):
-            artifact = wandb.Artifact(model_path.stem, type="model")
-            artifact.add_file(str(model_path))
-            run.log_artifact(artifact)
+        if wandb.config.save_artifact:
+            for model_path in Path(temp_dir).glob("*.pkl"):
+                artifact = wandb.Artifact(model_path.stem, type="model")
+                artifact.add_file(str(model_path))
+                run.log_artifact(artifact)
 
     run.finish()
 
