@@ -149,7 +149,7 @@ class TransformerTrainer:
             if save_path:
                 self.model.save_torch(Path(save_path) / "model.pkl")
 
-            return {"dp": self.evaluate(private_data)}
+            return {"dp/private": self.evaluate(private_data)}
 
         else:
 
