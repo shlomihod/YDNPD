@@ -1,0 +1,36 @@
+\begin{table}[h!]
+    \centering
+    \caption{Mean AUC of the DP model on ACS data after pretraining, grouped by generation method. The mean is calculated across the DP finetuning hyperparameter space when best pretraining hyperparameter configuration is choosen for the pretraining step, with 10 runs per hyperparameter configuration.}
+    \label{tab:epsilon_comparison}
+    \begin{tabular}{lccccc}
+    \toprule
+    Method & $\varepsilon=1$ & $\varepsilon=2$ & $\varepsilon=4$ & $\varepsilon=8$ & $\varepsilon=16$ \\
+    \midrule
+    Without pretraining & 0.738 & 0.743 & 0.743 & 0.748 & 0.749 \\
+    \arrayrulecolor{black!50!}\midrule
+    Public & \cellcolor{gold!30}0.755 & \cellcolor{gold!30}0.756 & \cellcolor{gold!30}0.758 & \cellcolor{silver!30}0.757 & \cellcolor{silver!30}0.759 \\
+    \arrayrulecolor{black!50!}\midrule
+    Baseline (Domain) & 0.715 & 0.687 & 0.738 & 0.745 & 0.750 \\
+    Baseline (Univariate) & 0.731 & 0.706 & 0.747 & 0.749 & 0.751 \\
+    \arrayrulecolor{black!50!}\midrule
+    Arbitrary & 0.741 & 0.746 & 0.746 & 0.750 & 0.751 \\
+    \arrayrulecolor{black!50!}\midrule
+    CSV (Claude 3.5 Sonnet) & 0.747 & \cellcolor{bronze!30}0.751 & \cellcolor{bronze!30}0.755 & \cellcolor{silver!30}0.757 & \cellcolor{bronze!30}0.758 \\
+    CSV (GPT-4o) & \cellcolor{bronze!30}0.751 & \cellcolor{bronze!30}0.751 & \cellcolor{silver!30}0.756 & \cellcolor{gold!30}0.758 & \cellcolor{gold!30}0.761 \\
+    CSV (Llama 3.3 70B) & 0.749 & 0.750 & 0.753 & \cellcolor{bronze!30}0.756 & 0.757 \\
+    \arrayrulecolor{black!50!}\midrule
+    Agent (Claude 3.5 Sonnet MIX-UNIF) & 0.746 & 0.748 & 0.751 & 0.752 & 0.754 \\
+    Agent (Claude 3.5 Sonnet MIX-MAX) & 0.746 & 0.748 & 0.750 & 0.751 & 0.753 \\
+    Agent (GPT-4o MIX-UNIF) & 0.744 & 0.748 & 0.749 & 0.751 & 0.751 \\
+    Agent (GPT-4o MIX-MAX) & 0.743 & 0.746 & 0.749 & 0.750 & 0.754 \\
+    Agent (Llama 3.3 70B MIX-UNIF) & 0.725 & 0.746 & 0.750 & 0.751 & 0.752 \\
+    Agent (Llama 3.3 70B MIX-MAX) & 0.744 & 0.749 & 0.751 & \cellcolor{silver!30}0.757 & 0.757 \\
+    Agent (MIX-UNIF) & \cellcolor{silver!30}0.752 & \cellcolor{silver!30}0.753 & 0.754 & 0.755 & 0.756 \\
+    Agent (MIX-MAX) & 0.749 & 0.750 & 0.750 & 0.752 & 0.755 \\
+    \arrayrulecolor{black!50!}\midrule
+    SD-SCM (GPT-2) & 0.740 & 0.746 & 0.750 & 0.752 & 0.754 \\
+    SD-SCM (Llama 3.1 8B) & 0.744 & 0.749 & 0.750 & 0.755 & 0.755 \\
+    SD-SCM (OLMo 1B) & 0.742 & 0.747 & 0.747 & 0.749 & 0.753 \\
+    \bottomrule
+    \end{tabular}
+\end{table}

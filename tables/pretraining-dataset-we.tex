@@ -1,0 +1,36 @@
+\begin{table}[h!]
+    \centering
+    \caption{Mean AUC of the DP model on WE data after pretraining, grouped by generation method. The mean is calculated across the hyperparameter space when best pretraining hyperparameter configuration is choosen for the pretraining step, with 10 runs per hyperparameter configuration.}
+    \label{tab:epsilon_comparison}
+    \begin{tabular}{lccccc}
+    \toprule
+    Method & $\varepsilon=1$ & $\varepsilon=2$ & $\varepsilon=4$ & $\varepsilon=8$ & $\varepsilon=16$ \\
+    \midrule
+    Without pretraining & 0.532 & 0.554 & 0.579 & 0.631 & 0.658 \\
+    \arrayrulecolor{black!50!}\midrule
+    Public & 0.588 & 0.610 & 0.629 & 0.659 & \cellcolor{bronze!30}0.686 \\
+    \arrayrulecolor{black!50!}\midrule
+    Baseline (Domain) & 0.511 & 0.521 & 0.555 & 0.590 & 0.618 \\
+    Baseline (Univariate) & 0.531 & 0.545 & 0.585 & 0.612 & 0.633 \\
+    \arrayrulecolor{black!50!}\midrule
+    Arbitrary & 0.531 & 0.559 & 0.582 & 0.630 & 0.650 \\
+    \arrayrulecolor{black!50!}\midrule
+    CSV (Claude 3.5 Sonnet) & 0.594 & 0.611 & 0.638 & 0.663 & 0.677 \\
+    CSV (GPT-4o) & 0.577 & 0.600 & 0.624 & 0.656 & 0.674 \\
+    CSV (Llama 3.3 70B) & 0.531 & 0.557 & 0.595 & 0.616 & 0.642 \\
+    \arrayrulecolor{black!50!}\midrule
+    Agent (Claude 3.5 Sonnet MIX-UNIF) & \cellcolor{silver!30}0.635 & \cellcolor{silver!30}0.654 & \cellcolor{gold!30}0.675 & \cellcolor{silver!30}0.691 & \cellcolor{silver!30}0.707 \\
+    Agent (Claude 3.5 Sonnet MIX-MAX) & \cellcolor{gold!30}0.642 & \cellcolor{gold!30}0.660 & \cellcolor{silver!30}0.671 & \cellcolor{gold!30}0.701 & \cellcolor{gold!30}0.709 \\
+    Agent (GPT-4o MIX-UNIF) & 0.526 & 0.553 & 0.589 & 0.617 & 0.638 \\
+    Agent (GPT-4o MIX-MAX) & 0.487 & 0.522 & 0.553 & 0.601 & 0.624 \\
+    Agent (Llama 3.3 70B MIX-UNIF) & 0.528 & 0.562 & 0.600 & 0.628 & 0.654 \\
+    Agent (Llama 3.3 70B MIX-MAX) & 0.518 & 0.545 & 0.591 & 0.620 & 0.640 \\
+    Agent (MIX-UNIF) & \cellcolor{bronze!30}0.595 & \cellcolor{bronze!30}0.615 & \cellcolor{bronze!30}0.641 & \cellcolor{bronze!30}0.664 & 0.679 \\
+    Agent (MIX-MAX) & 0.565 & 0.587 & 0.627 & 0.644 & 0.665 \\
+    \arrayrulecolor{black!50!}\midrule
+    SD-SCM (GPT-2) & 0.533 & 0.559 & 0.588 & 0.609 & 0.647 \\
+    SD-SCM (Llama 3.1 8B) & 0.522 & 0.545 & 0.578 & 0.618 & 0.640 \\
+    SD-SCM (OLMo 1B) & 0.532 & 0.556 & 0.585 & 0.620 & 0.647 \\
+    \bottomrule
+    \end{tabular}
+\end{table}

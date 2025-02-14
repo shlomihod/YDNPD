@@ -1,0 +1,33 @@
+\begin{table}[h!]
+    \centering
+    \caption{Mean AUC of the DP model on EDAD data after pretraining, grouped by generation method. The mean is calculated across the hyperparameter space when best pretraining hyperparameter configuration is choosen for the pretraining step, with 10 runs per hyperparameter configuration.}
+    \label{tab:epsilon_comparison}
+    \begin{tabular}{lccccc}
+    \toprule
+    Method & $\varepsilon=1$ & $\varepsilon=2$ & $\varepsilon=4$ & $\varepsilon=8$ & $\varepsilon=16$ \\
+    \midrule
+    Without pretraining & 0.651 & 0.686 & 0.715 & 0.743 & 0.760 \\
+    \arrayrulecolor{black!50!}\midrule
+    Public & \cellcolor{bronze!30}0.759 & \cellcolor{bronze!30}0.775 & \cellcolor{silver!30}0.790 & \cellcolor{bronze!30}0.798 & \cellcolor{gold!30}0.819 \\
+    \arrayrulecolor{black!50!}\midrule
+    Baseline (Domain) & 0.632 & 0.671 & 0.693 & 0.726 & 0.753 \\
+    Baseline (Univariate) & 0.623 & 0.679 & 0.697 & 0.714 & 0.740 \\
+    \arrayrulecolor{black!50!}\midrule
+    Arbitrary & 0.656 & 0.691 & 0.712 & 0.737 & 0.773 \\
+    \arrayrulecolor{black!50!}\midrule
+    CSV (Claude 3.5 Sonnet) & \cellcolor{gold!30}0.762 & \cellcolor{gold!30}0.779 & \cellcolor{silver!30}0.790 & \cellcolor{silver!30}0.807 & \cellcolor{silver!30}0.817 \\
+    CSV (GPT-4o) & 0.744 & 0.765 & \cellcolor{bronze!30}0.777 & 0.797 & 0.809 \\
+    CSV (Llama 3.3 70B) & \cellcolor{silver!30}0.760 & \cellcolor{silver!30}0.778 & \cellcolor{gold!30}0.791 & \cellcolor{gold!30}0.809 & \cellcolor{bronze!30}0.815 \\
+    \arrayrulecolor{black!50!}\midrule
+    Agent (Claude 3.5 Sonnet MIX-UNIF) & 0.735 & 0.760 & 0.774 & 0.795 & 0.806 \\
+    Agent (Claude 3.5 Sonnet MIX-MAX) & 0.742 & 0.758 & \cellcolor{bronze!30}0.777 & 0.786 & 0.806 \\
+    Agent (GPT-4o MIX-UNIF) & 0.722 & 0.744 & 0.766 & 0.783 & 0.801 \\
+    Agent (GPT-4o MIX-MAX) & 0.724 & 0.747 & 0.759 & 0.785 & 0.799 \\
+    Agent (MIX-UNIF) & 0.732 & 0.753 & 0.766 & 0.792 & 0.805 \\
+    Agent (MIX-MAX) & 0.736 & 0.756 & 0.776 & 0.789 & 0.809 \\
+    \arrayrulecolor{black!50!}\midrule
+    SD-SCM (GPT-2) & 0.638 & 0.688 & 0.711 & 0.733 & 0.761 \\
+    SD-SCM (OLMo 1B) & 0.635 & 0.681 & 0.705 & 0.726 & 0.764 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
