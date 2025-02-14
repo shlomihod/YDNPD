@@ -182,6 +182,18 @@ def generate_synthetic_data(
         )
         synth_df = synthesizer.sample(num_samples)
 
+        # NOTE: one fix, since the synthesizer does not return the same named columns
+        synth_df.columns = dataset.columns
+
+        # NOTE: two fix, make sure the columns are right domain
+        for col in categorical_columns:
+            old_values = schema[col]["values"] 
+            sorted_keys = sorted(old_values.keys())
+            
+            decode_map_int = { i: original_code for i, original_code in enumerate(sorted_keys) }
+            
+            synth_df[col] = synth_df[col].map(decode_map_int)
+
         # let's clear the cache, which is a folder under synthesizer.algo.default_dir
         shutil.rmtree(synthesizer.algo.default_dir, ignore_errors=True)
 
