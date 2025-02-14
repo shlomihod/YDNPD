@@ -10,7 +10,7 @@ NUM_RUNS = 5
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
-SYNTHESIZERS = ["aim_jax", "privbayes"]  # "gem"
+SYNTHESIZERS = ["aim_jax", "privbayes", "gem"]
 
 HPARAMS_DIMS = {
     # this is probably too many parameter combinations...
