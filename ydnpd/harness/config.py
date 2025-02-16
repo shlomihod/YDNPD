@@ -6,7 +6,7 @@ import copy
 
 EPSILONS = [1, 2, 4, 8, 16]
 
-NUM_RUNS = 5
+NUM_RUNS = 10
 
 FIXED_PREPROCESSOR_EPSILON = 0.0
 
