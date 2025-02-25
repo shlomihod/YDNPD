@@ -26,7 +26,8 @@ def df_to_latex_medals(
     lines.append(r"    \centering")
     lines.append(f"    \\caption{{{caption}}}")
     lines.append(f"    \\label{{{label}}}")
-    lines.append(r"    \resizebox{\linewidth}{!}{%")
+    # NOTE: removed resizebox
+    # lines.append(r"    \resizebox{\linewidth}{!}{%")
     lines.append(r"    \begin{tabular}{l" + "c" * len(df.columns) + "}")
     lines.append(r"    \toprule")
 
@@ -41,7 +42,8 @@ def df_to_latex_medals(
         for col in df.columns:
             val = df.loc[idx, col]
 
-            if col in numeric_cols and pd.notnull(val):
+            # if col in numeric_cols and pd.notnull(val):
+            if pd.notnull(df[col]).all():
                 val_str = f"{val:{float_format}}"
 
                 rank_val = ranks.loc[idx, col]
@@ -60,7 +62,7 @@ def df_to_latex_medals(
         lines.append("    " + line)
 
     lines.append(r"    \bottomrule")
-    lines.append(r"    \end{tabular}}")
+    lines.append(r"    \end{tabular}") # NOTE: removed resizebox
     lines.append(r"\end{table}")
 
     latex_str = "\n".join(lines)
@@ -117,8 +119,15 @@ def create_latex_table_with_medals(
         row_vals = [str(idx)]
         for col in df.columns:
             val = df.loc[idx, col]
-            if pd.notnull(val) and col in numeric_cols:
-                val_str = f"{val:{float_format}}"
+            # if pd.notnull(val) and col in numeric_cols:
+            if pd.notnull(df[col]).all():
+                try:
+                    val_str = f"{val:{float_format}}"
+                except Exception as e:
+                    print(f"Error: {val} is not a number.")
+                    print()
+                    raise e
+
                 rank_val = ranks.loc[idx, col]
                 if rank_val == 1:
                     val_str = r"\cellcolor{gold!30}" + val_str
