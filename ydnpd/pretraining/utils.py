@@ -1,6 +1,7 @@
 import os
 import random
 import hashlib
+from typing import Optional
 
 import pandas as pd
 import numpy as np
@@ -130,7 +131,12 @@ def preprocess_data(df, schema, target_column='y',
     )
 
 
-def load_data_for_classification(dataset_pointer: str | tuple, random_state: int = RANDOM_STATE):
+def load_data_for_classification(dataset_pointer: str | tuple,
+                                 subsampling: Optional[float],
+                                 random_state: int = RANDOM_STATE):
+
+    if not (subsampling is None or 0 < subsampling < 1):
+        raise ValueError(f"`subsampling` should be either None or a float between 0 and 1 (not including), and not `{subsampling}")
 
     if isinstance(dataset_pointer, (tuple, list)):
         dataset_name, dataset_path = dataset_pointer
@@ -176,7 +182,9 @@ def load_data_for_classification(dataset_pointer: str | tuple, random_state: int
 
     dataset = pd.concat([df_pos, df_neg])
     dataset = dataset.drop(target_col_name, axis=1)
-    dataset = dataset.sample(frac=1, random_state=random_state).reset_index(drop=True)
+
+    frac = 1 if subsampling is None else subsampling
+    dataset = dataset.sample(frac=frac, random_state=random_state).reset_index(drop=True)
 
     schema_without_target = {col: col_schema for col, col_schema in schema.items()
                              if col != target_col_name}

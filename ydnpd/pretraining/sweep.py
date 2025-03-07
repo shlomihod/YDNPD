@@ -10,7 +10,8 @@ NUM_RUNS = 10
 
 
 def get_sweep_config(dataset_family, public_dataaset_pointers,
-                     num_runs=NUM_RUNS, save_artifact=False):
+                     num_runs=NUM_RUNS, save_artifact=False,
+                     subsampling=False):
     from ydnpd import ALL_EXPERIMENTS
     from ydnpd.harness.config import EPSILONS
 
@@ -23,6 +24,9 @@ def get_sweep_config(dataset_family, public_dataaset_pointers,
         "epsilon": {"values": EPSILONS},
         "private_data_pointer": {"value": ALL_EXPERIMENTS[dataset_family].test_name},
     }
+
+    if subsampling:
+        parameters["subsampling"] = {"values": [0.05, 0.1]}
 
     if public_dataaset_pointers:
         parameters |= {
@@ -87,6 +91,7 @@ def runner():
             pretrain_config=pretrain_config,
             public_data_pointer=public_data_pointer,
             private_data_pointer=wandb.config.private_data_pointer,
+            subsampling=None if not wandb.config.subsampling else float(wandb.config.subsampling),
             save_path=temp_dir,
         )
         wandb.log(results)

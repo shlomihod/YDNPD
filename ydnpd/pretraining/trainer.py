@@ -233,12 +233,15 @@ class TransformerTrainer:
         public_data_pointer: Optional[Union[str, tuple]] = None,
         config: Optional[ModelConfig] = None,
         pretrain_config: Optional[PreTrainConfig] = None,
+        subsampling: Optional[float] = None,
         save_path: Optional[str] = None,
     ) -> dict[str, float]:
         """Convenience method to train and evaluate in one call"""
         trainer = TransformerTrainer(config, pretrain_config)
 
-        private_data = None if private_data_pointer is None else load_data_for_classification(private_data_pointer)
-        public_data = None if public_data_pointer is None else load_data_for_classification(public_data_pointer)
+        private_data = None if private_data_pointer is None else load_data_for_classification(private_data_pointer, subsampling=subsampling)
+        public_data = None if public_data_pointer is None else load_data_for_classification(public_data_pointer, subsampling=subsampling)
 
-        return trainer.execute(private_data=private_data, public_data=public_data, save_path=save_path)
+        return trainer.execute(private_data=private_data,
+                               public_data=public_data,
+                               save_path=save_path)
