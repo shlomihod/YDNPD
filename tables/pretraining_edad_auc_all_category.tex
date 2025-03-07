@@ -1,0 +1,22 @@
+\begin{table}[h!]
+    \centering
+    \caption{Mean AUC of the DP model on EDAD data after pretraining, grouped by generation method category. The mean is calculated across the hyperparameter space, with 10 runs per hyperparameter configuration.}
+    \label{tab:epsilon_comparison}
+    \begin{tabular}{lccccc}
+    \toprule
+    Method Category & $\varepsilon=1$ & $\varepsilon=2$ & $\varepsilon=4$ & $\varepsilon=8$ & $\varepsilon=16$ \\
+    \midrule
+    Without pretraining & 0.651 & 0.686 & 0.715 & 0.743 & 0.760 \\
+    \arrayrulecolor{black!50!}\midrule
+    Public & \cellcolor{gold!30}0.759 & \cellcolor{gold!30}0.775 & \cellcolor{gold!30}0.790 & \cellcolor{silver!30}0.798 & \cellcolor{gold!30}0.819 \\
+    \arrayrulecolor{black!50!}\midrule
+    Baseline & 0.628 & 0.675 & 0.695 & 0.720 & 0.746 \\
+    \arrayrulecolor{black!50!}\midrule
+    Arbitrary & 0.656 & 0.691 & 0.712 & 0.737 & 0.773 \\
+    \arrayrulecolor{black!50!}\midrule
+    CSV & \cellcolor{silver!30}0.756 & \cellcolor{silver!30}0.774 & \cellcolor{silver!30}0.786 & \cellcolor{gold!30}0.804 & \cellcolor{silver!30}0.813 \\
+    Agent & \cellcolor{bronze!30}0.732 & \cellcolor{bronze!30}0.753 & \cellcolor{bronze!30}0.770 & \cellcolor{bronze!30}0.788 & \cellcolor{bronze!30}0.804 \\
+    SD-SCM & 0.635 & 0.681 & 0.705 & 0.726 & 0.764 \\
+    \bottomrule
+    \end{tabular}
+\end{table}

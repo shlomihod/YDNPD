@@ -1,0 +1,22 @@
+\begin{table}[h!]
+    \centering
+    \caption{Mean AUC Advantage of the DP model on WE data after pretraining, grouped by generation method category. The mean is calculated across the DP finetuning hyperparameter space when best pretraining hyperparameter configuration is choosen for the pretraining step, with 10 runs per hyperparameter configuration.}
+    \label{tab:epsilon_comparison}
+    \begin{tabular}{lccccc}
+    \toprule
+    Method Category & $\varepsilon=1$ & $\varepsilon=2$ & $\varepsilon=4$ & $\varepsilon=8$ & $\varepsilon=16$ \\
+    \midrule
+    Without pretraining & 0.532 & 0.554 & 0.579 & 0.631 & 0.658 \\
+    \arrayrulecolor{black!50!}\midrule
+    Public & \cellcolor{gold!30}0.735 & \cellcolor{gold!30}0.733 & \cellcolor{gold!30}0.739 & \cellcolor{gold!30}0.747 & \cellcolor{gold!30}0.764 \\
+    \arrayrulecolor{black!50!}\midrule
+    Baseline & 0.522 & 0.504 & 0.556 & 0.608 & 0.597 \\
+    \arrayrulecolor{black!50!}\midrule
+    Arbitrary & 0.572 & 0.576 & 0.602 & 0.649 & 0.662 \\
+    \arrayrulecolor{black!50!}\midrule
+    CSV & \cellcolor{bronze!30}0.599 & \cellcolor{bronze!30}0.622 & \cellcolor{bronze!30}0.642 & \cellcolor{bronze!30}0.651 & \cellcolor{bronze!30}0.672 \\
+    Agent & \cellcolor{silver!30}0.625 & \cellcolor{silver!30}0.647 & \cellcolor{silver!30}0.665 & \cellcolor{silver!30}0.682 & \cellcolor{silver!30}0.687 \\
+    SD-SCM & 0.533 & 0.544 & 0.582 & 0.626 & 0.654 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
