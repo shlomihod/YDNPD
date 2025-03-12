@@ -28,7 +28,10 @@ def calc_dataset_similarity(datasets: dict[Any, pd.DataFrame], metric: str = DEF
         case _:
             raise ValueError(f"metric {metric} is unkonwn.")
 
-    return (1 - dist_matrix).clip(0, 1)
+    similarity_matrix = (1 - dist_matrix).clip(0, 1)
+    similarity_df = pd.DataFrame(similarity_matrix, columns=datasets.keys(), index=datasets.keys())
+
+    return similarity_df
 
 
 def plot_distribution_distances(

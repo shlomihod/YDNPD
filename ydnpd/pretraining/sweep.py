@@ -26,7 +26,7 @@ def get_sweep_config(dataset_family, public_dataaset_pointers,
     }
 
     if subsampling:
-        parameters["subsampling"] = {"values": [0.05, 0.1, 0.2, 0.5]}
+        parameters["subsampling"] = {"values": [0.2, 0.5]}
 
     if public_dataaset_pointers:
         parameters |= {
