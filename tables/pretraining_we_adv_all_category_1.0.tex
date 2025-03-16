@@ -1,0 +1,21 @@
+\begin{table}[h!]
+    \centering
+    \caption{Mean AUC Advantage of the DP model on WE data after pretraining, grouped by generation method category. The mean is calculated across the hyperparameter space, with 10 runs per hyperparameter configuration.}
+    \label{tab:epsilon_comparison}
+    \begin{tabular}{lccccc}
+    \toprule
+    Method Category & $\varepsilon=1$ & $\varepsilon=2$ & $\varepsilon=4$ & $\varepsilon=8$ & $\varepsilon=16$ \\
+    \midrule
+    Without pretraining & .00 {\small (0.53)} & .00 {\small (0.55)} & .00 {\small (0.58)} & .00 {\small (0.63)} & .00 {\small (0.66)} \\
+    \arrayrulecolor{black!50!}\midrule
+    Public & \cellcolor{gold!30}.06 {\small (0.59)} & \cellcolor{gold!30}.06 {\small (0.61)} & \cellcolor{gold!30}.05 {\small (0.63)} & \cellcolor{gold!30}.03 {\small (0.66)} & \cellcolor{gold!30}.03 {\small (0.69)} \\
+    \arrayrulecolor{black!50!}\midrule
+    Baseline & -.01 {\small (0.52)} & -.02 {\small (0.53)} & -.01 {\small (0.57)} & -.03 {\small (0.60)} & -.03 {\small (0.63)} \\
+    \arrayrulecolor{black!50!}\midrule
+    Arbitrary & .00 {\small (0.53)} & .01 {\small (0.56)} & .00 {\small (0.58)} & .00 {\small (0.63)} & \cellcolor{bronze!30}-.01 {\small (0.65)} \\
+    \arrayrulecolor{black!50!}\midrule
+    CSV & \cellcolor{silver!30}.04 {\small (0.57)} & \cellcolor{silver!30}.04 {\small (0.59)} & \cellcolor{silver!30}.04 {\small (0.62)} & \cellcolor{bronze!30}.01 {\small (0.65)} & \cellcolor{silver!30}.01 {\small (0.66)} \\
+    Agent & \cellcolor{bronze!30}.03 {\small (0.56)} & \cellcolor{bronze!30}.03 {\small (0.59)} & \cellcolor{bronze!30}.04 {\small (0.62)} & \cellcolor{silver!30}.01 {\small (0.65)} & \cellcolor{silver!30}.01 {\small (0.66)} \\
+    \bottomrule
+    \end{tabular}
+\end{table}

@@ -13,8 +13,13 @@ plt.style.use(['science', 'no-latex'])
 PUBLIC_DATASETS = ["acs/massachusetts_upsampled", "edad/2020", "we/2018"]
 CATEGORY_ORDER = ["Without pretraining", "Public", "Baseline", "Arbitrary", "CSV", "Agent"]  #"SD-SCM"]
 
-    
-    # Define category mapping function
+LIMS = {
+    "auc": (0.5, 0.86),
+    "adv": (-0.07, 0.2)
+}
+
+
+# Define category mapping function
 def get_category(pointer, data_prefix):
     if f'{data_prefix}/no-pre' in pointer:
         return 'Without pretraining'
@@ -52,8 +57,14 @@ def extract_method_label(r):
         model = parts[0][:-1].title()
         name =  (
             (model_format[parts[0][:-1]]if parts[0] else "")
+            + ("," if parts[0] else "")
             + f" MIX{parts[1]}"
             ).strip()
+
+        name = (name
+            .replace("MIX-MAX", "Max Cov.")
+            .replace("MIX-UNIF", "Unif.")
+        )
 
     elif dataset_name.startswith("baseline"):
         name = dataset_name.split("_")[1].title()
@@ -139,22 +150,104 @@ def get_color_coding(val: float, col_values: np.ndarray) -> str:
     
     return f'\\cellcolor{{{color_map[rank]}!30}}' if rank in color_map else ''
 
+# def generate_latex_table(
+#     df: pd.DataFrame,
+#     caption: str = "Results by method and epsilon value",
+#     label: str = "tab:epsilon_comparison"
+# ) -> str:
+#     """
+#     Generate a LaTeX table from a pandas DataFrame with color-coding for top 3 values.
+    
+#     Parameters
+#     ----------
+#     df : pd.DataFrame
+#         Must contain:
+#             - 'category' column
+#             - 'eps=X' columns with numeric values
+#         Optional:
+#             - 'Method' column for detailed tables
+#     caption : str
+#         Table caption
+#     label : str
+#         Table label for referencing
+    
+#     Returns
+#     -------
+#     str
+#         LaTeX table code
+#     """
+#     # Validate input
+#     validate_dataframe(df)
+    
+#     # Determine table type and get epsilon columns
+#     is_detailed = 'Method' in df.columns
+#     eps_cols = get_epsilon_columns(df)
+    
+#     # Start building table
+#     latex = [
+#         '\\begin{table}[h!]',
+#         '    \\centering',
+#         f'    \\caption{{{caption}}}',
+#         f'    \\label{{{label}}}',
+#         '    \\begin{tabular}{l' + 'c' * len(eps_cols) + '}',
+#         '    \\toprule'
+#     ]
+    
+#     # Header row
+#     header = ['Method Category' if not is_detailed else 'Method']
+#     header.extend([f'$\\varepsilon={col.split("=")[1]}$' for col in eps_cols])
+#     latex.append('    ' + ' & '.join(header) + ' \\\\')
+#     latex.append('    \\midrule')
+    
+#     # Process data rows
+#     prev_category = None
+#     for idx, row in df.iterrows():
+#         # Add category separator if needed
+#         if ((is_detailed and prev_category is not None and row['category'] != prev_category)
+#         or (not is_detailed and prev_category in {"Without pretraining", "Public", "Baseline", "Arbitrary"})):
+#             latex.append('    \\arrayrulecolor{black!50!}\\midrule')
+        
+#         # Build row content
+#         row_latex = [row['Method'] if is_detailed else row['category']]
+#         for col in eps_cols:
+#             val = row[col]
+#             color = get_color_coding(val, df[col].values)
+#             row_latex.append(f'{color}{val:.3f}')
+#         latex.append('    ' + ' & '.join(row_latex) + ' \\\\')
+        
+#         # if is_detailed:
+#         prev_category = row['category']
+    
+#     # Close table
+#     latex.extend([
+#         '    \\bottomrule',
+#         '    \\end{tabular}',
+#         '\\end{table}'
+#     ])
+    
+#     return '\n'.join(latex)
+
+
 def generate_latex_table(
     df: pd.DataFrame,
+    advantage_df: pd.DataFrame,
     caption: str = "Results by method and epsilon value",
     label: str = "tab:epsilon_comparison"
 ) -> str:
     """
     Generate a LaTeX table from a pandas DataFrame with color-coding for top 3 values.
+    Each cell contains advantage value and the AUC value in parentheses (smaller font).
     
     Parameters
     ----------
     df : pd.DataFrame
-        Must contain:
+        Original AUC values. Must contain:
             - 'category' column
             - 'eps=X' columns with numeric values
         Optional:
             - 'Method' column for detailed tables
+    advantage_df : pd.DataFrame
+        Advantage values (matching structure to df)
     caption : str
         Table caption
     label : str
@@ -171,6 +264,15 @@ def generate_latex_table(
     # Determine table type and get epsilon columns
     is_detailed = 'Method' in df.columns
     eps_cols = get_epsilon_columns(df)
+    
+    # Create lookup for advantage values
+    advantage_lookup = {}
+    for idx, row in advantage_df.iterrows():
+        category = row['category']
+        method = row.get('Method', None)  # Get Method if it exists
+        
+        key = (category, method) if is_detailed else category
+        advantage_lookup[key] = {col: row[col] for col in eps_cols}
     
     # Start building table
     latex = [
@@ -198,14 +300,42 @@ def generate_latex_table(
         
         # Build row content
         row_latex = [row['Method'] if is_detailed else row['category']]
+        
         for col in eps_cols:
-            val = row[col]
-            color = get_color_coding(val, df[col].values)
-            row_latex.append(f'{color}{val:.3f}')
+            auc_val = row[col]
+            
+            # Get advantage value
+            key = (row['category'], row.get('Method', None)) if is_detailed else row['category']
+            advantage_val = 0.0  # Default for "Without pretraining"
+            
+            if key in advantage_lookup:
+                advantage_val = advantage_lookup[key].get(col, 0.0)
+            
+            # Format values - round to 2 decimal places and handle special cases
+            auc_formatted = f"{auc_val:.2f}"
+            
+            # Handle negative zero case in advantage values and use .XX format
+            if abs(advantage_val) < 0.005:  # This will catch -0.00 cases
+                advantage_formatted = ".00"
+            else:
+                # Remove leading zero for decimal values
+                advantage_formatted = f"{advantage_val:.2f}".replace("0.", ".")
+            
+            # Get color coding based on advantage value (for non-baseline)
+            color = ""
+            if row['category'] != "Without pretraining":
+                # Get all advantage values for this column except "Without pretraining"
+                all_adv_values = [v.get(col, 0.0) for k, v in advantage_lookup.items() 
+                                 if (isinstance(k, tuple) and k[0] != "Without pretraining") or 
+                                    (not isinstance(k, tuple) and k != "Without pretraining")]
+                color = get_color_coding(advantage_val, all_adv_values)
+            
+            # Construct cell with advantage value and AUC in smaller parentheses
+            cell = f"{color}{advantage_formatted} {{\small ({auc_formatted})}}"
+            row_latex.append(cell)
         
         latex.append('    ' + ' & '.join(row_latex) + ' \\\\')
         
-        # if is_detailed:
         prev_category = row['category']
     
     # Close table
@@ -217,6 +347,7 @@ def generate_latex_table(
     
     return '\n'.join(latex)
 
+
 METHOD_ORDER = ['Without pretraining',
  'Public',
  'Baseline (Domain)',
@@ -225,36 +356,73 @@ METHOD_ORDER = ['Without pretraining',
  'CSV (Claude 3.5 Sonnet)',
  'CSV (GPT-4o)',
  'CSV (Llama 3.3 70B)',
- 'Agent (Claude 3.5 Sonnet MIX-UNIF)',
- 'Agent (Claude 3.5 Sonnet MIX-MAX)',
- 'Agent (GPT-4o MIX-UNIF)',
- 'Agent (GPT-4o MIX-MAX)',
- 'Agent (Llama 3.3 70B MIX-UNIF)',
- 'Agent (Llama 3.3 70B MIX-MAX)',
- 'Agent (MIX-UNIF)',
- 'Agent (MIX-MAX)',
+ 'Agent (Claude 3.5 Sonnet, Unif.)',
+ 'Agent (Claude 3.5 Sonnet, Max Cov.)',
+ 'Agent (GPT-4o, Unif.)',
+ 'Agent (GPT-4o, Max Cov.)',
+ 'Agent (Llama 3.3 70B, Unif.)',
+ 'Agent (Llama 3.3 70B, Max Cov.)',
+ 'Agent (Unif.)',
+ 'Agent (Max Cov.)',
 #  'SD-SCM (GPT-2)',
 #  'SD-SCM (Llama 3.1 8B)',
 #  'SD-SCM (OLMo 1B)'
 ]
 
+# def build_table(plot_df, viz_unit, x_axis):
+
+#     paper_df = (plot_df
+#     .groupby([x_axis, 'category'] + (['public_data_pointer'] if viz_unit == "dataset" else []))[
+#         "dp/private.test/auc"]
+#         .mean()
+#         .round(3)
+#         .unstack(level=0)
+#         .reset_index()
+#         )
+
+#     if viz_unit == "dataset":
+#         df = (paper_df
+#         .assign(Method=pd.Categorical(paper_df.apply(extract_method_label, axis=1), categories=METHOD_ORDER, ordered=True))
+#         .drop(columns=["public_data_pointer"])
+#         .sort_values("Method")
+#         .reset_index(drop=True)
+#         )
+
+#         df = df[["category", "Method"] + [col for col in df.columns if col not in {"Method", "category"}]]
+#         df.columns = ["category", "Method"] + [fr"eps={col}" for col in df.columns[2:]]
+
+#     else:
+#         df = (paper_df
+#         .assign(category=pd.Categorical(paper_df["category"], categories=CATEGORY_ORDER, ordered=True))
+#         .sort_values("category")
+#         .reset_index(drop=True)
+#         )
+
+#         df = df[["category"] + [col for col in df.columns if col not in {"category"}]]
+#         df.columns = ["category"] + [fr"eps={col}" for col in df.columns[1:]]
+
+
+#     return df
+
+
 def build_table(plot_df, viz_unit, x_axis):
-
+    # First, compute the original AUC table
     paper_df = (plot_df
-    .groupby([x_axis, 'category'] + (['public_data_pointer'] if viz_unit == "dataset" else []))[
-        "dp/private.test/auc"]
-        .mean()
-        .round(3)
-        .unstack(level=0)
-        .reset_index()
-        )
+        .groupby([x_axis, 'category'] + (['public_data_pointer'] if viz_unit == "dataset" else []))[
+            "dp/private.test/auc"]
+            .mean()
+            .round(3)
+            .unstack(level=0)
+            .reset_index()
+    )
 
+    # Build the original table
     if viz_unit == "dataset":
         df = (paper_df
-        .assign(Method=pd.Categorical(paper_df.apply(extract_method_label, axis=1), categories=METHOD_ORDER, ordered=True))
-        .drop(columns=["public_data_pointer"])
-        .sort_values("Method")
-        .reset_index(drop=True)
+            .assign(Method=pd.Categorical(paper_df.apply(extract_method_label, axis=1), categories=METHOD_ORDER, ordered=True))
+            .drop(columns=["public_data_pointer"])
+            .sort_values("Method")
+            .reset_index(drop=True)
         )
 
         df = df[["category", "Method"] + [col for col in df.columns if col not in {"Method", "category"}]]
@@ -262,20 +430,75 @@ def build_table(plot_df, viz_unit, x_axis):
 
     else:
         df = (paper_df
-        .assign(category=pd.Categorical(paper_df["category"], categories=CATEGORY_ORDER, ordered=True))
-        .sort_values("category")
-        .reset_index(drop=True)
+            .assign(category=pd.Categorical(paper_df["category"], categories=CATEGORY_ORDER, ordered=True))
+            .sort_values("category")
+            .reset_index(drop=True)
         )
 
         df = df[["category"] + [col for col in df.columns if col not in {"category"}]]
         df.columns = ["category"] + [fr"eps={col}" for col in df.columns[1:]]
 
+    # Now, compute the advantage table using the same approach
+    
+    # First, get the raw data grouped the same way as the original table
+    adv_plot_df = plot_df.copy()
+    
+    # Calculate the "Without pretraining" reference values for each epsilon
+    baseline_data = {}
+    for eps_val in adv_plot_df[x_axis].unique():
+        baseline_mask = (adv_plot_df[x_axis] == eps_val) & (adv_plot_df['category'] == 'Without pretraining')
+        if baseline_mask.any():
+            baseline_data[eps_val] = adv_plot_df.loc[baseline_mask, 'dp/private.test/auc'].mean()
+    
+    # Apply the advantage calculation: subtract baseline from each corresponding epsilon value
+    for eps_val, baseline_value in baseline_data.items():
+        # For non-baseline categories, subtract the baseline value
+        mask = (adv_plot_df[x_axis] == eps_val) & (adv_plot_df['category'] != 'Without pretraining')
+        adv_plot_df.loc[mask, 'dp/private.test/auc'] -= baseline_value
+        
+        # For the "Without pretraining" category, set values to 0
+        mask_baseline = (adv_plot_df[x_axis] == eps_val) & (adv_plot_df['category'] == 'Without pretraining')
+        adv_plot_df.loc[mask_baseline, 'dp/private.test/auc'] = 0.0
+    
+    # Keep "Without pretraining" rows, but they will be zeros
+    
+    # Now follow the same approach as the original table
+    adv_paper_df = (adv_plot_df
+        .groupby([x_axis, 'category'] + (['public_data_pointer'] if viz_unit == "dataset" else []))[
+            "dp/private.test/auc"]
+            .mean()
+            .round(3)
+            .unstack(level=0)
+            .reset_index()
+    )
+    
+    # Build the advantage table with the same structure as the original
+    if viz_unit == "dataset":
+        adv_df = (adv_paper_df
+            .assign(Method=pd.Categorical(adv_paper_df.apply(extract_method_label, axis=1), categories=METHOD_ORDER, ordered=True))
+            .drop(columns=["public_data_pointer"])
+            .sort_values("Method")
+            .reset_index(drop=True)
+        )
 
-    return df
+        adv_df = adv_df[["category", "Method"] + [col for col in adv_df.columns if col not in {"Method", "category"}]]
+        adv_df.columns = ["category", "Method"] + [fr"eps={col}" for col in adv_df.columns[2:]]
+
+    else:
+        adv_df = (adv_paper_df
+            .assign(category=pd.Categorical(adv_paper_df["category"], categories=CATEGORY_ORDER, ordered=True))
+            .sort_values("category")
+            .reset_index(drop=True)
+        )
+
+        adv_df = adv_df[["category"] + [col for col in adv_df.columns if col not in {"category"}]]
+        adv_df.columns = ["category"] + [fr"eps={col}" for col in adv_df.columns[1:]]
+    
+    return df, adv_df
 
 def plot_metrics(data_prefix, runs_df, viz_unit, is_adv=False, no_dp_results=None,
                 caption=None, x_axis="epsilon",
-                 with_legend=True, figsize=(10, 6)):
+                 with_legend=True, logscale=True, figsize=(10, 6)):
     """
     Create a line plot showing AUC vs Epsilon for different dataset categories,
     with a horizontal line showing the non-DP baseline performance.
@@ -387,15 +610,42 @@ def plot_metrics(data_prefix, runs_df, viz_unit, is_adv=False, no_dp_results=Non
             legend_labels.append(category)
 
         # Customize the plot
-        ax.set_xscale('log')
+        if logscale:
+            ax.set_xscale('log')
         ax.set_xlabel(x_axis.title())
-        ax.set_ylabel('AUC')
+        ax.set_ylabel('AUC' + (' Advantage' if is_adv else ''))
         # ax.set_title(f'AUC vs Epsilon by Dataset ({data_prefix.upper()} Data)')
+
+        if is_adv:
+            ax.set_ylim(LIMS['adv'])
+        else:
+            ax.set_ylim(LIMS['auc'])
 
         # Set x-axis ticks
         unique_x_axis_values = sorted(plot_data[x_axis].unique())
         ax.set_xticks(unique_x_axis_values)
-        ax.set_xticklabels(unique_x_axis_values)
+
+        # Format tick labels to drop leading zeros for float values
+        formatted_xticks = []
+        for val in unique_x_axis_values:
+            if isinstance(val, float):
+                if 0 < val < 1:
+                    # Drop the leading zero for decimal values less than 1
+                    # Use the original precision (don't round)
+                    val_str = str(val).replace("0.", ".")
+                    formatted_xticks.append(val_str)
+                elif val.is_integer():
+                    # Convert float values like 1.0, 2.0 to integers
+                    formatted_xticks.append(str(int(val)))
+                else:
+                    # Keep other float values as they are
+                    formatted_xticks.append(str(val))
+            else:
+                # Keep non-float values as they are
+                formatted_xticks.append(str(val))
+
+        ax.set_xticklabels(formatted_xticks)
+        # ax.set_xticklabels(unique_x_axis_values)
         
         # Add horizontal line for no-DP baseline if needed
         if no_dp_results is not None and data_prefix in no_dp_results:
@@ -427,8 +677,10 @@ def plot_metrics(data_prefix, runs_df, viz_unit, is_adv=False, no_dp_results=Non
 
     fig = plotter(plot_data)
 
-    paper_df = build_table(plot_data, viz_unit, x_axis)
-    tab = generate_latex_table(paper_df, caption=caption)
+    auc_paper_df, advantage_paper_df = build_table(plot_data, viz_unit, x_axis)
+    print(auc_paper_df)
+    print(advantage_paper_df)
+    tab = generate_latex_table(auc_paper_df, advantage_paper_df, caption=caption) if x_axis == "epsilon" else None
 
     return fig, tab, plot_data
 

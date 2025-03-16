@@ -1,0 +1,21 @@
+\begin{table}[h!]
+    \centering
+    \caption{Mean AUC of the DP model on ACS data after pretraining, grouped by generation method category. The mean is calculated across the hyperparameter space, with 10 runs per hyperparameter configuration.}
+    \label{tab:epsilon_comparison}
+    \begin{tabular}{lccccc}
+    \toprule
+    Method Category & $\varepsilon=1$ & $\varepsilon=2$ & $\varepsilon=4$ & $\varepsilon=8$ & $\varepsilon=16$ \\
+    \midrule
+    Without pretraining & .00 {\small (0.61)} & .00 {\small (0.65)} & .00 {\small (0.66)} & .00 {\small (0.68)} & .00 {\small (0.70)} \\
+    \arrayrulecolor{black!50!}\midrule
+    Public & \cellcolor{silver!30}.06 {\small (0.68)} & \cellcolor{silver!30}.04 {\small (0.69)} & \cellcolor{silver!30}.04 {\small (0.70)} & \cellcolor{silver!30}.03 {\small (0.71)} & \cellcolor{gold!30}.02 {\small (0.71)} \\
+    \arrayrulecolor{black!50!}\midrule
+    Baseline & .03 {\small (0.64)} & .01 {\small (0.65)} & .01 {\small (0.67)} & .00 {\small (0.68)} & -.01 {\small (0.69)} \\
+    \arrayrulecolor{black!50!}\midrule
+    Arbitrary & .01 {\small (0.62)} & .00 {\small (0.65)} & .01 {\small (0.67)} & .00 {\small (0.68)} & .01 {\small (0.70)} \\
+    \arrayrulecolor{black!50!}\midrule
+    CSV & \cellcolor{gold!30}.07 {\small (0.68)} & \cellcolor{gold!30}.04 {\small (0.69)} & \cellcolor{gold!30}.04 {\small (0.70)} & \cellcolor{gold!30}.03 {\small (0.71)} & \cellcolor{silver!30}.02 {\small (0.71)} \\
+    Agent & \cellcolor{bronze!30}.05 {\small (0.67)} & \cellcolor{bronze!30}.03 {\small (0.68)} & \cellcolor{bronze!30}.03 {\small (0.69)} & \cellcolor{bronze!30}.02 {\small (0.70)} & \cellcolor{bronze!30}.01 {\small (0.71)} \\
+    \bottomrule
+    \end{tabular}
+\end{table}
