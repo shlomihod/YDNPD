@@ -1,5 +1,7 @@
+import itertools as it
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import pandas as pd
 import seaborn as sns
@@ -8,6 +10,7 @@ from sklearn.manifold import TSNE
 from scipy.spatial.distance import cdist
 from ydata_profiling import ProfileReport, compare
 
+from ydnpd.harness.evaluation import calc_k_marginals_abs_diff_errors
 
 DEFAULT_DISTANCE_METRIC = "total_variation"
 
@@ -25,6 +28,12 @@ def calc_dataset_similarity(datasets: dict[Any, pd.DataFrame], metric: str = DEF
             dist_matrix = cdist(probs_df.T, probs_df.T, metric='cityblock') / 2
         case "jensenshannon":
             dist_matrix = cdist(probs_df.T, probs_df.T, metric='jensenshannon')
+        case "3_way_marginals":
+            # creata a distance matrix for 3-way marginals
+            dist_matrix = np.zeros((len(datasets), len(datasets)))
+            for (idx1, df1), (idx2, df2) in it.combinations(enumerate(datasets.values()), 2):
+                dist_matrix[idx1, idx2] = calc_k_marginals_abs_diff_errors(df1, df2, marginals_k=3)["marginals_3_avg_abs_diff_error"]
+                dist_matrix[idx2, idx1] = dist_matrix[idx1, idx2]
         case _:
             raise ValueError(f"metric {metric} is unkonwn.")
 
@@ -49,35 +58,52 @@ def plot_distribution_distances(
         figsize: Size of the figure as (width, height)
     """
     # Compute distance matrix
-    dist_matrix = calc_dataset_similarity(datasets, metric)
 
-    # Extract base labels (e.g., "label_1" -> "label")
+    dist_matrix = (calc_dataset_similarity(datasets, metric))
     labels = list(datasets.keys())
-    base_labels = [str(label).rsplit('_', 1)[0] if '_' in str(label) else str(label)
-                  for label in labels]
 
     # 1. Clustered Heatmap
     g = sns.clustermap(
-        dist_matrix,
+        dist_matrix.iloc[:-1, 1:].multiply(100).round(1),
         row_cluster=with_clustering,
         col_cluster=with_clustering,
+        mask=(np.tril(np.ones_like(dist_matrix, dtype=bool))[:-1, 1:]),
         cmap="magma",
         vmin=0,
-        vmax=1,
-        xticklabels=labels,
-        yticklabels=labels,
+        vmax=100,
+        annot=True,
+        fmt="g",
+        annot_kws={'size': 12},
+        xticklabels=labels[1:],
+        yticklabels=labels[:-1],
         figsize=(10, 10),
-        cbar_kws={'label': f'{metric.title()} Distance'},
         dendrogram_ratio=0.1,
-        cbar_pos=(0.02, 0.8, 0.05, 0.18),
+        
+        cbar_pos=(0.8, 0.3, 0.03, 0.5),
     )
 
+    g.ax_heatmap.tick_params(axis='x', labelsize=12) 
+    g.ax_heatmap.tick_params(axis='y', labelsize=12)
+
     # Rotate axis labels
-    g.ax_heatmap.set_xticklabels(g.ax_heatmap.get_xticklabels(), rotation=45, ha='right')
+    g.ax_heatmap.set_xticklabels(g.ax_heatmap.get_xticklabels(), 
+                             rotation=45,
+                             ha='left',
+                             rotation_mode='anchor')
+    g.ax_heatmap.tick_params(axis='x', pad=10)
+
     g.ax_heatmap.set_yticklabels(g.ax_heatmap.get_yticklabels(), rotation=0)
-    plt.suptitle(f'Hierarchically Clustered {metric.title()} Distance', y=1.02)
+
+    # # Move x-axis labels to the top
+    g.ax_heatmap.xaxis.tick_top()
+    g.ax_heatmap.xaxis.set_label_position('top')
+
+    # # Move y-axis labels to the right
+    g.ax_heatmap.yaxis.tick_left()
+    g.ax_heatmap.yaxis.set_label_position('left')
 
     return g
+
 
     # 2. 2D TSNE
     # coords_2d = TSNE(
