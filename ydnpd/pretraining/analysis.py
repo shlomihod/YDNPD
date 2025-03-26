@@ -18,6 +18,18 @@ LIMS = {
     "adv": (-0.07, 0.2)
 }
 
+    # Define color mapping
+color_map = {
+    'Without pretraining': 'red',
+    'Baseline': 'grey',
+    'Arbitrary': 'blue',
+    'Public': 'magenta',
+    'Arbitrary': 'blue',                 # Keep blue
+    'CSV': '#228B22',                    # Green (X)
+    "Agent": '#FF8C00',                  # Orange (Y)
+    # 'SD-SCM': '#8B4513'                  # Brown (Z)
+}
+
 
 # Define category mapping function
 def get_category(pointer, data_prefix):
@@ -35,6 +47,7 @@ def get_category(pointer, data_prefix):
         return 'Agent'
     # elif f'{data_prefix}/sdscm' in pointer:
         # return 'SD-SCM'
+
 
 def extract_method_label(r):
     model_format = {"gpt": "GPT-4o",
@@ -74,17 +87,6 @@ def extract_method_label(r):
 
     return r["category"] + (f" ({name})" if name else "")
 
-    # Define color mapping
-color_map = {
-    'Without pretraining': 'red',
-    'Baseline': 'grey',
-    'Arbitrary': 'blue',
-    'Public': 'magenta',
-    'Arbitrary': 'blue',                 # Keep blue
-    'CSV': '#228B22',                    # Green (X)
-    "Agent": '#FF8C00',                  # Orange (Y)
-    # 'SD-SCM': '#8B4513'                  # Brown (Z)
-}
 
 def validate_dataframe(df: pd.DataFrame) -> None:
     """
@@ -227,7 +229,6 @@ def get_color_coding(val: float, col_values: np.ndarray) -> str:
     
 #     return '\n'.join(latex)
 
-
 def generate_latex_table(
     df: pd.DataFrame,
     advantage_df: pd.DataFrame,
@@ -312,7 +313,8 @@ def generate_latex_table(
                 advantage_val = advantage_lookup[key].get(col, 0.0)
             
             # Format values - round to 2 decimal places and handle special cases
-            auc_formatted = f"{auc_val:.2f}"
+            # Drop leading zero for AUC value
+            auc_formatted = f"{auc_val:.2f}".replace("0.", ".")
             
             # Handle negative zero case in advantage values and use .XX format
             if abs(advantage_val) < 0.005:  # This will catch -0.00 cases
@@ -657,6 +659,13 @@ def plot_metrics(data_prefix, runs_df, viz_unit, is_adv=False, no_dp_results=Non
 
         # Set legend with custom handles
         # ax.legend(legend_handles, legend_labels)
+
+        if is_adv:
+            hline_style = {'linestyle': '--', 'color': 'red', 'linewidth': LINEWIDTH_LARGE}
+            ax.axhline(y=0, **hline_style)
+            legend_handles.append(plt.Line2D([0], [0], **hline_style))
+            legend_labels.append("Without pretraining")
+
 
         if with_legend:
             ax.legend(legend_handles, legend_labels,
