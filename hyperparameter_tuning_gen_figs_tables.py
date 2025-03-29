@@ -405,24 +405,55 @@ for (synth_name, epsilon, reference_dataset_name), group_df in df_combined.group
                 # chosen_row = best_ds_rows.iloc[0]  # pick first in tie
                 # chosen_hparams_str = chosen_row["hparams_str"]
 
-                chosen_val_on_dataset, chosen_hparams_str = find_best_performance_rows(ds_group_df, metric)
+                # chosen_val_on_dataset, chosen_hparams_str = find_best_performance_rows(ds_group_df, metric)
 
 
-                # now we see if that same hparams_str is present in the reference df
-                ref_match = ref_df[ref_df["hparams_str"] == chosen_hparams_str]
-                if ref_match.empty:
-                    # means reference never had that exact set of hyperparams
-                    raise ValueError(f"reference dataset has no hyperparams {chosen_hparams_str} for metric {metric}")
+                # # now we see if that same hparams_str is present in the reference df
+                # ref_match = ref_df[ref_df["hparams_str"] == chosen_hparams_str]
+                # if ref_match.empty:
+                #     # means reference never had that exact set of hyperparams
+                #     raise ValueError(f"reference dataset has no hyperparams {chosen_hparams_str} for metric {metric}")
 
+                def use_reference_hyperparameters(ds_group_df, metric, best_hparams, ds_name):
+                    chosen_hparams_str = best_hparams
+                    
+                    # Check if these hyperparameters exist for current dataset
+                    ds_match = ds_group_df[ds_group_df["hparams_str"] == chosen_hparams_str]
+                    if ds_match.empty:
+                        raise ValueError(f"dataset {ds_name} has no hyperparams {chosen_hparams_str} for metric {metric}")
+                    
+                    # Calculate performance on current dataset using reference hyperparameters
+                    chosen_val_on_dataset = ds_match[metric].abs().mean()
+                    
+                    return chosen_val_on_dataset, chosen_hparams_str
+
+                chosen_val_on_dataset, chosen_hparams_str = use_reference_hyperparameters(
+                    ds_group_df, 
+                    metric, 
+                    best_hparams, 
+                    ds_name
+                )
+
+                # Performance using reference hyperparameters
+                perf_on_ref = chosen_val_on_dataset  
+
+                # Find best possible performance on this dataset
+                best_possible_val, _ = find_best_performance_rows(ds_group_df, metric)
+
+                # Calculate degradation relative to best possible
+                if best_possible_val == 0:
+                    degradation_on_ref = 0
+                else:
+                    degradation_on_ref = (perf_on_ref - best_possible_val) / abs(best_possible_val)
                 # how does it perform on the reference dataset?
                 # before row_in_ref = ref_match.iloc[0]
                 # instead, now, set row_in_ref
                 # print(len(ref_match[metric].values))
                 # print()
-                perf_on_ref = ref_match[metric].abs().mean()
+                # perf_on_ref = ref_match[metric].abs().mean()
 
                 # get the "true best" value for that metric
-                (true_best_val, _, best_hparams) = true_best_performance[metric]
+                # (true_best_val, _, best_hparams) = true_best_performance[metric]
 
                 # define percent_degradation = (candidate - best) / abs(best), if best != 0, else 0
                 metric_group = metric_to_group[metric]
