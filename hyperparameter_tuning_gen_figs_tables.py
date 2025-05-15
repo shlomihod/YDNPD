@@ -32,14 +32,9 @@ for x in utility_tasks_results:
     if type(x["evaluation"]["error_rate_diff"]) == list:
         assert len(x["evaluation"]["error_rate_diff"]) == 1
         x["evaluation"]["error_rate_diff"] = x["evaluation"]["error_rate_diff"][0]
-# keep only results where dataset name contains "acs"
-# acs_results = [x for x in utility_tasks_results if "acs" in x["dataset_name"].lower()]
 
-# also get rid of results where dataset name contains "sdscm"
 utility_tasks_results = [x for x in utility_tasks_results if "sdscm" not in x["dataset_name"].lower()]
 
-# check which metrics are nan for which datasets
-# NOTE: there are some datasets for which there are more nans. we will just not include...
 missing_metrics = {}
 for x in utility_tasks_results:
     for metric in EVALUATION_METRICS:
@@ -95,40 +90,40 @@ metric_group_map = {
 we_method_name_map = {
     "we/2018": "Public",
     "we/2023": "Private",
-    "we/arbitrary": "Arbitrary (Baseline)",
+    "we/arbitrary": "Arbitrary",
     "we/baseline_domain": "Domain (Baseline)",
     "we/baseline_univariate": "Univariate (Baseline)",
-    "we/csv-claude": "CSV (Claude)",
-    "we/csv-gpt": "CSV (GPT)",
-    "we/csv-llama": "CSV (LLaMA)",
+    "we/csv-claude": "CSV (Claude 3.5 Sonnet)",
+    "we/csv-gpt": "CSV (GPT-4o)",
+    "we/csv-llama": "CSV (Llama 3.3 70B)",
     "we/gen-MIX-MAX": "Agent (All, Max Cov.)",
     "we/gen-MIX-UNIF": "Agent (All, Unif.)",
-    "we/gen-claude-MIX-MAX": "Agent (Claude, Max Cov.)",
-    "we/gen-claude-MIX-UNIF": "Agent (Claude, Unif.)",
-    "we/gen-gpt-MIX-MAX": "Agent (GPT, Max Cov.)",
-    "we/gen-gpt-MIX-UNIF": "Agent (GPT, Unif.)",
-    "we/gen-llama-MIX-MAX": "Agent (LLaMA, Max Cov.)",
-    "we/gen-llama-MIX-UNIF": "Agent (LLaMA, Unif.)",
+    "we/gen-claude-MIX-MAX": "Agent (Claude 3.5 Sonnet, Max Cov.)",
+    "we/gen-claude-MIX-UNIF": "Agent (Claude 3.5 Sonnet, Unif.)",
+    "we/gen-gpt-MIX-MAX": "Agent (GPT-4o, Max Cov.)",
+    "we/gen-gpt-MIX-UNIF": "Agent (GPT-4o, Unif.)",
+    "we/gen-llama-MIX-MAX": "Agent (Llama 3.3 70B, Max Cov.)",
+    "we/gen-llama-MIX-UNIF": "Agent (Llama 3.3 70B, Unif.)",
     "we/sdscm-gpt2": "SDSCM (GPT-2)",
     "we/sdscm-llama-3-8b": "SDSCM (LLaMA-3 8B)",
     "we/sdscm-olmo-1b-hf": "SDSCM (OLMO-1B HF)"
 }
 
 acs_method_name_map = {
-    "acs/arbitrary": "Arbitrary (Baseline)",
+    "acs/arbitrary": "Arbitrary",
     "acs/baseline_domain": "Domain (Baseline)",
     "acs/baseline_univariate": "Univariate (Baseline)",
-    "acs/csv-claude": "CSV (Claude)",
-    "acs/csv-gpt": "CSV (GPT)",
-    "acs/csv-llama": "CSV (LLaMA)",
+    "acs/csv-claude": "CSV (Claude 3.5 Sonnet)",
+    "acs/csv-gpt": "CSV (GPT-4o)",
+    "acs/csv-llama": "CSV (Llama 3.3 70B)",
     "acs/gen-MIX-MAX": "Agent (All, Max Cov.)",
     "acs/gen-MIX-UNIF": "Agent (All, Unif.)",
-    "acs/gen-claude-MIX-MAX": "Agent (Claude, Max Cov.)",
-    "acs/gen-claude-MIX-UNIF": "Agent (Claude, Unif.)",
-    "acs/gen-gpt-MIX-MAX": "Agent (GPT, Max Cov.)",
-    "acs/gen-gpt-MIX-UNIF": "Agent (GPT, Unif.)",
-    "acs/gen-llama-MIX-MAX": "Agent (LLaMA, Max Cov.)",
-    "acs/gen-llama-MIX-UNIF": "Agent (LLaMA, Unif.)",
+    "acs/gen-claude-MIX-MAX": "Agent (Claude 3.5 Sonnet, Max Cov.)",
+    "acs/gen-claude-MIX-UNIF": "Agent (Claude 3.5 Sonnet, Unif.)",
+    "acs/gen-gpt-MIX-MAX": "Agent (GPT-4o, Max Cov.)",
+    "acs/gen-gpt-MIX-UNIF": "Agent (GPT-4o, Unif.)",
+    "acs/gen-llama-MIX-MAX": "Agent (Llama 3.3 70B, Max Cov.)",
+    "acs/gen-llama-MIX-UNIF": "Agent (Llama 3.3 70B, Unif.)",
     "acs/massachusetts_upsampled": "Public",
     "acs/national": "Private",
     "acs/sdscm-gpt2": "SDSCM (GPT-2)",
@@ -139,20 +134,20 @@ acs_method_name_map = {
 edad_method_name_map = {
     "edad/2020": "Public",
     "edad/2023": "Private",
-    "edad/arbitrary": "Arbitrary (Baseline)",
+    "edad/arbitrary": "Arbitrary",
     "edad/baseline_domain": "Domain (Baseline)",
     "edad/baseline_univariate": "Univariate (Baseline)",
-    "edad/csv-claude": "CSV (Claude)",
-    "edad/csv-gpt": "CSV (GPT)",
-    "edad/csv-llama": "CSV (LLaMA)",
+    "edad/csv-claude": "CSV (Claude 3.5 Sonnet)",
+    "edad/csv-gpt": "CSV (GPT-4o)",
+    "edad/csv-llama": "CSV (Llama 3.3 70B)",
     "edad/gen-MIX-MAX": "Agent (All, Max Cov.)",
     "edad/gen-MIX-UNIF": "Agent (All, Unif.)",
-    "edad/gen-claude-MIX-MAX": "Agent (Claude, Max Cov.)",
-    "edad/gen-claude-MIX-UNIF": "Agent (Claude, Unif.)",
-    "edad/gen-gpt-MIX-MAX": "Agent (GPT, Max Cov.)",
-    "edad/gen-gpt-MIX-UNIF": "Agent (GPT, Unif.)",
-    "edad/gen-llama-MIX-MAX": "Agent (LLaMA, Max Cov.)",
-    "edad/gen-llama-MIX-UNIF": "Agent (LLaMA, Unif.)",
+    "edad/gen-claude-MIX-MAX": "Agent (Claude 3.5 Sonnet, Max Cov.)",
+    "edad/gen-claude-MIX-UNIF": "Agent (Claude 3.5 Sonnet, Unif.)",
+    "edad/gen-gpt-MIX-MAX": "Agent (GPT-4o, Max Cov.)",
+    "edad/gen-gpt-MIX-UNIF": "Agent (GPT-4o, Unif.)",
+    "edad/gen-llama-MIX-MAX": "Agent (Llama 3.3 70B, Max Cov.)",
+    "edad/gen-llama-MIX-UNIF": "Agent (Llama 3.3 70B, Unif.)",
     "edad/sdscm-gpt2": "SDSCM (GPT-2)",
     "edad/sdscm-llama-3-8b": "SDSCM (LLaMA-3 8B)",
     "edad/sdscm-olmo-1b-hf": "SDSCM (OLMO-1B HF)"
@@ -164,20 +159,20 @@ rename_map = {
 }
 
 method_grouping = {
-    "Arbitrary (Baseline)": "Arbitrary",
+    "Arbitrary": "Arbitrary",
     "Domain (Baseline)": "Baseline",
     "Univariate (Baseline)": "Baseline",
-    "CSV (Claude)": "CSV",
-    "CSV (GPT)": "CSV",
-    "CSV (LLaMA)":  "CSV",
+    "CSV (Claude 3.5 Sonnet)": "CSV",
+    "CSV (GPT-4o)": "CSV",
+    "CSV (Llama 3.3 70B)":  "CSV",
     "Agent (All, Max Cov.)": "Agent",
     "Agent (All, Unif.)": "Agent",
-    "Agent (LLaMA, Max Cov.)": "Agent",
-    "Agent (LLaMA, Unif.)": "Agent",
-    "Agent (Claude, Max Cov.)": "Agent",
-    "Agent (Claude, Unif.)": "Agent",
-    "Agent (GPT, Max Cov.)": "Agent",
-    "Agent (GPT, Unif.)": "Agent",
+    "Agent (Llama 3.3 70B, Max Cov.)": "Agent",
+    "Agent (Llama 3.3 70B, Unif.)": "Agent",
+    "Agent (Claude 3.5 Sonnet, Max Cov.)": "Agent",
+    "Agent (Claude 3.5 Sonnet, Unif.)": "Agent",
+    "Agent (GPT-4o, Max Cov.)": "Agent",
+    "Agent (GPT-4o, Unif.)": "Agent",
     "SDSCM (GPT-2)": "SDSCM",
     "SDSCM (LLaMA-3 8B)": "SDSCM",
     "SDSCM (OLMO-1B HF)":  "SDSCM",
@@ -196,21 +191,8 @@ grouping_colors = {
     "Agent": "#FF8C00",
     # brown
     "SDSCM": "#8B4513",
-    # other should be magenta
     "Other": "black"
 }
-
-# color_map = {
-#         'Without pretraining': 'red',
-#         'Baseline': 'grey',
-#         'Arbitrary': 'blue',
-#         'Public': 'magenta',
-#     'Arbitrary': 'blue',                 # Keep blue
-#     'CSV': '#228B22',                    # Green (X)
-#     "Agent": '#FF8C00',                  # Orange (Y)
-#     'SD-SCM': '#8B4513'                  # Brown (Z)
-#     }
-
 
 METRIC_GROUPS = {
     "marginals_metrics": [
@@ -252,11 +234,6 @@ df_combined = pd.concat(
     axis=1
 )
 
-# group by hparams_str, take the mean
-# df_combined = df_combined[['hparams_str', 'synth_name', 'epsilon', 'dataset_name'] + list(METRIC_DIRECTION.keys())].groupby(['hparams_str', 'synth_name', 'epsilon', 'dataset_name']).mean().reset_index()
-
-df_combined = df_combined
-
 def get_reference_dataset_name(ds_name):
     if ds_name.startswith("acs/"):
         return reference_data_mapping["acs"]
@@ -269,39 +246,18 @@ def get_reference_dataset_name(ds_name):
 
 df_combined["reference_dataset_name"] = df_combined["dataset_name"].apply(get_reference_dataset_name)
 
-# def find_best_performance_rows(subdf, metric):
-#     direction = METRIC_DIRECTION[metric]
-#     if direction == "closer_to_zero_is_better":
-#         # print out all rows for a unique hparams_str
-#         for hparams_str, group_df in subdf.groupby("hparams_str"):
-#             print(f"hparams_str: {hparams_str}")
-#             print(group_df[["dataset_name", metric]])
-
-
-#         best_val = subdf[metric].abs().min()
-#         best_hparams_str = subdf[subdf[metric].abs() == best_val]["hparams_str"].iloc[0]
-#         print(subdf[metric].abs())
-#         print()
-#         return subdf[subdf[metric].abs() == best_val], best_hparams_str
-#     else:
-#         raise ValueError(f"everything is closer_to_zero_is_better now")
 
 def find_best_performance_rows(subdf, metric):
-    """
-    Identify which hyperparams (hparams_str) yield the best
-    *average* performance (closest to zero) for the given metric.
-    Return (best_val, best_hparams_str).
-    """
     direction = METRIC_DIRECTION[metric]
     if direction == "closer_to_zero_is_better":
-        # For each hyperparam, compute mean(abs(metric))
+        # for each hyperparam, compute mean(abs(metric))
         grouped_mean_abs = (
             subdf
             .groupby("hparams_str")[metric]
             .apply(lambda x: x.abs().mean())  # average over seeds
         )
         best_val = grouped_mean_abs.min()
-        # If there's a tie, we just take the first
+        # if there's a tie, we just take the first
         best_hparams_strs = grouped_mean_abs[grouped_mean_abs == best_val].index
         best_hparams_str = best_hparams_strs[0]
         return best_val, best_hparams_str
@@ -310,74 +266,6 @@ def find_best_performance_rows(subdf, metric):
     
 rows_for_report = []
 
-###############
-# # skipped tracker
-# skipped = {}
-# group_cols = ["synth_name", "epsilon", "reference_dataset_name"]
-# for (synth_name, epsilon, reference_dataset_name), group_df in df_combined.groupby(group_cols):
-#     # identify the reference dataset within this group
-#     ref_df = group_df[group_df["dataset_name"] == reference_dataset_name]
-#     if ref_df.empty:
-#         continue
-
-#     # find the 'true best performance' for each metric in that reference subset
-#     true_best_performance = {}
-#     for metric in METRIC_DIRECTION.keys():
-#         best_rows, best_hparams = find_best_performance_rows(ref_df, metric)
-#         # just pick the first row in case of tie
-#         best_row = best_rows.iloc[0]
-#         true_best_val = np.abs(best_row[metric])
-#         true_best_performance[metric] = (true_best_val, best_row, best_hparams)
-
-#     # for each dataset in the group, figure out which hyperparams you'd pick
-#     for ds_name, ds_group_df in group_df.groupby("dataset_name"):
-
-#         # then do that for each metric (or each metric block)
-#         for metric in METRIC_DIRECTION.keys():
-#             try:
-#                 best_ds_rows, _ = find_best_performance_rows(ds_group_df, metric)
-#                 chosen_row = best_ds_rows.iloc[0]  # pick first in tie
-#                 chosen_hparams_str = chosen_row["hparams_str"]
-
-#                 # now we see if that same hparams_str is present in the reference df
-#                 ref_match = ref_df[ref_df["hparams_str"] == chosen_hparams_str]
-#                 if ref_match.empty:
-#                     # means reference never had that exact set of hyperparams
-#                     raise ValueError(f"reference dataset has no hyperparams {chosen_hparams_str} for metric {metric}")
-
-#                 # how does it perform on the reference dataset?
-#                 row_in_ref = ref_match.iloc[0]
-#                 perf_on_ref = np.abs(row_in_ref[metric])
-
-#                 # get the "true best" value for that metric
-#                 (true_best_val, _, best_hparams) = true_best_performance[metric]
-
-#                 # define percent_degradation = (candidate - best) / abs(best), if best != 0, else 0
-#                 if true_best_val == 0:
-#                     pct_degradation = 0
-#                 else:
-#                     pct_degradation = (perf_on_ref - true_best_val) / abs(true_best_val)
-
-#                 # store in our report
-#                 rows_for_report.append({
-#                     "synth_name": synth_name,
-#                     "epsilon": epsilon,
-#                     "dataset_name": ds_name,
-#                     "metric": metric,
-#                     "chosen_hparams_str": chosen_hparams_str,
-#                     "chosen_val_on_dataset": np.abs(chosen_row[metric]),
-#                     "perf_on_reference": perf_on_ref,
-#                     "true_best_on_reference": true_best_val,
-#                     "pct_degradation_on_ref": pct_degradation,
-#                     "best_hparams": best_hparams,
-#                     "reference_dataset_name": reference_dataset_name,
-#                 })
-#             except Exception as e:
-#                 print(f"skipping {synth_name}, {epsilon}, {ds_name}, {metric}: {e}")
-#                 if (synth_name, epsilon, ds_name, metric) not in skipped:
-#                     skipped[(synth_name, epsilon, ds_name, metric)] = 0
-#                 skipped[(synth_name, epsilon, ds_name, metric)] += 1
-###############
 
 
 # skipped tracker
@@ -401,65 +289,25 @@ for (synth_name, epsilon, reference_dataset_name), group_df in df_combined.group
         # then do that for each metric (or each metric block)
         for metric in METRIC_DIRECTION.keys():
             try:
-                # best_ds_rows, _ = find_best_performance_rows(ds_group_df, metric)
-                # chosen_row = best_ds_rows.iloc[0]  # pick first in tie
-                # chosen_hparams_str = chosen_row["hparams_str"]
+                chosen_val_on_dataset, chosen_hparams_str = find_best_performance_rows(ds_group_df, metric)
 
-                # chosen_val_on_dataset, chosen_hparams_str = find_best_performance_rows(ds_group_df, metric)
+                ref_match = ref_df[ref_df["hparams_str"] == chosen_hparams_str]
+                if ref_match.empty:
+                    # means reference never had that exact set of hyperparams
+                    raise ValueError(f"reference dataset has no hyperparams {chosen_hparams_str} for metric {metric}")
 
-
-                # # now we see if that same hparams_str is present in the reference df
-                # ref_match = ref_df[ref_df["hparams_str"] == chosen_hparams_str]
-                # if ref_match.empty:
-                #     # means reference never had that exact set of hyperparams
-                #     raise ValueError(f"reference dataset has no hyperparams {chosen_hparams_str} for metric {metric}")
-
-                def use_reference_hyperparameters(ds_group_df, metric, best_hparams, ds_name):
-                    chosen_hparams_str = best_hparams
-                    
-                    # Check if these hyperparameters exist for current dataset
-                    ds_match = ds_group_df[ds_group_df["hparams_str"] == chosen_hparams_str]
-                    if ds_match.empty:
-                        raise ValueError(f"dataset {ds_name} has no hyperparams {chosen_hparams_str} for metric {metric}")
-                    
-                    # Calculate performance on current dataset using reference hyperparameters
-                    chosen_val_on_dataset = ds_match[metric].abs().mean()
-                    
-                    return chosen_val_on_dataset, chosen_hparams_str
-
-                chosen_val_on_dataset, chosen_hparams_str = use_reference_hyperparameters(
-                    ds_group_df, 
-                    metric, 
-                    best_hparams, 
-                    ds_name
-                )
-
-                # Performance using reference hyperparameters
-                perf_on_ref = chosen_val_on_dataset  
-
-                # Find best possible performance on this dataset
-                best_possible_val, _ = find_best_performance_rows(ds_group_df, metric)
-
-                # Calculate degradation relative to best possible
-                if best_possible_val == 0:
-                    degradation_on_ref = 0
-                else:
-                    degradation_on_ref = (perf_on_ref - best_possible_val) / abs(best_possible_val)
                 # how does it perform on the reference dataset?
                 # before row_in_ref = ref_match.iloc[0]
                 # instead, now, set row_in_ref
-                # print(len(ref_match[metric].values))
-                # print()
-                # perf_on_ref = ref_match[metric].abs().mean()
+                perf_on_ref = ref_match[metric].abs().mean()
 
                 # get the "true best" value for that metric
-                # (true_best_val, _, best_hparams) = true_best_performance[metric]
+                (true_best_val, _, best_hparams) = true_best_performance[metric]
 
                 # define percent_degradation = (candidate - best) / abs(best), if best != 0, else 0
                 metric_group = metric_to_group[metric]
                 if metric_group == "classification_metrics":
                     # for classification, do absolute difference
-                    # (the user specifically asked for absolute difference instead of ratio)
                     degradation_on_ref = abs(perf_on_ref - true_best_val)
                     # print('Classification')
                     # print(f'perf_on_ref: {perf_on_ref}')
@@ -468,7 +316,6 @@ for (synth_name, epsilon, reference_dataset_name), group_df in df_combined.group
                     # print()
 
                 else:
-                    # For correlation/marginals, still do ratio
                     if true_best_val == 0:
                         degradation_on_ref = 0
                     else:
@@ -505,105 +352,12 @@ for group, metrics in METRIC_GROUPS.items():
 # metric_group to column to report_df
 report_df['metric_group'] = report_df['metric'].map(metric_to_group)
 
-# def facet_plot_builder(df, method_name_map, plot_name="facet_plot"):
-#     df_for_plotting = df.copy()
-#     with plt.style.context(['science']):
-#         plt.rc('text', usetex=False)
-#         long_data = []
-#         for ds_name in df_for_plotting.index:
-#             row = df_for_plotting.loc[ds_name]
-            
-#             long_data.append({
-#                 "dataset_name": ds_name,
-#                 "metric_group": "Classification",
-#                 "mean": row["mean_class"],
-#                 "std": row["std_class"],
-#             })
-#             long_data.append({
-#                 "dataset_name": ds_name,
-#                 "metric_group": "Correlation",
-#                 "mean": row["mean_corr"],
-#                 "std": row["std_corr"],
-#             })
-#             long_data.append({
-#                 "dataset_name": ds_name,
-#                 "metric_group": "Marginals",
-#                 "mean": row["mean_marg"],
-#                 "std": row["std_marg"],
-#             })
-
-#         plot_df = pd.DataFrame(long_data)
-        
-#         plot_df["dataset_name_label"] = plot_df["dataset_name"].map(method_name_map).fillna(plot_df["dataset_name"])
-
-#         # trick to get the facet grid sorting right
-#         plot_df = plot_df.sort_values(by=["metric_group", "mean"], ascending=[True, False])
-
-#         plot_df["method_group"] = (
-#             plot_df["dataset_name_label"]
-#             .map(method_grouping)
-#             .fillna("Other")
-#         )
-
-#         g = sns.FacetGrid(
-#             data=plot_df,
-#             col="metric_group",
-#             col_wrap=3,
-#             sharex=False,
-#             sharey=False,
-#             height=5
-#         )
-
-#         # get x-axis limits
-#         x_min = plot_df["mean"].min()
-
-#         def barplot_with_errorbars(data, color=None, label=None, **kwargs):
-#             ax = plt.gca()
-#             for idx, row in data.iterrows():
-#                 grp = row["method_group"]
-#                 c = grouping_colors.get(grp, grouping_colors['Other'])  # fallback color
-#                 ax.barh(
-#                     y=row["dataset_name_label"],
-#                     width=row["mean"],
-#                     xerr=row["std"],      # error bar
-#                     color=c,
-#                     capsize=0.1
-#                 )
-
-#         g.map_dataframe(barplot_with_errorbars)
-
-#         for ax in g.axes.flat:
-#             for label in ax.get_yticklabels():
-#                 label.set_rotation(0)
-#             # check which metric group
-#             metric_group = ax.get_title().split(" = ")[1]
-#             ax.set_ylabel("Method")
-#             if metric_group == "Classification":
-#                 ax.set_xlabel("Avg. Absolute Degradation")
-#             else:
-#                 ax.set_xlabel("Avg. % Degradation")
-#             x_max = plot_df[plot_df["metric_group"] == metric_group]["mean"].max()
-#             ax.set_xlim(0, x_max)
-
-#         for ax, title in zip(g.axes.flat, g.col_names):
-#             ax.set_title(title)
-
-#         plt.tight_layout()
-#         # save the plot with descriptive name to plots folder
-#         plt.savefig(f"plots/{plot_name}.pdf", bbox_inches="tight")
 
 def facet_plot_builder(df, method_name_map, plot_name="facet_plot"):
-    """
-    1) Produces the original granular bar plot (one bar per dataset).
-    2) Also produces an aggregated overview bar plot (averaging across method_group).
-    """
     df_for_plotting = df.copy()
     with plt.style.context(['science']):
         plt.rc('text', usetex=False)
 
-        # ------------------------
-        #  A) ORIGINAL GRANULAR PLOT
-        # ------------------------
         long_data = []
         for ds_name in df_for_plotting.index:
             row = df_for_plotting.loc[ds_name]
@@ -670,20 +424,21 @@ def facet_plot_builder(df, method_name_map, plot_name="facet_plot"):
                     capsize=0.1
                 )
 
-        # Map our custom barplot function
         g.map_dataframe(barplot_with_errorbars)
 
-        # Tweak each facet’s axes
         for ax in g.axes.flat:
             for label_ in ax.get_yticklabels():
-                label_.set_rotation(0)
+                label_.set_rotation(30)
             metric_group = ax.get_title().split(" = ")[1]
 
-            ax.set_ylabel("Method")
+            ax.set_ylabel("")
             if metric_group == "Classification":
-                ax.set_xlabel("Avg. Absolute Degradation")
+                ax.set_xlabel("Avg. Abs. Degradation")
             else:
                 ax.set_xlabel("Avg. % Degradation")
+
+            # y-axis label fontsize
+            ax.yaxis.label.set_size(14)
 
             x_max = plot_df[plot_df["metric_group"] == metric_group]["mean"].max()
             ax.set_xlim(0, x_max)
@@ -694,22 +449,15 @@ def facet_plot_builder(df, method_name_map, plot_name="facet_plot"):
         plt.savefig(f"plots/{plot_name}.pdf", bbox_inches="tight")
         plt.close()  # close the figure so we can make a second one
 
-        # ----------------------------------------
-        #  B) OVERVIEW PLOT (AGGREGATED BY method_group)
-        # ----------------------------------------
-        # Group by metric_group + method_group, average 'mean' and 'std'
-        # (we do a naive arithmetic mean of std as you requested, 
-        #  but be aware that's not the “standard error”.)
+        # group by metric_group + method_group, average 'mean' and 'std'
+        # (we do a naive arithmetic mean of std, not the “standard error”.)
         agg_plot_df = (
             plot_df
             .groupby(["metric_group", "method_group"], as_index=False)
             .agg({"mean": "mean", "std": "mean"})
         )
-        # Now each row is (metric_group, method_group, mean, std)
 
-        # We want one FacetGrid again, but each col is metric_group,
-        # and y=method_group in the bar plot
-        # So pivot wide or just do a manual approach
+        # want one FacetGrid again, but each col is metric_group,
         agg_plot_df = agg_plot_df.sort_values(by=["metric_group", "mean"], ascending=[True, False])
 
         g2 = sns.FacetGrid(
