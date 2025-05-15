@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-# TODO: update with better name matching, etc.
 def df_to_latex_medals(
     df,
     caption = "default caption",
@@ -22,10 +21,10 @@ def df_to_latex_medals(
 
     lines = []
 
-    lines.append(r"\begin{table}[t!]")
-    lines.append(r"    \centering")
-    lines.append(f"    \\caption{{{caption}}}")
-    lines.append(f"    \\label{{{label}}}")
+    # lines.append(r"\begin{table}[t!]")
+    # lines.append(r"    \centering")
+    # lines.append(f"    \\caption{{{caption}}}")
+    # lines.append(f"    \\label{{{label}}}")
     # NOTE: removed resizebox
     # lines.append(r"    \resizebox{\linewidth}{!}{%")
     lines.append(r"    \begin{tabular}{l" + "c" * len(df.columns) + "}")
@@ -63,7 +62,7 @@ def df_to_latex_medals(
 
     lines.append(r"    \bottomrule")
     lines.append(r"    \end{tabular}") # NOTE: removed resizebox
-    lines.append(r"\end{table}")
+    # lines.append(r"\end{table}")
 
     latex_str = "\n".join(lines)
     return latex_str
@@ -102,10 +101,10 @@ def create_latex_table_with_medals(
         ranks[col] = df[col].rank(method='dense', ascending=not largest_is_better)
     
     lines = []
-    lines.append(r"\begin{table}[t!]")
-    lines.append(r"    \centering")
-    lines.append(f"    \\caption{{{caption}}}")
-    lines.append(f"    \\label{{{label}}}")
+    # lines.append(r"\begin{table}[t!]")
+    # lines.append(r"    \centering")
+    # lines.append(f"    \\caption{{{caption}}}")
+    # lines.append(f"    \\label{{{label}}}")
     
     column_alignment = "l" + "c" * len(df.columns)
     lines.append(f"    \\begin{{tabular}}{{{column_alignment}}}")
@@ -143,7 +142,7 @@ def create_latex_table_with_medals(
     
     lines.append(r"    \bottomrule")
     lines.append(r"    \end{tabular}")
-    lines.append(r"\end{table}")
+    # lines.append(r"\end{table}")
     
     latex_str = "\n".join(lines)
     return latex_str
