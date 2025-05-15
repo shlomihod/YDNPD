@@ -51,10 +51,10 @@
     {
       "@id": "arbitrary.csv",
       "@type": "sc:FileObject",
-      "contentUrl": "https://raw.githubusercontent.com/shlomihod/YDNPD/refs/heads/main/ydnpd/datasets/data/acs/arbitrary.csv",
+      "contentUrl": "https://raw.githubusercontent.com/shlomihod/YDNPD/refs/heads/main/ydnpd/datasets/data/edad/arbitrary.csv",
       "encodingFormat": "text/csv",
       "name": "arbitrary.csv",
-      "sha256": "2f4faae3946832fadfcfe946bd8476534581c35b997969e5ab14d2dd68955632"
+      "sha256": "3df57bbf7e7bc288ccb0f904a82e6227d728afb5214e7cffa72ebfee1ba4d915"
     }
   ],
   "license": "https://opensource.org/licenses/MIT",
@@ -67,11 +67,11 @@
         {
           "@type": "cr:Field",
           "dataType": "sc:Integer",
-          "description": "Housing unit rented or owned",
-          "name": "OWN_RENT",
+          "description": "State of health",
+          "name": "D_1",
           "source": {
             "extract": {
-              "column": "OWN_RENT"
+              "column": "D_1"
             },
             "fileObject": {
               "@id": "arbitrary.csv"
@@ -81,11 +81,11 @@
         {
           "@type": "cr:Field",
           "dataType": "sc:Integer",
-          "description": "Person's Race",
-          "name": "RAC1P",
+          "description": "Has significant difficulty reading standard newspaper print",
+          "name": "VISI_2_1",
           "source": {
             "extract": {
-              "column": "RAC1P"
+              "column": "VISI_2_1"
             },
             "fileObject": {
               "@id": "arbitrary.csv"
@@ -95,53 +95,11 @@
         {
           "@type": "cr:Field",
           "dataType": "sc:Integer",
-          "description": "Housing unit or group quarters",
-          "name": "HOUSING_TYPE",
+          "description": "Autonomous Community",
+          "name": "CCAA",
           "source": {
             "extract": {
-              "column": "HOUSING_TYPE"
-            },
-            "fileObject": {
-              "@id": "arbitrary.csv"
-            }
-          }
-        },
-        {
-          "@type": "cr:Field",
-          "dataType": "sc:Text",
-          "description": "Person's total income rank (with respect to their state) discretized into 10% bins",
-          "name": "PINCP_DECILE",
-          "source": {
-            "extract": {
-              "column": "PINCP_DECILE"
-            },
-            "fileObject": {
-              "@id": "arbitrary.csv"
-            }
-          }
-        },
-        {
-          "@type": "cr:Field",
-          "dataType": "sc:Text",
-          "description": "Marital Status",
-          "name": "MSP",
-          "source": {
-            "extract": {
-              "column": "MSP"
-            },
-            "fileObject": {
-              "@id": "arbitrary.csv"
-            }
-          }
-        },
-        {
-          "@type": "cr:Field",
-          "dataType": "sc:Text",
-          "description": "Educational attainment",
-          "name": "EDU",
-          "source": {
-            "extract": {
-              "column": "EDU"
+              "column": "CCAA"
             },
             "fileObject": {
               "@id": "arbitrary.csv"
@@ -151,11 +109,109 @@
         {
           "@type": "cr:Field",
           "dataType": "sc:Integer",
-          "description": "Person's gender",
-          "name": "SEX",
+          "description": "Has significant difficulty handling and moving objects, using hands and arms without aids and without supervision",
+          "name": "MOVI_25_1",
           "source": {
             "extract": {
-              "column": "SEX"
+              "column": "MOVI_25_1"
+            },
+            "fileObject": {
+              "@id": "arbitrary.csv"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "Marital status",
+          "name": "ECIVIL",
+          "source": {
+            "extract": {
+              "column": "ECIVIL"
+            },
+            "fileObject": {
+              "@id": "arbitrary.csv"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "Highest level of education completed",
+          "name": "ESTUDIO",
+          "source": {
+            "extract": {
+              "column": "ESTUDIO"
+            },
+            "fileObject": {
+              "@id": "arbitrary.csv"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "Age group of the person with disability",
+          "name": "EDAD",
+          "source": {
+            "extract": {
+              "column": "EDAD"
+            },
+            "fileObject": {
+              "@id": "arbitrary.csv"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "Nationality",
+          "name": "NACIO",
+          "source": {
+            "extract": {
+              "column": "NACIO"
+            },
+            "fileObject": {
+              "@id": "arbitrary.csv"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "Has significant difficulty walking or moving around outside the center without aids and without supervision",
+          "name": "MOVI_22_1",
+          "source": {
+            "extract": {
+              "column": "MOVI_22_1"
+            },
+            "fileObject": {
+              "@id": "arbitrary.csv"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "Gender of the person with disability",
+          "name": "SEXO",
+          "source": {
+            "extract": {
+              "column": "SEXO"
+            },
+            "fileObject": {
+              "@id": "arbitrary.csv"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "Has significant difficulty walking or moving around within the center without aids and without supervision",
+          "name": "MOVI_21_1",
+          "source": {
+            "extract": {
+              "column": "MOVI_21_1"
             },
             "fileObject": {
               "@id": "arbitrary.csv"
