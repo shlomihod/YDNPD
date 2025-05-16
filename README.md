@@ -42,6 +42,12 @@ Complete results are available in the results folder
 
 Raw evaluation results and LLM/Agent-based method traces were collected via Weights & Biases: [agent traces](https://wandb.ai/shlomihod/ydnpd-data_gen_agent/weave), [pretraining raw results](https://wandb.ai/shlomihod/ydnpd-dp-ft), [harness raw results](https://wandb.ai/shlomihod/ydnpd-harness).
 
-## Memorization Test
+## Additional Notebooks
+
+### Similarity Analysis
+
+The `similarity.ipynb` provides similarity analysis between private and (traditional and surrogate) public datasets and among all datasets.
+
+### Memorization Test
 
 The `memorization.ipynb` provides the full execution of Brodt et al. methods on the three raw datasets as they are available on the internet (ACS, EDAD, WE) and the three LLMs used in this work (Claude 3.5 Sonnet, GPT-4o, Llama 3.3 70B).
