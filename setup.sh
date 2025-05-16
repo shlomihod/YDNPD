@@ -36,12 +36,12 @@ source $HOME/miniconda3/bin/activate
 
 # Create conda environment from environment.yaml
 echo "Creating conda environment..."
-conda env create -n shlomi-yndpd -f environment.yaml
+conda env create -n yndpd -f environment.yaml
 
 # Install ipykernel in the new environment
 echo "Installing Jupyter kernel..."
-conda activate shlomi-yndpd
-python -m ipykernel install --user --name=shlomi-yndpd
+conda activate yndpd
+python -m ipykernel install --user --name=yndpd
 
 # Compile PrivBayes
 echo "Compiling PrivBayes..."
@@ -72,4 +72,4 @@ else
     exit 1
 fi
 
-echo "Setup complete! To activate the environment, use: conda activate shlomi-yndpd"
+echo "Setup complete! To activate the environment, use: conda activate yndpd"
