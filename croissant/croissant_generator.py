@@ -157,21 +157,22 @@ def generate_croissant_jsonl(data_csv_path, metadata_json_path, output_jsonl_pat
 if __name__ == "__main__":
     base_url = "https://raw.githubusercontent.com/shlomihod/YDNPD/refs/heads/main/ydnpd/datasets/data"
     for ds in ["acs", "we", "edad"]:
-        data_csv      = f"{base_url}/{ds}/arbitrary.csv"
-        metadata_json = f"{base_url}/{ds}/metadata.json"
-        output_file   = f"{ds}_croissant.json"
-        generate_croissant_jsonl(data_csv, metadata_json, output_file)
-        print(f"gen {output_file}")
-        try:
-            res = subprocess.run(
-                ["mlcroissant", "validate", "--jsonld", output_file],
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            print(f"[OK]   {ds}:")
-            print(res.stdout)
-        except subprocess.CalledProcessError as e:
-            print(f"[ERR]  {ds} ({output_file}) failed validation:")
-            print(e.stdout)
-            print(e.stderr)
+        for baseline in  ["baseline_domain", "baseline_univariate", "arbitrary"]:
+            data_csv      = f"{base_url}/{ds}/{baseline}.csv"
+            metadata_json = f"{base_url}/{ds}/metadata.json"
+            output_file   = f"{ds}_{baseline}_croissant.json"
+            generate_croissant_jsonl(data_csv, metadata_json, output_file)
+            print(f"gen {output_file}")
+            try:
+                res = subprocess.run(
+                    ["mlcroissant", "validate", "--jsonld", output_file],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"[OK]   {ds}:")
+                print(res.stdout)
+            except subprocess.CalledProcessError as e:
+                print(f"[ERR]  {ds} ({output_file}) failed validation:")
+                print(e.stdout)
+                print(e.stderr)
