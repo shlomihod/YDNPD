@@ -10,6 +10,8 @@ Run the bash script to set up the environment:
 ./setup.sh  # (on Linux)
 ```
 
+Create an `.env` file at the root of this repository with the following keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `TOGETHER_API_KEY`.
+
 ## Design
 
 The codebase performs two main tasks:
